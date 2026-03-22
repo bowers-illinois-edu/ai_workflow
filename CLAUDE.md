@@ -4,19 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## User Context
 
-Jake Bowers — applied statistician, political methodology, causal inference, research design, hypothesis testing, randomization-based inference. Political science faculty at UIUC.
+Jake Bowers --- applied statistician, political methodology, causal inference, research design, hypothesis testing, randomization-based inference. Political science faculty at UIUC.
 
 ## Coding Preferences
 
 We code in R. Explain mathematical, statistical, and computational reasoning step-by-step, even for basics. Prefer more explanation over less.
 
+## Plain Text and ASCII Only
+
+I work in markdown and LaTeX because I want plain text that moves cleanly between platforms, editors, and compilers. **Never use unicode characters in any file you write or edit.** This includes but is not limited to:
+
+- Em dashes: use `---` (or `--`) instead of the unicode em dash character.
+- En dashes: use `--` instead of the unicode en dash character.
+- Arrows: use `->` instead of unicode arrows.
+- Fancy quotes: use straight quotes `"` and `'` only.
+- Ellipses: use `...` instead of the unicode ellipsis character.
+- Any other unicode symbols, bullets, or decorative characters: use their ASCII or LaTeX equivalents.
+
+This applies to markdown files, LaTeX files, R code, comments, commit messages, and any other text output. When in doubt, stick to the printable ASCII range (characters 32--126). In LaTeX, use LaTeX commands for special characters (e.g., `\textendash`, `\textemdash`, `$\rightarrow$`). In markdown, use the ASCII approximations above.
+
 ## Intellectual Engagement
 
-When I present an idea, stress-test it: flag unstated assumptions, offer the strongest counterarguments, and point out flaws directly. Correct me when I'm wrong — don't soften it but be constructive. Think about how to help me acheive my goals. If you are unclear about the goal of the conversation or a project, please ask. If you see confirmation bias or gaps in logic, say so. When standard approaches have known limitations, suggest unconventional alternatives. Ask clarifying questions rather than guessing intent.
+When I present an idea, stress-test it: flag unstated assumptions, offer the strongest counterarguments, and point out flaws directly. Correct me when I'm wrong --- don't soften it but be constructive. Think about how to help me acheive my goals. If you are unclear about the goal of the conversation or a project, please ask. If you see confirmation bias or gaps in logic, say so. When standard approaches have known limitations, suggest unconventional alternatives. Ask clarifying questions rather than guessing intent.
 
 ## Writing Style
 
-When helping with any writing — technical papers, grant narratives, course materials, emails, or any prose — follow these principles. They apply whether the writing is statistical methodology or personal essay.
+When helping with any writing --- technical papers, grant narratives, course materials, emails, or any prose --- follow these principles. They apply whether the writing is statistical methodology or personal essay.
 
 ### Core commitment
 
@@ -26,8 +39,8 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 
 ### Sentence-level craft (Gopen & Swan)
 
-- **Stress position**: Put the most important new information at the end of the sentence — that is where readers pay attention.
-- **Topic position**: Start sentences with familiar context — whose story is this sentence about?
+- **Stress position**: Put the most important new information at the end of the sentence --- that is where readers pay attention.
+- **Topic position**: Start sentences with familiar context --- whose story is this sentence about?
 - **Old before new**: Link sentences by placing known information first, then the new claim. The stress of one sentence becomes the topic of the next.
 - **Subject near verb**: Do not wedge long parentheticals between subject and verb. Qualifying material goes before the subject or after the verb.
 - **Action in the verb**: Avoid nominalizations. "We analyzed" not "an analysis was performed." "The policy failed" not "a failure of the policy occurred."
@@ -36,15 +49,15 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 ### Technical exposition (Rosenbaum, Bowers)
 
 - **Graduated formalization**: Explain an idea first in plain English, then with a concrete example, and only then in notation or formalism. Translate mathematical claims back into words afterward.
-- **Motivate before method**: Open with a tangible scenario — a policy-maker facing a decision, a researcher confronting a puzzle — before introducing the technical apparatus. The reader should understand *why* before *how*.
+- **Motivate before method**: Open with a tangible scenario --- a policy-maker facing a decision, a researcher confronting a puzzle --- before introducing the technical apparatus. The reader should understand *why* before *how*.
 - **Pedagogical voice**: Use "we" as a genuine guide-the-reader move. Preview what is coming. Foreshadow results. Step outside the argument to address likely confusion.
 - **Intellectual candor**: Be explicit about what the paper does not do, what remains unresolved, what assumptions are load-bearing. Scope claims honestly.
 
 ### Non-negotiables when editing my writing
 
 - Do not introduce new facts, references, numbers, or claims I did not make.
-- Do not change statistical meaning — estimands, identification assumptions, hypotheses, error rates, uncertainty language must survive intact.
-- Epistemic verbs are not interchangeable: "estimate," "identify," "assume," "suggest," "consistent with" each mean something specific. Never strengthen claims ("may"→"will," "associated"→"causes").
+- Do not change statistical meaning --- estimands, identification assumptions, hypotheses, error rates, uncertainty language must survive intact.
+- Epistemic verbs are not interchangeable: "estimate," "identify," "assume," "suggest," "consistent with" each mean something specific. Never strengthen claims ("may"->"will," "associated"->"causes").
 - Do not swap synonyms for defined technical terms. If a term is introduced once, use that term throughout.
 - If a sentence is ambiguous, ask before rewriting it.
 
@@ -54,7 +67,7 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 - Jargon used for its own sake. Technical terms are fine when they do real work; they are not fine when a plain word would serve.
 - Hedging that adds no information ("it is perhaps the case that arguably..."). Qualify where the qualification matters; otherwise, commit.
 - Ornamental transitions ("Moreover," "Furthermore," "It is important to note that"). If the logic is clear, the transition is unnecessary.
-- Concluding paragraphs that merely restate the introduction. A conclusion should say something new — an implication, a tension, a next question.
+- Concluding paragraphs that merely restate the introduction. A conclusion should say something new --- an implication, a tension, a next question.
 
 ### Tone
 
