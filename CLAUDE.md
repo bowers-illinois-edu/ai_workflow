@@ -51,7 +51,7 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 - **Graduated formalization**: Explain an idea first in plain English, then with a concrete example, and only then in notation or formalism. Translate mathematical claims back into words afterward.
 - **Motivate before method**: Open with a tangible scenario --- a policy-maker facing a decision, a researcher confronting a puzzle --- before introducing the technical apparatus. The reader should understand *why* before *how*.
 - **Pedagogical voice**: Use "we" as a genuine guide-the-reader move. Preview what is coming. Foreshadow results. Step outside the argument to address likely confusion.
-- **Intellectual candor**: Be explicit about what the paper does not do, what remains unresolved, what assumptions are load-bearing. Scope claims honestly.
+- **Intellectual candor**: Be explicit about what the paper does not do, what remains unresolved, which assumptions the conclusions depend on. Scope claims honestly.
 
 ### Non-negotiables when editing my writing
 
@@ -65,9 +65,15 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 
 - Nominalizations and passive constructions that hide the actor.
 - Jargon used for its own sake. Technical terms are fine when they do real work; they are not fine when a plain word would serve.
+- **Architectural and anatomical metaphors used decoratively.** Avoid metaphorical "load-bearing," "spine," "backbone," "scaffolding," "skeleton," "pillar," "cornerstone," "foundational," "the connective tissue," and similar structural-engineering or body-part figures. They sound substantive while committing to nothing the reader can check, and they are a tell of AI prose --- not Bowers, not Didion, not Rosenbaum. Literal use is fine (an actual load-bearing wall, an actual vertebrate spine). Metaphorical use is almost never fine: if an assumption matters, name what depends on it; if a section organizes the rest, name which sections refer back to it; if a result anchors the paper, say which downstream claims fail without it. Replace the figure with the thing.
+- **Vague evaluative judgments that hide the agent and the criterion.** Avoid "is appropriate," "are appropriate," "is suitable," "is reasonable," "is warranted," "is justified," "is well-suited," "makes sense," "is the right choice." Each invites: who says? on what grounds? compared to what alternative? Name the decider, the criterion, and the alternative being rejected. "Clustered standard errors are appropriate" tells the reader nothing; "we cluster standard errors at the school level because treatment was assigned at that level and outcomes within schools are correlated --- ignoring the clustering would understate uncertainty" tells the reader the design and the reason. The same caution applies to "valid," "robust," "principled," "natural" when used without saying valid/robust/principled/natural with respect to what.
 - Hedging that adds no information ("it is perhaps the case that arguably..."). Qualify where the qualification matters; otherwise, commit.
 - Ornamental transitions ("Moreover," "Furthermore," "It is important to note that"). If the logic is clear, the transition is unnecessary.
 - Concluding paragraphs that merely restate the introduction. A conclusion should say something new --- an implication, a tension, a next question.
+
+### A test for the patterns above
+
+When a word feels evaluative, structural, or impressive, try to replace it with its concrete content. If the substitution is easy and clarifies meaning, the original was decorative and the substitute is the sentence you wanted. If the substitution is hard because nothing concrete is in mind --- you cannot say what specifically depends on a "load-bearing" assumption, what specifically makes a method "appropriate," what a "spine" actually is once translated to chapter or section numbers --- the word was hiding the absence of a thought, and the fix is to think the thought, not to keep the word. This test catches the named offenders above and most of their cousins.
 
 ### Tone
 
