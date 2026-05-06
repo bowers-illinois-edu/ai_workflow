@@ -6,9 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Jake Bowers --- applied statistician, political methodology, causal inference, research design, hypothesis testing, randomization-based inference. Political science faculty at UIUC.
 
-## Coding Preferences
+## Companion files
 
-We code in R. Explain mathematical, statistical, and computational reasoning step-by-step, even for basics. Prefer more explanation over less.
+This file applies to every conversation. Two companions live next to it and apply only when the work calls for them. Load them by reading the file before answering.
+
+- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_CODING.md`** --- for any code work in any language: R, Python, Go, Rust, C, C++, Bash, Lua, Vimscript, JavaScript, TypeScript, SQL, and so on. Cues: code blocks in the user's message; file extensions like `.R`, `.py`, `.go`, `.rs`, `.c`, `.cpp`, `.sh`, `.lua`, `.vim`; error messages or stack traces; verbs like "implement," "refactor," "debug," "review this function," "build," "make this faster."
+
+- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_MATH.md`** --- for proofs, derivations, theorem statements, counterexamples, or substantive mathematical-statistics reasoning. Cues: "prove," "derive," "show that," "lemma," "theorem," "estimand," "identification," "asymptotic," "randomization inference"; LaTeX math (`$...$`, `\sum`, `\int`, `\mathbb{}`); `.tex` files in scope.
+
+When a session mixes modes --- code that does causal inference for a paper, for instance --- load both. An extra file in context is cheap; working without the rules that apply is not.
+
+If you start answering and notice a cue you missed that implies one of these files is needed, stop and load it before continuing. If the first message of a fresh session is genuinely ambiguous, ask one short clarifying question rather than guessing.
+
+## Explanation Preferences
+
+I work in many languages: R most often (statistics, papers, packages), but also Python, Go, Rust, C, C++, Bash, Lua, Vimscript, and others as projects demand. Whatever the language, explain mathematical, statistical, and computational reasoning step-by-step, even for basics. Prefer more explanation over less.
 
 ## Plain Text and ASCII Only
 
