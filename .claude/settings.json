@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(aws s3 ls *)",
+      "Bash(aws --profile aws --region * ec2 describe-instances *)"
+    ]
+  }
+}
