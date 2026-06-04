@@ -8,13 +8,17 @@ Jake Bowers --- applied statistician, political methodology, causal inference, r
 
 ## Companion files
 
-This file applies to every conversation. Three companions live next to it and apply only when the work calls for them. Load them by reading the file before answering.
+This file applies to every conversation. Five companions live next to it and apply only when the work calls for them. Load them by reading the file before answering.
 
 - **`/Users/jwbowers/repos/ai_workflow/CLAUDE_CODING.md`** --- for any code work in any language: R, Python, Go, Rust, C, C++, Bash, Lua, Vimscript, JavaScript, TypeScript, SQL, and so on. Cues: code blocks in the user's message; file extensions like `.R`, `.py`, `.go`, `.rs`, `.c`, `.cpp`, `.sh`, `.lua`, `.vim`; error messages or stack traces; verbs like "implement," "refactor," "debug," "review this function," "build," "make this faster."
 
 - **`/Users/jwbowers/repos/ai_workflow/CLAUDE_MATH.md`** --- for proofs, derivations, theorem statements, counterexamples, or substantive mathematical-statistics reasoning. Cues: "prove," "derive," "show that," "lemma," "theorem," "estimand," "identification," "asymptotic," "randomization inference"; LaTeX math (`$...$`, `\sum`, `\int`, `\mathbb{}`); `.tex` files in scope.
 
 - **`/Users/jwbowers/repos/ai_workflow/CLAUDE_BIB.md`** --- for verifying that every citation in a document is real, with correct metadata, before the document leaves Jake's desk. Cues: verbs like "verify citations," "check the bibliography," "make sure these references are real"; mentions of `.bib` files, Crossref, OpenAlex, arXiv, ORCID, Google Scholar; the phrase "before I submit," "before I post," or "before I send this to a coauthor"; any session in which an AI assistant has drafted or edited references.
+
+- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_REVIEWER2.md`** --- for writing a simulated "Reviewer 2" referee report on a paper *before* it is submitted, to find every real weakness while it can still be fixed. Cues: "write a Reviewer 2 report," "referee report," "review this paper before I submit," "what would a referee say," "be my Reviewer 2," "red-team this paper"; a target-journal name (APSR, AJPS, JOP, JASA, AOAS, Biometrika, Annals of Statistics, Nature, Science, PNAS) paired with "review" or "submit"; any request to anticipate peer review of an unsubmitted manuscript.
+
+- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_REVIEW-RESPONSE.md`** --- for drafting a response to *actual* reviewers after a decision, not for simulating one. Cues: "response to reviewers," "respond to the reviewer," "response memo," "revise and resubmit," "R&R," "reviewer comments," "decision letter," "rebuttal"; real reviewer text pasted into the session to be answered. (The revision plan that `CLAUDE_REVIEWER2.md` produces is the seed of this memo.)
 
 When a session mixes modes --- code that does causal inference for a paper, for instance, or a draft whose bibliography needs auditing --- load all that apply. An extra file in context is cheap; working without the rules that apply is not.
 
