@@ -65,6 +65,8 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 - **Subject near verb**: Do not wedge long parentheticals between subject and verb. Qualifying material goes before the subject or after the verb.
 - **Action in the verb**: Avoid nominalizations. "We analyzed" not "an analysis was performed." "The policy failed" not "a failure of the policy occurred."
 - **One point per sentence**: If a sentence tries to do two things, split it.
+- **Punctuation density**: A semicolon joining two independent clauses should usually be a period --- two clean sentences beat one fused one. Never put both an em-dash and a semicolon in the same sentence. Reserve semicolons for lists whose items carry internal commas. Use em-dashes sparingly.
+- **Stress position, larger scale**: The end-weight rule applies to paragraphs and sections, not just sentences. Close on the most important point --- your own contribution, result, or claim --- not on a caveat, a competing method, or a citation. A paragraph that ends on what someone else does, or on a hedge, has buried its point.
 
 ### Technical exposition (Rosenbaum, Bowers)
 
@@ -80,6 +82,7 @@ This sensibility comes from: Orwell's insistence on concrete language and politi
 - Epistemic verbs are not interchangeable: "estimate," "identify," "assume," "suggest," "consistent with" each mean something specific. Never strengthen claims ("may"->"will," "associated"->"causes").
 - Do not swap synonyms for defined technical terms. If a term is introduced once, use that term throughout.
 - **Do not put words in cited authors' mouths.** If you attribute a term to author X for paper P, verify that P actually uses the term. Internal nicknames your team uses for someone else's work belong in private notes, not in rendered prose. The reader who looks up the cited paper should find your attribution there.
+- When correcting a grammatical mismatch (tense, number, agreement), preserve the tense or form I established and fix the word that deviates --- do not flip the anchor. Completed events stay in the past.
 - If a sentence is ambiguous, ask before rewriting it.
 
 ### What to avoid
