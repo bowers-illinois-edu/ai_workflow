@@ -323,20 +323,32 @@ def title_sim(a, b):
 
 
 def abbrev_match(a, b):
-    """'J. Am. Stat. Assoc.' should match 'Journal of the American ...'."""
+    """'J. Am. Stat. Assoc.' should match 'Journal of the American ...'.
+
+    Symmetric on purpose: the abbreviation may be either argument. The caller
+    (compare) passes abbrev_match(claim_venue, rec_venue) and does not control
+    which side is abbreviated --- a .bib often stores the full journal name
+    while Crossref or OpenAlex returns the abbreviated container-title, and
+    vice versa. So try both orderings; a match either way tolerates the
+    variant. Each token of the shorter side must be a prefix of a
+    later-in-order token of the longer side.
+    """
     ta = [t for t in norm(a).split() if t not in STOPWORDS]
     tb = [t for t in norm(b).split() if t not in STOPWORDS]
     if not ta or not tb:
         return False
-    short, full = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
-    j = 0
-    for tok in short:
-        while j < len(full) and not full[j].startswith(tok):
+
+    def is_abbrev_of(short, full):
+        j = 0
+        for tok in short:
+            while j < len(full) and not full[j].startswith(tok):
+                j += 1
+            if j == len(full):
+                return False
             j += 1
-        if j == len(full):
-            return False
-        j += 1
-    return True
+        return True
+
+    return is_abbrev_of(ta, tb) or is_abbrev_of(tb, ta)
 
 
 def compare(claim, rec):
@@ -471,7 +483,12 @@ def check_entry(entry, client, do_search, log):
     elif do_search and claim["title"]:
         cands, err1 = client.crossref_search(claim["title"], claim["families"][:1] and claim["families"][0])
         best, ambiguous = best_candidate(claim, cands, return_ambiguity=True)
-        if best is None:
+        # Retry OpenAlex only when Crossref found nothing usable. If Crossref
+        # already surfaced two equally-plausible candidates (best is None
+        # *because* the result was ambiguous), keep that ambiguity: overwriting
+        # it with an empty OpenAlex result would mislabel a real F5 (Jake
+        # chooses) as F3 (suspected fabricated).
+        if best is None and not ambiguous:
             oa, err2 = client.openalex_search(claim["title"])
             best, ambiguous = best_candidate(claim, oa, return_ambiguity=True)
         if ambiguous:
