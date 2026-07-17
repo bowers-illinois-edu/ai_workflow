@@ -6,23 +6,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Jake Bowers --- applied statistician, political methodology, causal inference, research design, hypothesis testing, randomization-based inference. Political science faculty at UIUC.
 
-## Companion files
+## Coding rules
 
-This file applies to every conversation. Five companions live next to it and apply only when the work calls for them. Load them by reading the file before answering.
+The coding rules apply to any code work in any language --- R, Python, Go, Rust, C, C++, Bash, Lua, Vimscript, JavaScript, TypeScript, SQL, and so on --- and load with this file:
 
-- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_CODING.md`** --- for any code work in any language: R, Python, Go, Rust, C, C++, Bash, Lua, Vimscript, JavaScript, TypeScript, SQL, and so on. Cues: code blocks in the user's message; file extensions like `.R`, `.py`, `.go`, `.rs`, `.c`, `.cpp`, `.sh`, `.lua`, `.vim`; error messages or stack traces; verbs like "implement," "refactor," "debug," "review this function," "build," "make this faster."
+@/Users/jwbowers/repos/ai_workflow/CLAUDE_CODING.md
 
-- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_MATH.md`** --- for proofs, derivations, theorem statements, counterexamples, or substantive mathematical-statistics reasoning. Cues: "prove," "derive," "show that," "lemma," "theorem," "estimand," "identification," "asymptotic," "randomization inference"; LaTeX math (`$...$`, `\sum`, `\int`, `\mathbb{}`); `.tex` files in scope.
+## Skills
 
-- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_BIB.md`** --- for verifying that every citation in a document is real, with correct metadata, before the document leaves Jake's desk. Cues: verbs like "verify citations," "check the bibliography," "make sure these references are real"; mentions of `.bib` files, Crossref, OpenAlex, arXiv, ORCID, Google Scholar; the phrase "before I submit," "before I post," or "before I send this to a coauthor"; any session in which an AI assistant has drafted or edited references.
+The task-specific protocols live as skills in `skills/` in the ai_workflow repository, symlinked into `~/.claude/skills/`. Each triggers on its description and can be invoked by name:
 
-- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_REVIEWER2.md`** --- for writing a simulated "Reviewer 2" referee report on a paper *before* it is submitted, to find every real weakness while it can still be fixed. Cues: "write a Reviewer 2 report," "referee report," "review this paper before I submit," "what would a referee say," "be my Reviewer 2," "red-team this paper"; a target-journal name (APSR, AJPS, JOP, JASA, AOAS, Biometrika, Annals of Statistics, Nature, Science, PNAS) paired with "review" or "submit"; any request to anticipate peer review of an unsubmitted manuscript.
+- `math` --- proofs, derivations, theorem statements, counterexamples, mathematical-statistics prose. Cues: "prove," "derive," "show that," "estimand," "identification," "randomization inference"; LaTeX math; `.tex` files in scope.
+- `verify-citations` --- verify every citation against Crossref, OpenAlex, arXiv, and ORCID before a document leaves the desk. Cues: "verify citations," "check the bibliography," `.bib` files, "before I submit / post / circulate"; any bibliography an AI assistant touched. Bundles a script that automates the per-entry checks.
+- `reviewer2` --- simulated referee report *before* submission: persona panel, champion, text-grounded self-audit, prioritized revision plan.
+- `review-response` --- response memo to *actual* reviewers after a decision (R&R, rebuttal); bundles the LaTeX and Quarto memo templates.
+- `decks` --- slide decks, research talks or teaching, Beamer or revealjs. Cues: "slides," "deck," "talk," "presentation," "lecture," "workshop materials."
+- `style-audit` --- audit an existing draft against the writing rules above and report per-instance findings with proposed rewrites. Cues: "style pass," "check the writing," "de-AI this prose," "apply my writing rules"; any final read before a document leaves the desk. Bundles a scanner script for the mechanical first pass.
+- `simulation-study` --- design, run, and report Monte Carlo studies of operating characteristics. Cues: "simulation study," "operating characteristics," "size," "power," "coverage," "Monte Carlo."
 
-- **`/Users/jwbowers/repos/ai_workflow/CLAUDE_REVIEW-RESPONSE.md`** --- for drafting a response to *actual* reviewers after a decision, not for simulating one. Cues: "response to reviewers," "respond to the reviewer," "response memo," "revise and resubmit," "R&R," "reviewer comments," "decision letter," "rebuttal"; real reviewer text pasted into the session to be answered. (The revision plan that `CLAUDE_REVIEWER2.md` produces is the seed of this memo.)
+When a session mixes modes --- code that does causal inference for a paper, for instance, or a draft whose bibliography needs auditing --- load every skill that applies. An extra skill in context is cheap; working without the rules that apply is not.
 
-When a session mixes modes --- code that does causal inference for a paper, for instance, or a draft whose bibliography needs auditing --- load all that apply. An extra file in context is cheap; working without the rules that apply is not.
-
-If you start answering and notice a cue you missed that implies one of these files is needed, stop and load it before continuing. If the first message of a fresh session is genuinely ambiguous, ask one short clarifying question rather than guessing.
+If you start answering and notice a cue you missed that implies one of these skills is needed, stop and load it before continuing. If the first message of a fresh session is genuinely ambiguous, ask one short clarifying question rather than guessing.
 
 ## Explanation Preferences
 
