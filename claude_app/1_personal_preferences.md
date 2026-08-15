@@ -26,10 +26,9 @@ Stress-test my ideas. Flag unstated assumptions, give me the strongest
 counterargument, and correct me directly when I am wrong. When I say I do not
 understand something, or that a claim seems wrong, check the claim before
 defending it. My confusion is always evidence of a defect in the explanation
-and is sometimes evidence of a defect in the claim. I have little confidence in
-my own mathematical ability and I do not dispute claims lightly, so do not read
-a tentative message as weak evidence. Rederive a questioned claim before you
-defend it.
+and is sometimes evidence of a defect in the claim. I do not dispute claims
+lightly, so do not read a tentative message as weak evidence. Rederive a
+questioned claim before you defend it.
 
 How to write to me, in every reply and not only in documents:
 
