@@ -11,6 +11,10 @@ written; this skill checks prose that already exists --- written by Jake, a
 coauthor, an AI, or Jake-two-years-ago. It adds no rules of its own. Where
 this file and the global `CLAUDE.md` disagree, the global file wins.
 
+Section 6 below holds the catalog of named offenders that used to sit in the
+global `CLAUDE.md`. It lives here now because a list of banned words helps an
+auditor and hurts a drafter.
+
 Scope: any prose leaving the desk --- papers, memos, grants, course
 materials, referee reports, response memos, slide text, README prose, long
 emails. Code style belongs to `CLAUDE_CODING.md`, but the ASCII rule and the
@@ -25,10 +29,12 @@ python3 scripts/style_scan.py Paper/paper.tex Memos/*.md
 ```
 
 It flags non-ASCII characters (with codepoint and name), the named offenders
-from the global `CLAUDE.md` (structural and industrial metaphors, vague
+catalogued in section 6 below (structural and industrial metaphors, vague
 evaluatives, locative figures, colloquial idioms, throat-clearing,
 ornamental transitions, empty hedges), and lines that carry both an em-dash
-and a semicolon. It skips fenced code blocks in markdown and comment lines
+and a semicolon. The scanner carries its own copy of these patterns in
+`RAW_PATTERNS`, so it does not read section 6 at runtime; if you add an
+offender to the catalog, add the pattern to the script too. It skips fenced code blocks in markdown and comment lines
 in LaTeX.
 
 Every hit is a candidate, not a verdict. Literal uses pass ("an actual
@@ -36,11 +42,11 @@ load-bearing wall"); a quotation from someone else's text passes (but note
 it); a technical term of art that the document defines and glosses passes.
 The scanner exists to make the first pass cheap and complete, not to decide.
 
-**Pass 2 is judgment, and it is the audit.** The global `CLAUDE.md` says it
-directly: the lists are illustrative, not a closed checklist --- read for
-the pattern, not for the words. Reread the "Writing Style" section of the
-global file before this pass, then work through the document
-paragraph by paragraph:
+**Pass 2 is judgment, and it is the audit.** The catalog in section 6 is
+illustrative, not a closed checklist --- read for the pattern, not for the
+words. Reread the "Writing Style" section of the global `CLAUDE.md` and then
+section 6 below before this pass, then work through the document paragraph by
+paragraph:
 
 - **The substitution test, on everything evaluative, structural,
   impressive, or idiomatic** --- including words on no list. Try to replace
@@ -124,3 +130,35 @@ below." Bad: "The draft largely follows the style rules."
 4. Meaning-changing findings separated from surface findings?
 5. Nothing rewritten silently?
 6. The report says what was and was not covered?
+
+## 6. The catalog of named offenders
+
+This catalog used to live in the global `CLAUDE.md`. It moved here on
+2026-08-15 for a reason that matters to how you use it: a long list of banned
+words in context while *drafting* turns attention toward avoidance, and the
+banned habit then reappears in words the list does not contain. The failures
+that prompted the move --- a claim "wearing" a heading, an argument that
+"lands," a comparison that "runs along" dimensions --- were all absent from
+this list.
+
+So: read this catalog during an audit, which is exactly the job a list is good
+for. Do not load it while drafting. The generative rule is the one in the
+global `CLAUDE.md`: use a metaphor only when it does work a plain verb cannot,
+and gloss it once when you use it.
+
+Every entry below is illustrative, not a closed checklist. A figure on no list
+that fails the substitution test is still a finding.
+
+- Nominalizations and passive constructions that hide the actor.
+- Jargon used for its own sake. Technical terms are fine when they do real work; they are not fine when a plain word would serve.
+- **Architectural, anatomical, and industrial metaphors used decoratively.** Avoid metaphorical "load-bearing," "spine," "backbone," "scaffolding," "skeleton," "pillar," "cornerstone," "foundational," "the connective tissue," and similar structural-engineering or body-part figures. The same caution applies to industrial figures used for methodology: "the machinery of X," "the apparatus of Y," "the engine of Z," "the gears of W." These sound substantive while committing to nothing the reader can check, and they are a tell of AI prose --- not Bowers, not Didion, not Rosenbaum. Literal use is fine (an actual load-bearing wall, an actual vertebrate spine, an actual machine). Metaphorical use is almost never fine: if an assumption matters, name what depends on it; if a section organizes the rest, name which sections refer back to it; if a result anchors the paper, say which downstream claims fail without it; if "the machinery" is doing work, name the specific construction or formula. The same caution covers software, security, and infrastructure figures used metaphorically: "firewall," "sandbox," "guardrail," "pipeline," "plumbing," "the stack." These read as precise but name nothing the reader can check; say what the rule actually is --- for "firewall," what is kept out of what, and by what mechanism (e.g., "the model proposes a coding; the count method, which the model never alters, produces the number"). Replace the figure with the thing.
+- **Vague evaluative judgments that hide the agent and the criterion.** Avoid "is appropriate," "are appropriate," "is suitable," "is reasonable," "is warranted," "is justified," "is well-suited," "makes sense," "is the right choice," "is comfortable," "comfortably above / below," "a comfortable margin." Each invites: who says? on what grounds? compared to what alternative? Name the decider, the criterion, and the alternative being rejected. "Clustered standard errors are appropriate" tells the reader nothing; "we cluster standard errors at the school level because treatment was assigned at that level and outcomes within schools are correlated --- ignoring the clustering would understate uncertainty" tells the reader the design and the reason. "The conclusion is comfortably above threshold" tells the reader nothing; "the conclusion is above threshold and the largest perturbation in the sensitivity table leaves it above 50" tells the reader the magnitude. The same caution applies to "valid," "robust," "principled," "natural" when used without saying valid/robust/principled/natural with respect to what.
+- **Locative figures that hide a plain verb.** Avoid "the framework reads onto X," "the analysis maps onto Y," "the model reads cleanly off Z," "the theory lives in P," "the argument sits across Q." These figures replace a plain verb ("applies to," "fits," "handles," "covers," "extends to") with a spatial gesture that adds nothing. If the framework applies to a range of designs, say "applies to"; if a method handles a class of problems, say "handles." The spatial figure is the tell that the writer has not chosen the verb.
+- **Colloquial idioms and figurative cliches.** Avoid stock idioms that a plain verb would replace: "earn their keep," "shore up," "hold at bay," "fold in," "wave away," "keep faith with," "put on a slide," "with eyes open," "hand-waving," "walk the list." These are not pretentious, and they pass the structural, evaluative, and locative checks above, which is exactly why they slip through --- yet each hides a plain verb (shore up = strengthen, wave away = dismiss, fold in = add, walk the list = go through one at a time), so they fail the substitution test. Replace the idiom with the plain verb; keep the figure only when it does real work the plain verb cannot, and gloss it once when you keep it. Some idioms are also structural-engineering metaphors --- "shore up," "load-bearing" --- and are already covered above; this rule adds the folksy idioms that are not.
+- **Reader-directed imperatives in finished prose.** The proof register writes derivations as commands to the reader --- "Consider a sequence," "Run both researchers through the model," "Relabel K as 1 - K," "Check at (1, 0)," "Start with the second row," "Let K be a fair coin." In a paper, memo, or email these read as assigned work, and each hides its actor: who runs, who checks? Write the declarative with the actor named: "Each researcher feeds the model their own coded record"; "The relabeling K -> 1 - K permutes the nodal types"; "When C = 0, K is a fair coin." The same failure produces leftover outline items: a planning sentence addressed to the writer ("Spell his example out in our notation") that the paragraph below it then executes. Once the paragraph exists, the instruction must be deleted, not published.
+- **Noun-phrase-plus-colon fragments posing as sentences.** "His example, written in our notation: the raw datum is a fact F" has no main verb; a topic label with a colon is not a sentence. Write the sentence: "In our notation, the raw datum of his example is a fact F." Headings and list labels may be fragments; prose may not.
+- **A technical term arriving before its content.** Naming a phenomenon in a heading or topic sentence ("the example is an identification failure at the coding map") and defining the term paragraphs later reverses graduated formalization: the reader meets the label while the thought is still owed. State the plain content first --- "a flipped coding with share 1 - t produces the same distribution of coded records as the original coding with share t, so no data can tell the two apart" --- and then ask whether the term still earns a mention. Often the plain statement is complete and the term adds only a name; keep the name only for an audience that needs it, introduced after the statement it names.
+- Hedging that adds no information ("it is perhaps the case that arguably..."). Qualify where the qualification matters; otherwise, commit.
+- Ornamental transitions ("Moreover," "Furthermore," "It is important to note that"). If the logic is clear, the transition is unnecessary.
+- **Throat-clearing that announces a claim instead of making it.** The governing test is deletion: strike the words standing in front of the claim, and if nothing is lost --- not information, not emphasis --- they were throat-clearing, and what remains is the sentence you wanted. This pattern changes grammatical form freely, so a search for any one form misses the rest. The families: expletive "it" ("it is important to," "it is worth (noting / saying / mentioning / emphasizing) that," "it should be noted that," "it is interesting / crucial / essential / useful that," "note that," "one should observe that"); modifiers hung on a noun ("a reason worth stating," "a point worth making," "a case worth noting," "which is worth emphasizing," "an observation worth flagging"); existential "there" ("there is an important point here," "there are several things worth noting"); first-person announcements ("I want to emphasize that," "let me note that," "we should observe that," "this bears mentioning," "this cannot be overstated"); sentence adverbs asserting importance ("Importantly," "Notably," "Crucially," "Significantly," "Tellingly"); nominal setups ("one thing to note is that," "a key point is that," "the important thing here is that," "what is worth emphasizing is that"); and forward-pointing counts ("two things are worth saying about X," "three points deserve emphasis"). Each defers the sentence's real subject and hides who cares and why. Make the claim directly --- "it is worth saying what the weights are" becomes "the weights are X"; "it is important to control the FWER" becomes "controlling the FWER matters because ..." with the reason supplied, or name what fails if you do not; "no for the hypergeometric, for a reason worth stating" becomes "no for the hypergeometric," with the reason in the sentence after. Emphasis comes from a short declarative sentence, never from an announcement that emphasis is coming. Two constructions resemble this one and survive the deletion test. A forecast that tells the reader where to look carries information the announcement lacks --- "we prove this in Section 4," "the derivation is in the supplement" --- and the pedagogical voice described above depends on it. An adverb that reports how a claim stands against an expectation the reader already holds also does real work: "unexpectedly," "contrary to Fairfield and Charman's prediction," and "against our own prior" state a relation rather than the writer's enthusiasm, provided the expectation was stated. Delete the word and ask whether a claim disappeared with it. (This generalizes the "It is important to note that" example under Ornamental transitions above.)
+- Concluding paragraphs that merely restate the introduction. A conclusion should say something new --- an implication, a tension, a next question.
