@@ -6,14 +6,17 @@ Jake Bowers's instruction set for working with Claude Code (and similar AI codin
 
 I use Claude Code across statistics papers, R packages, code in several languages, teaching materials, and bibliography work. Each kind of work wants different defaults: a proof session and a code session should not behave the same way. Rather than re-type the same instructions every session --- or, worse, forget half of them --- I keep the rules in version control and load them by reference.
 
-The repository started as a scratchpad ("a place to toss stuff I'm using as I learn how to use claude/codex") and has settled into one always-on file, one coding companion, and seven skills.
+The repository started as a scratchpad ("a place to toss stuff I'm using as I learn how to use claude/codex") and has settled into an output style, one always-on file, one coding companion, and seven skills.
 
-How a session finds its rules, in order: (1) `~/.claude/CLAUDE.md` (symlinked
-to a local clone of this repo) loads at startup and `@`-imports the coding rules; (2) the seven
+How a session finds its rules, in order: (1) the `Research` output style is
+written into the system prompt itself, ahead of any instruction file, and
+replaces the sentence that would otherwise define the session as software
+engineering; (2) `~/.claude/CLAUDE.md` (symlinked
+to a local clone of this repo) loads at startup and `@`-imports the coding rules; (3) the seven
 skill descriptions sit in context and pull in a full protocol when its task
-appears or when invoked by name; (3) a project repo's own `CLAUDE.md` adds
+appears or when invoked by name; (4) a project repo's own `CLAUDE.md` adds
 project facts, and math-heavy projects add a `CLAUDE_MATH.md` supplement that
-overlays the math skill; (4) `HANDOFF.md` carries session-to-session working
+overlays the math skill; (5) `HANDOFF.md` carries session-to-session working
 state. Each rule is stated in exactly one place. The failure mode this layout
 guards against is the stale local copy that silently competes with the ground
 truth.
@@ -24,6 +27,11 @@ Two kinds of instruction live here, split by when they should load.
 
 **Always-on rules** load at the start of every session:
 
+- **`output-styles/research.md`** --- the `Research` output style, which frames
+  a session as research work spanning code, mathematics, and prose rather than
+  as software engineering. It states nothing about tone, style, or testing,
+  deferring to the two files below, so no rule is written twice. Symlinked to
+  `~/.claude/output-styles/research.md` and selected in `/config`.
 - **`CLAUDE.md`** --- user context, writing style, ASCII-only output,
   explanation preferences, intellectual engagement. Symlinked to
   `~/.claude/CLAUDE.md`, which Claude Code reads automatically.
@@ -81,6 +89,27 @@ ln -s /path/to/this/repo/CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
 If you fork this repo, edit the `@`-import path inside `CLAUDE.md`'s "Coding rules" section so it points at your clone.
+
+### The output style
+
+```bash
+mkdir -p ~/.claude/output-styles
+ln -s /path/to/this/repo/output-styles/research.md ~/.claude/output-styles/research.md
+```
+
+Then run `/config` and choose "Research" in the Output style row. The name shown
+in the picker comes from the `name:` field in the file's frontmatter, not from
+the filename.
+
+Claude Code merges settings from five scopes, in ascending precedence: user
+(`~/.claude/settings.json`), project (`.claude/settings.json`), project-local
+(`.claude/settings.local.json`), command-line flags, and managed policy. Put
+`"outputStyle": "Research"` in the user file so it applies to every project. If
+one repo ignores the style while the picker still lists it, look for a stray
+`"outputStyle"` in that repo's `.claude/settings.local.json`, because that scope
+beats the user file and shadows the default in that repo alone. A global
+gitignore usually excludes `settings.local.json`, which makes such a pin harder
+to notice rather than easier.
 
 ### The skills
 
