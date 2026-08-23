@@ -16,7 +16,7 @@ most app conversations are.
 The passages are ordered here for app use: plain prose first. In CLAUDE.md they
 run in a different order.
 
-Synced against CLAUDE.md at commit 55ed9ea (2026-08-23).
+Synced against CLAUDE.md at commit 4389b89 (2026-08-23).
 
 -------------------------------------------------------------------------------
 

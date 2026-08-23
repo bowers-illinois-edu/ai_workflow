@@ -8,7 +8,7 @@ conversation, which is why it sits at project scope rather than in Settings.
 The personal-preferences block already carries the compression rules, so this
 block does not repeat them.
 
-Synced against CLAUDE.md at commit 55ed9ea (2026-08-23).
+Synced against CLAUDE.md at commit 4389b89 (2026-08-23).
 
 -------------------------------------------------------------------------------
 
