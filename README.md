@@ -168,9 +168,10 @@ can run Python inside a skill, and the scanner needs no network, only a file
 and a list of patterns. Whether it runs there is untested, which is why the
 skill tells the auditor what to do when it does not.
 
-The build copies `style_scan.py` out of `skills/style-audit/scripts/` rather
-than keeping a second copy under `claude_app/`, so the app's scanner and the
-one Claude Code runs cannot drift apart.
+The app skill's `scripts/` is a symlink to the one directory that holds
+`style_scan.py`. `zip -r` stores what a symlink points at and the plugin
+installer follows it too, so both routes ship the same scanner Claude Code runs
+and there is no second copy to go stale.
 
 ```bash
 make app-skills   # writes claude_app/dist/bowers-prose.zip and bowers-code.zip

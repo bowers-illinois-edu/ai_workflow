@@ -28,14 +28,11 @@ check-claude-app:
 # The Claude app takes a skill as a zipped folder whose root is the folder
 # itself. `zip` does that directly, so this needs no script and no tests.
 #
-# style-audit ships the scanner, which is copied in here rather than kept in a
-# second place under claude_app/: one copy of style_scan.py in the repository
-# means it cannot drift from the one the Claude Code skill runs.
+# style-audit ships the scanner. Its scripts/ is a symlink to the one directory
+# that holds style_scan.py, and `zip -r` stores what a symlink points at, so
+# the upload carries the same scanner the Claude Code skill runs and there is
+# never a second copy to go stale.
 app-skills:
-	rm -rf claude_app/dist && mkdir -p claude_app/dist/stage
-	cp -R claude_app/skills/. claude_app/dist/stage/
-	mkdir -p claude_app/dist/stage/style-audit/scripts
-	cp skills/style-audit/scripts/style_scan.py claude_app/dist/stage/style-audit/scripts/
-	cd claude_app/dist/stage && for s in */; do zip -qr "../$${s%/}.zip" "$${s%/}"; done
-	rm -rf claude_app/dist/stage
+	rm -rf claude_app/dist && mkdir -p claude_app/dist
+	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}" -x '*__pycache__*'; done
 	@ls -l claude_app/dist
