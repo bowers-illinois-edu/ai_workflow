@@ -3,7 +3,7 @@ name: bowers-prose
 description: Jake's writing rules and three passages of his own prose. Use whenever writing, editing, or revising prose: papers, grants, memos, referee reports, emails, course materials.
 ---
 
-<!-- Synced against CLAUDE.md at commit 4389b89 (2026-08-23). -->
+<!-- Synced against CLAUDE.md at commit a460538 (2026-08-23). -->
 
 These rules cover any writing you help me with --- technical papers, grant
 narratives, course materials, memos, emails --- and they cover how you write to

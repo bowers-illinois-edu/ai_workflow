@@ -13,7 +13,7 @@ paragraph (the bowers-code skill carries it in full), then the two
 illustrations (the paragraph about the word "family" and the sentences about
 "Researcher A"), then the last two bullets.
 
-Synced against CLAUDE.md at commit 4389b89 (2026-08-23).
+Synced against CLAUDE.md at commit a460538 (2026-08-23).
 
 -------------------------------------------------------------------------------
 
