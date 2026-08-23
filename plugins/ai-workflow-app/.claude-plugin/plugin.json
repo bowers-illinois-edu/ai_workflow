@@ -1,8 +1,9 @@
 {
   "name": "ai-workflow-app",
   "description": "The same rules translated for the Claude app, which has no CLAUDE.md and no working tree: drafting rules with worked examples, coding rules, and the style audit.",
-  "version": "0.1.0",
-  "author": { "name": "Jake Bowers" },
+  "author": {
+    "name": "Jake Bowers"
+  },
   "homepage": "https://github.com/bowers-illinois-edu/ai_workflow",
   "repository": "https://github.com/bowers-illinois-edu/ai_workflow",
   "license": "MIT"

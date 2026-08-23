@@ -1,8 +1,9 @@
 {
   "name": "ai-workflow",
   "description": "Jake Bowers's research skills for Claude Code: math, citation verification, referee reports, review responses, decks, style audits, and simulation studies.",
-  "version": "0.1.0",
-  "author": { "name": "Jake Bowers" },
+  "author": {
+    "name": "Jake Bowers"
+  },
   "homepage": "https://github.com/bowers-illinois-edu/ai_workflow",
   "repository": "https://github.com/bowers-illinois-edu/ai_workflow",
   "license": "MIT"
