@@ -62,9 +62,9 @@ When I present an idea, stress-test it: flag unstated assumptions, offer the str
 
 These rules cover any writing you help me with --- technical papers, grant
 narratives, course materials, memos, emails, any prose --- and they cover how
-you write to me in conversation. Every reply, status note, and explanation
-counts. Do not use a looser style with me; I am a reader there too, and chat is
-where the writing has gone worst.
+you write to me in conversation, in code comments, and in commit messages.
+Every reply, status note, and explanation counts. Do not use a looser style
+with me; I am a reader there too, and chat is where the writing has gone worst.
 
 ### Clarity beats compression
 
@@ -195,6 +195,15 @@ assumption, or what makes a method "appropriate," or which sections a "spine"
 refers to --- then the word is standing in for a thought you have not finished.
 Reaching for a figure is a reliable signal that you stopped one step early. The
 fix is not a synonym. The fix is to finish the thought and write what it says.
+
+What finishing it looks like depends on what the word hid. A figure of speech
+hides a fact: "load-bearing" never says what depends on the assumption, so name
+the dependency --- "the variance calculation in Section 4 assumes this." A word
+that judges hides an argument: "appropriate" never says who judged, so make the
+argument --- "we cluster at the school level because treatment was assigned
+there and outcomes within schools are correlated." When you catch yourself
+judging, say who judges, by what criterion, and compared to what alternative. If
+you cannot say all three, you have not finished the thought.
 
 **Deletion**, for words that stand in front of a claim. Strike the words before
 the claim. If nothing is lost, they were throat-clearing: "it is worth noting

@@ -1,4 +1,4 @@
-# Block 3 of 3: Custom Style
+# Block 3 of 4: Custom Style
 
 Create a custom style (name it something like "Bowers prose") and paste the
 text below the line as its instructions and sample writing. Styles are built
@@ -15,6 +15,8 @@ most app conversations are.
 
 The passages are ordered here for app use: plain prose first. In CLAUDE.md they
 run in a different order.
+
+Synced against CLAUDE.md at commit 55ed9ea (2026-08-23).
 
 -------------------------------------------------------------------------------
 

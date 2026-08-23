@@ -74,6 +74,8 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
   parallel-RNG discipline, MC uncertainty on every reported number, and
   conclusions scoped to the simulated regimes.
 
+A third group, `claude_app/`, ports the always-on rules to the Claude app, which has neither output styles nor skills. See "The Claude app" under Installing.
+
 The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER2.md`, `CLAUDE_REVIEW-RESPONSE.md`, the response templates) survive as symlinks into `skills/`, so older projects and habits that say "read CLAUDE_BIB.md" still land on the current content.
 
 ## Installing
@@ -127,6 +129,53 @@ Skills also work outside Claude Code: any assistant that can read files can be t
 ### Per-project supplements
 
 A project repo carries its own `CLAUDE.md` (auto-loaded by Claude Code when working in that repo) holding project facts only --- build commands, layout, ground truth --- plus, for math-heavy projects, a `CLAUDE_MATH.md` supplement that overlays the math skill with the project's notation, key theorems, and subfield-specific checks. The supplement template is in `skills/math/references/supplements.md`. Live examples are in `~/repos/fastperm-paper/` (saddlepoint/tilting/orbit checks) and `~/repos/manytests-paper/` (FWER regimes, weak/strong control discipline). Project repos should not copy the global writing or coding rules --- those load globally, and a local copy goes stale and silently competes with the ground truth.
+
+### The Claude app (phone and desktop)
+
+The Claude app has no output styles and no skills, so none of the setup above
+transfers to it. `claude_app/` holds four paste-ready blocks that carry as much
+of the instruction set as the app's configuration slots will hold. Each file
+opens with a header saying where it goes, what to cut first if the field rejects
+the text for length, and which commit of the source file it was last synced
+against; everything below the line of dashes is the text to paste.
+
+- **`claude_app/1_personal_preferences.md`** --- Settings -> Profile, in the
+  field asking what personal preferences Claude should consider. That field is
+  on in every conversation, so it carries the rules that matter everywhere: who
+  I am, ASCII only, how to disagree with me, and the compression rules.
+- **`claude_app/2_project_instructions.md`** --- the custom instructions of a
+  project for writing work. This is the craft apparatus from `CLAUDE.md`: Gopen
+  and Swan, technical exposition, the non-negotiables for editing my prose, and
+  the substitution and deletion tests. It is too long and too specific to run in
+  every casual conversation, which is why it sits at project scope.
+- **`claude_app/3_custom_style.md`** --- a custom style, pasted as its
+  instructions and sample writing. App styles are built from example writing,
+  and this block is three passages of my own, so it is the block most likely to
+  change how the prose actually comes out. Styles sync with the account, so one
+  paste covers phone and desktop.
+- **`claude_app/4_coding.md`** --- the custom instructions of a project for code
+  work, holding `CLAUDE_CODING.md`: what the code is for, tests before code and
+  tests that encode the substantive point, boring code over clever, file
+  organization, and R-package build discipline. Block 1 carries a three-sentence
+  version, so a one-off coding question outside the project is still covered.
+
+A skill can travel into the app as well: upload the relevant `SKILL.md` to a
+project's knowledge and tell Claude to follow it.
+
+Everywhere else in this repository a rule is stated once and loaded by
+reference. These four files cannot work that way, because the app cannot read a
+file on my laptop, so the rules have to be pasted, and a pasted rule is a copy
+that can go stale. The blocks are not copies of `CLAUDE.md` in any case. They
+are translations: rewritten in the first person, compressed to fit the fields,
+and reordered to put plain prose first.
+
+Because no program can compare a translation against its source, the stamp lines
+carry a weaker guarantee than that. `make check-claude-app` reads each stamp and
+prints the commits that have touched `CLAUDE.md` or `CLAUDE_CODING.md` since it,
+exiting nonzero when any block is behind or carries no stamp. It reports that a
+re-read is owed; the re-read itself is mine to do. After doing it, I update the
+block's stamp to the commit the report names. `make test` runs the offline
+unittest suites for this and the two skill scripts.
 
 ## Installing the `/handoff` slash command
 
