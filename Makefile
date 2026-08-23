@@ -27,7 +27,15 @@ check-claude-app:
 
 # The Claude app takes a skill as a zipped folder whose root is the folder
 # itself. `zip` does that directly, so this needs no script and no tests.
+#
+# style-audit ships the scanner, which is copied in here rather than kept in a
+# second place under claude_app/: one copy of style_scan.py in the repository
+# means it cannot drift from the one the Claude Code skill runs.
 app-skills:
-	rm -rf claude_app/dist && mkdir -p claude_app/dist
-	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}"; done
+	rm -rf claude_app/dist && mkdir -p claude_app/dist/stage
+	cp -R claude_app/skills/. claude_app/dist/stage/
+	mkdir -p claude_app/dist/stage/style-audit/scripts
+	cp skills/style-audit/scripts/style_scan.py claude_app/dist/stage/style-audit/scripts/
+	cd claude_app/dist/stage && for s in */; do zip -qr "../$${s%/}.zip" "$${s%/}"; done
+	rm -rf claude_app/dist/stage
 	@ls -l claude_app/dist

@@ -152,13 +152,25 @@ and `skills/`.
 - **`claude_app/skills/bowers-code/`** --- `CLAUDE_CODING.md` translated for a
   place with no working tree, so "read the files first" becomes "ask me for the
   files."
+- **`claude_app/skills/style-audit/`** --- the audit procedure, converted from
+  `skills/style-audit/SKILL.md`. Four things change in the app version: the
+  description is cut to the 200-character limit, the references to the global
+  `CLAUDE.md` name the app's two writing-rule slots instead, Pass 1 runs the
+  scanner over an attached file, and Pass 1 gains a fallback for when the
+  scanner cannot run.
 - **`claude_app/3_custom_style.md`** --- the same three passages, formatted for
   a custom style. The app appears to have dropped that feature, so the file is
   kept rather than installed.
 
-Neither skill bundles a script. The app can run Python inside a skill, but an
-instruction-only skill has nothing to run and nothing to fail, and both of these
-are instructions.
+`bowers-prose` and `bowers-code` bundle no script, because they are
+instructions and have nothing to run. `style-audit` does bundle one: the app
+can run Python inside a skill, and the scanner needs no network, only a file
+and a list of patterns. Whether it runs there is untested, which is why the
+skill tells the auditor what to do when it does not.
+
+The build copies `style_scan.py` out of `skills/style-audit/scripts/` rather
+than keeping a second copy under `claude_app/`, so the app's scanner and the
+one Claude Code runs cannot drift apart.
 
 ```bash
 make app-skills   # writes claude_app/dist/bowers-prose.zip and bowers-code.zip
