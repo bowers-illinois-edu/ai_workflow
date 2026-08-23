@@ -9,7 +9,7 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-claude-app check-claude-app
+.PHONY: test test-verify-citations test-style-audit test-claude-app check-claude-app app-skills
 
 test: test-verify-citations test-style-audit test-claude-app
 
@@ -24,3 +24,10 @@ test-claude-app:
 
 check-claude-app:
 	$(PYTHON) scripts/check_claude_app.py
+
+# The Claude app takes a skill as a zipped folder whose root is the folder
+# itself. `zip` does that directly, so this needs no script and no tests.
+app-skills:
+	rm -rf claude_app/dist && mkdir -p claude_app/dist
+	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}"; done
+	@ls -l claude_app/dist

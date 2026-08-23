@@ -99,11 +99,24 @@ def format_report(stale, missing):
 
 
 def _default_paths():
-    return [
+    """Every app destination: the pasted blocks, then the uploaded skills.
+
+    A skill drifts from its source the same way a pasted block does, so both
+    kinds carry a stamp and both are checked. The skills keep theirs in an HTML
+    comment, which keeps the record out of what Claude reads as instructions.
+    """
+    paths = [
         os.path.join("claude_app", name)
         for name in sorted(os.listdir(BLOCK_DIR))
         if name.endswith(".md")
     ]
+    skills_dir = os.path.join(BLOCK_DIR, "skills")
+    if os.path.isdir(skills_dir):
+        for name in sorted(os.listdir(skills_dir)):
+            skill = os.path.join(skills_dir, name, "SKILL.md")
+            if os.path.exists(skill):
+                paths.append(os.path.relpath(skill, REPO_ROOT))
+    return paths
 
 
 def _read(path):

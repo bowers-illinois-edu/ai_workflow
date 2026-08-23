@@ -177,17 +177,25 @@ class RealBlockTests(unittest.TestCase):
     """The invariant that keeps the whole scheme working: every block in the
     repository carries a stamp, and every stamp names a file that exists."""
 
+    def test_the_default_paths_cover_the_skills_as_well_as_the_blocks(self):
+        # Two of the app destinations are uploaded skills rather than pasted
+        # blocks, and a skill that drifts is exactly as stale as a block that
+        # drifts, so both have to be in the list the check walks.
+        paths = checker._default_paths()
+        self.assertIn(os.path.join("claude_app", "1_personal_preferences.md"), paths)
+        self.assertIn(os.path.join("claude_app", "skills", "bowers-prose", "SKILL.md"), paths)
+        self.assertIn(os.path.join("claude_app", "skills", "bowers-code", "SKILL.md"), paths)
+
     def test_every_block_carries_a_stamp_naming_a_real_source_file(self):
-        app_dir = os.path.join(REPO_ROOT, "claude_app")
-        blocks = sorted(f for f in os.listdir(app_dir) if f.endswith(".md"))
-        self.assertTrue(blocks, "no blocks found in claude_app/")
-        for name in blocks:
-            with open(os.path.join(app_dir, name)) as handle:
+        paths = checker._default_paths()
+        self.assertTrue(paths, "no blocks found in claude_app/")
+        for path in paths:
+            with open(os.path.join(REPO_ROOT, path)) as handle:
                 stamp = checker.parse_stamp(handle.read())
-            self.assertIsNotNone(stamp, "%s carries no sync stamp" % name)
+            self.assertIsNotNone(stamp, "%s carries no sync stamp" % path)
             source = os.path.join(REPO_ROOT, stamp.source)
             self.assertTrue(os.path.exists(source),
-                            "%s is stamped against a missing file: %s" % (name, stamp.source))
+                            "%s is stamped against a missing file: %s" % (path, stamp.source))
 
 
 if __name__ == "__main__":

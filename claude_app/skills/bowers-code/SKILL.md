@@ -1,19 +1,9 @@
-# Block 4 of 4: Coding instructions (project)
+---
+name: bowers-code
+description: Jake's rules for code in any language, R most often. Use when writing, reviewing, or debugging code, when answering statistical software questions, and for R package work.
+---
 
-Make a project for code work and paste the text below the line into its custom
-instructions. Block 1 already carries the short version --- explain the
-statistical idea, tests before the code, comment why --- so a one-off coding
-question in ordinary chat is covered without this block. This block is for the
-sessions where something is actually being built.
-
-The app cannot read files on my machine, so the parts of the Claude Code rules
-that assume a working tree are restated here as things to ask me for.
-
-If the field rejects it for length, cut the R-package paragraph first.
-
-Synced against CLAUDE_CODING.md at commit a500d5f (2026-08-23).
-
--------------------------------------------------------------------------------
+<!-- Synced against CLAUDE_CODING.md at commit a500d5f (2026-08-23). -->
 
 Before writing code, find out what the code is for. Code that supports a paper
 has a point --- an estimand, a hypothesis, a figure, a claim I am trying to

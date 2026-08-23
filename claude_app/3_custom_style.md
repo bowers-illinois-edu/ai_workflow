@@ -1,12 +1,16 @@
-# Block 3 of 4: Custom Style
+# Custom style (kept in case the feature comes back)
 
-Create a custom style (name it something like "Bowers prose") and paste the
-text below the line as its instructions and sample writing. Styles are built
-from example writing, which is what these passages are, so this is the closest
-fit of the three blocks --- and the one most likely to change how the prose
-actually comes out.
+The app appears to have dropped custom styles. Anthropic's personalization
+documentation now lists account-wide instructions, projects, skills, and memory
+and says nothing about styles, and the control is not in the desktop app. These
+passages moved into `claude_app/skills/bowers-prose/`, which loads when a
+writing task appears rather than when a style is selected.
 
-Styles sync with your account, so this covers phone and desktop at once.
+This file stays because the evidence is an absence rather than an announcement.
+If a style picker turns up, create a style (name it something like "Bowers
+prose") and paste the text below the line as its instructions and sample
+writing. Styles are built from example writing, which is what these passages
+are. Styles sync with the account, so one paste would cover phone and desktop.
 
 **If the field is too short for all three passages**, drop them in this order:
 2013 first (longest, and its virtue is notation discipline, which matters least

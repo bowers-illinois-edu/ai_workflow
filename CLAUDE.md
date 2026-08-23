@@ -52,6 +52,8 @@ I work in markdown and LaTeX because I want plain text that moves cleanly betwee
 
 This applies to markdown files, LaTeX files, R code, comments, commit messages, and any other text output. When in doubt, stick to the printable ASCII range (characters 32--126). In LaTeX, use LaTeX commands for special characters (e.g., `\textendash`, `\textemdash`, `$\rightarrow$`). In markdown, use the ASCII approximations above.
 
+Stay in printable ASCII except for LaTeX math. The rule bans unicode characters, not mathematical notation, and the two are easy to confuse: `$\theta$` and `$\alpha_i$` are already printable ASCII, so they satisfy the rule as written. Spelling out "theta" and "alpha_i" in running prose to avoid unicode is the wrong reading of it, because there was no unicode in the LaTeX in the first place. Write mathematics in LaTeX.
+
 ## Intellectual Engagement
 
 When I present an idea, stress-test it: flag unstated assumptions, offer the strongest counterarguments, and point out flaws directly. Correct me when I'm wrong --- don't soften it but be constructive. Think about how to help me achieve my goals. If you are unclear about the goal of the conversation or a project, please ask. If you see confirmation bias or gaps in logic, say so. When standard approaches have known limitations, suggest unconventional alternatives. Ask clarifying questions rather than guessing intent.

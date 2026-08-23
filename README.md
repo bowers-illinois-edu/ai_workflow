@@ -132,55 +132,62 @@ A project repo carries its own `CLAUDE.md` (auto-loaded by Claude Code when work
 
 ### The Claude app (phone and desktop)
 
-The Claude app has no output styles, so the first piece of the setup above does
-not transfer. It does support skills: `Settings > Capabilities` has to have
-"Code execution and file creation" switched on, and skills are then uploaded as
-a zipped folder under `Customize > Skills`. `claude_app/` holds four
-paste-ready blocks that carry the rest of the instruction set. Each file opens
-with a header saying where it goes, what to cut first if the field rejects the
-text for length, and which commit of the source file it was last synced against;
-everything below the line of dashes is the text to paste.
+The app has no output styles, so the first piece of the setup above does not
+transfer. It reaches the other two layers through its own slots: account-wide
+instructions that apply to every conversation, and skills that load when their
+task appears, which is the same division Claude Code makes between `CLAUDE.md`
+and `skills/`.
 
-- **`claude_app/1_personal_preferences.md`** --- "Instructions for Claude,"
-  reached by clicking your initials in the lower left corner, then Settings.
-  That field applies to every conversation, so it carries the rules that matter
-  everywhere: who I am, ASCII only, how to disagree with me, the compression
-  rules, and three sentences of coding rules.
-- **`claude_app/2_project_instructions.md`** --- the custom instructions of a
-  project for writing work. This is the craft apparatus from `CLAUDE.md`: Gopen
-  and Swan, technical exposition, the non-negotiables for editing my prose, and
-  the substitution and deletion tests. It is too long and too specific to run in
-  every casual conversation, which is why it sits at project scope.
-- **`claude_app/3_custom_style.md`** --- a custom style, pasted as its
-  instructions and sample writing. App styles are built from example writing,
-  and this block is three passages of my own, so it is the block most likely to
-  change how the prose actually comes out. Styles sync with the account, so one
-  paste covers phone and desktop.
-- **`claude_app/4_coding.md`** --- the custom instructions of a project for code
-  work, holding `CLAUDE_CODING.md`: what the code is for, tests before code and
-  tests that encode the substantive point, boring code over clever, file
-  organization, and R-package build discipline. Block 1 carries a three-sentence
-  version, so a one-off coding question outside the project is still covered.
+- **`claude_app/1_personal_preferences.md`** --- paste into "Instructions for
+  Claude," reached by clicking your initials in the lower left corner, then
+  Settings. That field applies to every conversation, so it carries the rules
+  that matter everywhere: who I am, ASCII only, how to disagree with me, the
+  compression rules, and three sentences of coding rules. Its header says what
+  to cut first if the field rejects the text for length, and everything below
+  the line of dashes is the text to paste.
+- **`claude_app/skills/bowers-prose/`** --- the craft apparatus from `CLAUDE.md`
+  followed by the three passages of my own prose: Gopen and Swan, technical
+  exposition, the non-negotiables for editing my writing, the substitution and
+  deletion tests.
+- **`claude_app/skills/bowers-code/`** --- `CLAUDE_CODING.md` translated for a
+  place with no working tree, so "read the files first" becomes "ask me for the
+  files."
+- **`claude_app/3_custom_style.md`** --- the same three passages, formatted for
+  a custom style. The app appears to have dropped that feature, so the file is
+  kept rather than installed.
 
-Blocks 2 and 4 are written for project custom instructions, which suits someone
-who keeps a standing project for writing or for code. The alternative is to
-upload them as skills, so that they load when the task appears rather than when
-a project is open, which is how the same rules reach a Claude Code session.
+Neither skill bundles a script. The app can run Python inside a skill, but an
+instruction-only skill has nothing to run and nothing to fail, and both of these
+are instructions.
+
+```bash
+make app-skills   # writes claude_app/dist/bowers-prose.zip and bowers-code.zip
+```
+
+Upload each zip in the app under `Customize > Skills`, with the "+" button, then
+"+ Create skill," then "Upload a skill." This needs `Settings > Capabilities`
+to have "Code execution and file creation" switched on, or no skills appear at
+all. The zip has to hold the skill folder at its root, which is what the target
+builds, and the folder name has to match the `name` in the frontmatter. The
+frontmatter `description` is capped at 200 characters, and it is the only thing
+the app reads when deciding whether a skill applies, so it has to carry the
+trigger words.
 
 Everywhere else in this repository a rule is stated once and loaded by
-reference. These four files cannot work that way, because the app cannot read a
-file on my laptop, so the rules have to be pasted, and a pasted rule is a copy
-that can go stale. The blocks are not copies of `CLAUDE.md` in any case. They
-are translations: rewritten in the first person, compressed to fit the fields,
-and reordered to put plain prose first.
+reference. These files cannot work that way, because the app cannot read a file
+on my laptop: the rules have to be pasted or uploaded, and a pasted rule is a
+copy that can go stale. They are not copies in any case. They are translations,
+rewritten in the first person and cut to fit.
 
-Because no program can compare a translation against its source, the stamp lines
-carry a weaker guarantee than that. `make check-claude-app` reads each stamp and
-prints the commits that have touched `CLAUDE.md` or `CLAUDE_CODING.md` since it,
-exiting nonzero when any block is behind or carries no stamp. It reports that a
-re-read is owed; the re-read itself is mine to do. After doing it, I update the
-block's stamp to the commit the report names. `make test` runs the offline
-unittest suites for this and the two skill scripts.
+Because no program can compare a translation against its source, the sync stamps
+carry a weaker guarantee than that. Each file records the commit of `CLAUDE.md`
+or `CLAUDE_CODING.md` it was last synced against, in a header line for the
+pasted blocks and an HTML comment for the skills, so the record never reaches
+the app as instructions. `make check-claude-app` reads those stamps and prints
+the commits that have touched the sources since, exiting nonzero when anything
+is behind or unstamped. It reports that a re-read is owed; the re-read is mine
+to do, and afterwards I update the stamp to the commit the report names. `make
+test` runs the offline unittest suites for this and the two skill scripts.
 
 ## Installing the `/handoff` slash command
 
