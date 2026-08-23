@@ -201,6 +201,38 @@ is behind or unstamped. It reports that a re-read is owed; the re-read is mine
 to do, and afterwards I update the stamp to the commit the report names. `make
 test` runs the offline unittest suites for this and the two skill scripts.
 
+### As a plugin, in Claude Code or the app
+
+The repository is also a plugin marketplace, which is a second way to install
+everything above: one `add` instead of a set of symlinks, and updates by syncing
+rather than by rebuilding. `.claude-plugin/marketplace.json` lists two plugins,
+because a skill that is right in one place is wrong in the other. The app
+version of the style audit tells the auditor to reread the writing rules in
+Instructions for Claude, which do not exist in Claude Code; the Claude Code
+version names `CLAUDE.md`, which does not exist in the app.
+
+- **`plugins/ai-workflow`** --- the seven Claude Code skills and `/handoff`.
+- **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, and the app
+  version of `style-audit`.
+
+Neither plugin holds a second copy of anything. Each one's `skills/` is a
+symlink to the real directory, `skills/` or `claude_app/skills/`, and the
+installer follows it and copies the files.
+
+In Claude Code:
+
+```bash
+claude plugin marketplace add bowers-illinois-edu/ai_workflow
+claude plugin install ai-workflow@ai-workflow
+```
+
+In the app: `Customize > Plugins`, the "Add" button, then the GitHub repository.
+
+Plugin skills are namespaced, so `/math` becomes `/ai-workflow:math`. Installing
+the plugin while the symlinks in `~/.claude/skills/` are still there loads every
+skill twice and pays their always-on cost twice, which `claude plugin details
+ai-workflow` puts at about 590 tokens per session. Pick one route or the other.
+
 ## Installing the `/handoff` slash command
 
 Claude Code reads slash commands from `~/.claude/commands/`. Each file in that directory becomes a command whose name is the filename without the extension. To install `/handoff`:

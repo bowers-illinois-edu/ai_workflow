@@ -1,4 +1,7 @@
-[Hh]andoff.md
+# Session-local working memory at the repository root only. The pattern is
+# anchored so it does not also swallow plugins/ai-workflow/commands/handoff.md,
+# which is the /handoff command the plugin ships.
+/[Hh]andoff.md
 __pycache__/
 
 memo_explaining_to_jake.md

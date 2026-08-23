@@ -1,0 +1,19 @@
+{
+  "name": "ai-workflow",
+  "description": "Jake Bowers's instruction set: research skills for Claude Code, and the same rules translated for the Claude app.",
+  "owner": {
+    "name": "Jake Bowers"
+  },
+  "plugins": [
+    {
+      "name": "ai-workflow",
+      "source": "./plugins/ai-workflow",
+      "description": "Research skills for Claude Code: math, citation verification, referee reports, review responses, decks, style audits, simulation studies, and /handoff."
+    },
+    {
+      "name": "ai-workflow-app",
+      "source": "./plugins/ai-workflow-app",
+      "description": "The same rules translated for the Claude app: drafting rules with worked examples, coding rules, and the style audit."
+    }
+  ]
+}
