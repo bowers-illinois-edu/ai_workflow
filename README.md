@@ -74,7 +74,7 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
   parallel-RNG discipline, MC uncertainty on every reported number, and
   conclusions scoped to the simulated regimes.
 
-A third group, `claude_app/`, ports the always-on rules to the Claude app, which has neither output styles nor skills. See "The Claude app" under Installing.
+A third group, `claude_app/`, ports the always-on rules to the Claude app, which has no output styles and reaches the same rules through different slots. See "The Claude app" under Installing.
 
 The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER2.md`, `CLAUDE_REVIEW-RESPONSE.md`, the response templates) survive as symlinks into `skills/`, so older projects and habits that say "read CLAUDE_BIB.md" still land on the current content.
 
@@ -132,17 +132,20 @@ A project repo carries its own `CLAUDE.md` (auto-loaded by Claude Code when work
 
 ### The Claude app (phone and desktop)
 
-The Claude app has no output styles and no skills, so none of the setup above
-transfers to it. `claude_app/` holds four paste-ready blocks that carry as much
-of the instruction set as the app's configuration slots will hold. Each file
-opens with a header saying where it goes, what to cut first if the field rejects
-the text for length, and which commit of the source file it was last synced
-against; everything below the line of dashes is the text to paste.
+The Claude app has no output styles, so the first piece of the setup above does
+not transfer. It does support skills: `Settings > Capabilities` has to have
+"Code execution and file creation" switched on, and skills are then uploaded as
+a zipped folder under `Customize > Skills`. `claude_app/` holds four
+paste-ready blocks that carry the rest of the instruction set. Each file opens
+with a header saying where it goes, what to cut first if the field rejects the
+text for length, and which commit of the source file it was last synced against;
+everything below the line of dashes is the text to paste.
 
-- **`claude_app/1_personal_preferences.md`** --- Settings -> Profile, in the
-  field asking what personal preferences Claude should consider. That field is
-  on in every conversation, so it carries the rules that matter everywhere: who
-  I am, ASCII only, how to disagree with me, and the compression rules.
+- **`claude_app/1_personal_preferences.md`** --- "Instructions for Claude,"
+  reached by clicking your initials in the lower left corner, then Settings.
+  That field applies to every conversation, so it carries the rules that matter
+  everywhere: who I am, ASCII only, how to disagree with me, the compression
+  rules, and three sentences of coding rules.
 - **`claude_app/2_project_instructions.md`** --- the custom instructions of a
   project for writing work. This is the craft apparatus from `CLAUDE.md`: Gopen
   and Swan, technical exposition, the non-negotiables for editing my prose, and
@@ -159,8 +162,10 @@ against; everything below the line of dashes is the text to paste.
   organization, and R-package build discipline. Block 1 carries a three-sentence
   version, so a one-off coding question outside the project is still covered.
 
-A skill can travel into the app as well: upload the relevant `SKILL.md` to a
-project's knowledge and tell Claude to follow it.
+Blocks 2 and 4 are written for project custom instructions, which suits someone
+who keeps a standing project for writing or for code. The alternative is to
+upload them as skills, so that they load when the task appears rather than when
+a project is open, which is how the same rules reach a Claude Code session.
 
 Everywhere else in this repository a rule is stated once and loaded by
 reference. These four files cannot work that way, because the app cannot read a

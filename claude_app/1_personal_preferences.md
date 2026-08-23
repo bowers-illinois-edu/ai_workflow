@@ -1,10 +1,12 @@
-# Block 1 of 4: Personal preferences (Settings)
+# Block 1 of 4: Instructions for Claude (Settings)
 
-Paste the text below the line into Settings -> Profile, in the field asking
-what personal preferences Claude should consider. This field is always on, in
-every conversation, so it carries the rules that matter everywhere: who I am,
-plain ASCII, how to disagree with me, the compression rules that fix the worst
-of the prose, and the short version of the coding rules.
+Paste the text below the line into "Instructions for Claude": click your
+initials in the lower left corner, then Settings, then Instructions for Claude.
+(The field used to sit under Settings -> Profile and to ask what personal
+preferences Claude should consider. Same field, new label.) It applies to every
+conversation, so it carries the rules that matter everywhere: who I am, plain
+ASCII, how to disagree with me, the compression rules that fix the worst of the
+prose, and the short version of the coding rules.
 
 If the field rejects it for length, cut in this order: the closing coding
 paragraph (block 4 carries it in full), then the two illustrations (the
