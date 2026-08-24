@@ -76,6 +76,8 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
 
 A third group, `claude_app/`, ports the always-on rules to the Claude app, which has no output styles and reaches the same rules through different slots. See "The Claude app" under Installing.
 
+A fourth group, `chat_stats_config/`, sets up a chat --- in ChatGPT or in Claude --- for learning statistics and stress-testing research ideas. It is the one part of this repository that configures a tool Anthropic does not make. See "Statistics chats in the Claude app and ChatGPT" under Installing.
+
 The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER2.md`, `CLAUDE_REVIEW-RESPONSE.md`, the response templates) survive as symlinks into `skills/`, so older projects and habits that say "read CLAUDE_BIB.md" still land on the current content.
 
 ## Installing
@@ -201,6 +203,24 @@ the commits that have touched the sources since, exiting nonzero when anything
 is behind or unstamped. It reports that a re-read is owed; the re-read is mine
 to do, and afterwards I update the stamp to the commit the report names. `make
 test` runs the offline unittest suites for this and the two skill scripts.
+
+### Statistics chats in the Claude app and ChatGPT
+
+`chat_stats_config/` holds a four-file setup for a long-running statistics chat:
+an orientation to paste into a project's instruction field, a longer framework
+and a concept map to upload as project files, and a README that maps the files
+onto each app's slots and gives the bridge text that makes the pasted block
+reach the uploaded ones. The same three files serve both apps, so the Claude
+desktop app and ChatGPT differ only in what the slots are called and how you
+reach them. The README gives the navigation for each --- the Claude half checked
+against the live app on 24 August 2026, the ChatGPT half not --- plus a
+description to search by when the labels move again.
+
+This is the only setup here that configures a tool Anthropic does not make.
+Read `chat_stats_config/README.md` for the mapping, the order to cut in if an
+instruction field rejects the text for length, and the loop that keeps the
+concept map current, which matters because neither app can write to an uploaded
+file.
 
 ### As a plugin, in Claude Code or the app
 
