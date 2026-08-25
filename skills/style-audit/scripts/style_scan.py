@@ -46,6 +46,11 @@ RAW_PATTERNS = [
     ("throat-clearing", r"\bit\s+should\s+be\s+noted\b|\bnote\s+that\b|\bone\s+should\s+observe\b"),
     ("ornamental-transition", r"\b(?:moreover|furthermore)\b"),
     ("empty-hedge", r"\barguably\b|\bit\s+is\s+perhaps\b"),
+    # Bold run-in topic sentence opening a paragraph. scan_line works one
+    # line at a time, so ^ anchors at line start without re.M; list bullets
+    # ("- **...**") do not match, and they are house style in the
+    # instruction files.
+    ("bold-run-in-opener", r"^\*\*[^*]+[.?!]\*\*"),
 ]
 PATTERNS = [(cat, re.compile(pat, re.I)) for cat, pat in RAW_PATTERNS]
 

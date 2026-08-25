@@ -31,10 +31,12 @@ python3 scripts/style_scan.py Paper/paper.tex Memos/*.md
 It flags non-ASCII characters (with codepoint and name), the named offenders
 catalogued in section 6 below (structural and industrial metaphors, vague
 evaluatives, locative figures, colloquial idioms, throat-clearing,
-ornamental transitions, empty hedges), and lines that carry both an em-dash
-and a semicolon. The scanner carries its own copy of these patterns in
+ornamental transitions, empty hedges, bold run-in paragraph openers), and
+lines that carry both an em-dash and a semicolon. The scanner carries its own copy of these patterns in
 `RAW_PATTERNS`, so it does not read section 6 at runtime; if you add an
-offender to the catalog, add the pattern to the script too. It skips fenced code blocks in markdown and comment lines
+offender to the catalog, add the pattern to the script too, unless
+it is one no pattern can find, in which case the catalog entry says so and the
+offender belongs to Pass 2 alone.. It skips fenced code blocks in markdown and comment lines
 in LaTeX.
 
 Every hit is a candidate, not a verdict. Literal uses pass ("an actual
@@ -73,6 +75,14 @@ paragraph:
 - **Conclusions**: a concluding paragraph that restates the introduction is
   a finding; the fix names the implication, tension, or next question the
   conclusion should carry.
+- **Terms checked against the addressee, not against Jake**: before this pass,
+  name the person who receives the text, and say so in the report. Then check
+  every technical term against that person rather than against Jake. A term
+  fails when the surrounding prose already states its content plainly and the
+  reader has no further use for the name --- "cleft construction" in an email to
+  a student whose abstract contains one cleft. Pass 1 cannot find these, because
+  whether a word is jargon depends on who is reading and no pattern sees the
+  reader.
 
 ## 2. What a finding looks like
 
@@ -83,7 +93,7 @@ Report each finding with:
 2. **The text**, quoted exactly.
 3. **The category** (structural-metaphor, vague-evaluative, locative,
    idiom, throat-clearing, hedge, transition, nominalization, stress
-   position, end-weight, verb-drift, term-drift, attribution, unicode).
+   position, end-weight, verb-drift, term-drift, reader-unknown-term, attribution, unicode).
 4. **Why it fails, concretely** --- one sentence naming what the word hides
    or misplaces. Not "this is on the banned list" but "appropriate hides
    the criterion: clustered at the school level because assignment was."
@@ -125,11 +135,13 @@ below." Bad: "The draft largely follows the style rules."
    or pass, with reasons for the passes when nontrivial)?
 2. Judgment pass done paragraph by paragraph, not by skimming for listed
    words?
-3. Every finding located, quoted, categorized, explained concretely, and
+3. Intended reader named before the judgment pass, and every technical term
+   checked against that reader rather than against Jake?
+4. Every finding located, quoted, categorized, explained concretely, and
    paired with a rewrite or a question?
-4. Meaning-changing findings separated from surface findings?
-5. Nothing rewritten silently?
-6. The report says what was and was not covered?
+5. Meaning-changing findings separated from surface findings?
+6. Nothing rewritten silently?
+7. The report says what was and was not covered?
 
 ## 6. The catalog of named offenders
 
@@ -158,7 +170,12 @@ that fails the substitution test is still a finding.
 - **Reader-directed imperatives in finished prose.** The proof register writes derivations as commands to the reader --- "Consider a sequence," "Run both researchers through the model," "Relabel K as 1 - K," "Check at (1, 0)," "Start with the second row," "Let K be a fair coin." In a paper, memo, or email these read as assigned work, and each hides its actor: who runs, who checks? Write the declarative with the actor named: "Each researcher feeds the model their own coded record"; "The relabeling K -> 1 - K permutes the nodal types"; "When C = 0, K is a fair coin." The same failure produces leftover outline items: a planning sentence addressed to the writer ("Spell his example out in our notation") that the paragraph below it then executes. Once the paragraph exists, the instruction must be deleted, not published.
 - **Noun-phrase-plus-colon fragments posing as sentences.** "His example, written in our notation: the raw datum is a fact F" has no main verb; a topic label with a colon is not a sentence. Write the sentence: "In our notation, the raw datum of his example is a fact F." Headings and list labels may be fragments; prose may not.
 - **A technical term arriving before its content.** Naming a phenomenon in a heading or topic sentence ("the example is an identification failure at the coding map") and defining the term paragraphs later reverses graduated formalization: the reader meets the label while the thought is still owed. State the plain content first --- "a flipped coding with share 1 - t produces the same distribution of coded records as the original coding with share t, so no data can tell the two apart" --- and then ask whether the term still earns a mention. Often the plain statement is complete and the term adds only a name; keep the name only for an audience that needs it, introduced after the statement it names.
+- **A technical term the addressee has no use for.** The entry above is about order: the label arrives before the content it names. This one is about the reader: the plain content is present and adjacent, and the term is still wrong, because the person reading will never meet it again. An email to a graduate student about one abstract carried "cleft construction," "mass noun," "the impersonal register," and "a relative clause." All four are correct, all four sit next to a plain statement of the same thing, and each one was then used again as a referring noun --- "the cleft buys emphasis" --- so the reader had to hold a definition she was never given in order to follow the next sentence. Two arguments usually offered for keeping the name: it is searchable, and it lets the reader spot the pattern elsewhere. Neither survives when the pattern occurs once and the construction announces itself in its own words ("it is X that Y"). Test: delete the name and ask what the reader loses that she could act on. Nothing lost means cut it. If something is lost --- a distinction, a condition, or a number --- the finding is that the term needs a definition, not that it needs deleting.. Keep the name for an audience that will meet the term again, and then define it where it first appears. No pattern can find these, so they belong to Pass 2 alone.
 - Hedging that adds no information ("it is perhaps the case that arguably..."). Qualify where the qualification matters; otherwise, commit.
 - Ornamental transitions ("Moreover," "Furthermore," "It is important to note that"). If the logic is clear, the transition is unnecessary.
 - **Throat-clearing that announces a claim instead of making it.** The governing test is deletion: strike the words standing in front of the claim, and if nothing is lost --- not information, not emphasis --- they were throat-clearing, and what remains is the sentence you wanted. This pattern changes grammatical form freely, so a search for any one form misses the rest. The families: expletive "it" ("it is important to," "it is worth (noting / saying / mentioning / emphasizing) that," "it should be noted that," "it is interesting / crucial / essential / useful that," "note that," "one should observe that"); modifiers hung on a noun ("a reason worth stating," "a point worth making," "a case worth noting," "which is worth emphasizing," "an observation worth flagging"); existential "there" ("there is an important point here," "there are several things worth noting"); first-person announcements ("I want to emphasize that," "let me note that," "we should observe that," "this bears mentioning," "this cannot be overstated"); sentence adverbs asserting importance ("Importantly," "Notably," "Crucially," "Significantly," "Tellingly"); nominal setups ("one thing to note is that," "a key point is that," "the important thing here is that," "what is worth emphasizing is that"); and forward-pointing counts ("two things are worth saying about X," "three points deserve emphasis"). Each defers the sentence's real subject and hides who cares and why. Make the claim directly --- "it is worth saying what the weights are" becomes "the weights are X"; "it is important to control the FWER" becomes "controlling the FWER matters because ..." with the reason supplied, or name what fails if you do not; "no for the hypergeometric, for a reason worth stating" becomes "no for the hypergeometric," with the reason in the sentence after. Emphasis comes from a short declarative sentence, never from an announcement that emphasis is coming. Two constructions resemble this one and survive the deletion test. A forecast that tells the reader where to look carries information the announcement lacks --- "we prove this in Section 4," "the derivation is in the supplement" --- and the pedagogical voice described above depends on it. An adverb that reports how a claim stands against an expectation the reader already holds also does real work: "unexpectedly," "contrary to Fairfield and Charman's prediction," and "against our own prior" state a relation rather than the writer's enthusiasm, provided the expectation was stated. Delete the word and ask whether a claim disappeared with it. (This generalizes the "It is important to note that" example under Ornamental transitions above.)
 - Concluding paragraphs that merely restate the introduction. A conclusion should say something new --- an implication, a tension, a next question.
+- **Personified statistics, documents, and theories.** A comparison that "chooses," a paper that "judges" reported values against a threshold, a report that "gives up," a count that "needs a word," a theory that "allows" compositions. Each hides the human actor. Theories imply; researchers draw, find, and decide; we compute and ask. Thresholds belong to people: a researcher treats a Bayes factor of 20 as the value at which they set a rival aside, at least provisionally. Write the person or "we" as the subject. No pattern catches this reliably; it is a judgment-pass finding.
+- **Bold run-in topic sentences opening paragraphs in teaching prose.** "**What it gives up.** Three things." draws the eye and confuses; plain subsection headings do the organizing. The scanner flags lines that begin with a bold sentence (bold-run-in-opener). Bold-led items inside a bulleted list are house style in the instruction files and are not findings; the offender is the bold sentence that opens a prose paragraph.
+- **Meta-writing that narrates the document's own compliance.** "Everything this section needs is restated here so it can be read on its own" describes the writing instead of doing the work. Delete the narration and let the section show its own self-containment. Needs judgment, not a pattern; the scanner does not flag it.
+- **Unmarked foreshadowing.** A claim the document proves later, stated early as bare fact, reads as an unexplained assertion. Mark the forecast --- "we will show below that ..." --- so the reader knows the support is coming. This is the licensed forecast from the throat-clearing entry above, seen from the other side: the forecast survives deletion because it carries information, but only when it is marked as one. Needs judgment, not a pattern; the scanner cannot tell a settled fact from a claim whose proof arrives later in the file.
