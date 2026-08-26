@@ -193,8 +193,10 @@ understood.
 - If a sentence is ambiguous, ask before rewriting it.
 - Write declaratives with the actor named, not commands to the reader.
   "Consider a sequence," "Check at (1, 0)," "Relabel K as 1 - K" belong in a
-  proof scratchpad, not in finished prose. A noun phrase followed by a colon is
-  not a sentence; it still needs a main verb.
+  proof scratchpad, not in finished prose. Every sentence needs a finite main
+  verb: a noun phrase followed by a colon is not a sentence, and swapping the
+  colon for a period does not make it one --- "The recipe, at the observed
+  counts." is a heading disguised as prose.
 - **Never write a heading that announces its own importance.** "The test that
   settles it," "the decisive check," "in one sentence" --- all off-putting.
   Name what the passage contains.
