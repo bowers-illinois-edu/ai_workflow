@@ -10,7 +10,7 @@ Jake Bowers --- applied statistician, political methodology, causal inference, r
 
 The coding rules apply to any code work in any language --- R, Python, Go, Rust, C, C++, Bash, Lua, Vimscript, JavaScript, TypeScript, SQL, and so on --- and load with this file:
 
-@/Users/jwbowers/repos/ai_workflow/CLAUDE_CODING.md
+@~/repos/ai_workflow/CLAUDE_CODING.md
 
 ## Skills
 
