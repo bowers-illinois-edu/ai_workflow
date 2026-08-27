@@ -93,6 +93,33 @@ class TestNamedOffenders(unittest.TestCase):
     def test_empty_hedge(self):
         self.assertIn("empty-hedge", cats("this is arguably the best approach"))
 
+    def test_commercial_metaphor(self):
+        # The sentences that prompted this category, caught by Jake 2026-08-26
+        # in a teaching document: an intellectual gain and an intellectual loss
+        # both described as money changing hands.
+        self.assertIn("commercial-metaphor",
+                      cats("Two warnings, because both of them cost me an hour."))
+        self.assertIn("commercial-metaphor",
+                      cats("the comparison tells you what the line bought you"))
+        # The rest of the family named in the same catalog entry.
+        self.assertIn("commercial-metaphor",
+                      cats("how many people did na.omit() cost us"))
+        self.assertIn("commercial-metaphor",
+                      cats("we cannot afford the extra assumption"))
+        self.assertIn("commercial-metaphor",
+                      cats("the second pass is cheap and the third is expensive"))
+        self.assertIn("commercial-metaphor",
+                      cats("the longer derivation pays for itself"))
+        self.assertIn("commercial-metaphor",
+                      cats("this investment in notation pays dividends later"))
+
+    def test_commercial_metaphor_flags_literal_money_too(self):
+        # Same contract as the load-bearing wall below: a paper genuinely about
+        # program costs is flagged and then exonerated in pass 2. The scanner
+        # must not try to tell the two apart.
+        self.assertIn("commercial-metaphor",
+                      cats("The program cost 4.2 million dollars per district."))
+
 
 class TestScannerDoesNotJudge(unittest.TestCase):
     """SKILL.md 1: the scanner flags candidates, not verdicts. A literal use

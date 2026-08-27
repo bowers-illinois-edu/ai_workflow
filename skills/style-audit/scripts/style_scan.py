@@ -34,6 +34,16 @@ RAW_PATTERNS = [
     ("industrial-metaphor", r"\b(?:machinery|apparatus|engine|gears)\s+of\b"),
     ("infrastructure-metaphor", r"\bfirewalls?\b|\bguardrails?\b|\bsandbox(?:ed|ing|es)?\b"),
     ("infrastructure-metaphor", r"\bpipelines?\b|\bplumbing\b|\bthe stack\b"),
+    # Commercial figures for intellectual gain and loss. "worth" is left to
+    # the throat-clearing patterns, which already carry "it is worth noting";
+    # a bare \bworth\b here would double-flag every one of those.
+    ("commercial-metaphor", r"\bcosts?\b|\bcosting\b|\bcostly\b"),
+    ("commercial-metaphor", r"\bbuys?\b|\bbought\b|\bbuying\b|\bpurchases?\b"),
+    ("commercial-metaphor", r"\bpays?\s+(?:for|off|its\s+way|dividends)\b|\bpaid\s+for\b"),
+    ("commercial-metaphor", r"\bafford(?:s|ed|ing)?\b"),
+    ("commercial-metaphor", r"\bcheap(?:er|est|ly)?\b|\bexpensive\b|\bpric(?:e|ey|ing)\b"),
+    ("commercial-metaphor", r"\binvest(?:s|ed|ing|ment)?\b|\bdividends?\b|\breturn\s+on\b"),
+    ("commercial-metaphor", r"\bworth\s+(?:it|the|its|every)\b|\bnot\s+worth\b"),
     ("vague-evaluative", r"\b(?:is|are|was|were|seems?|looks?)\s+(?:appropriate|suitable|reasonable|warranted|justified|well-suited)\b"),
     ("vague-evaluative", r"\bmakes sense\b|\bthe right choice\b|\bcomfortabl[ye]\b|\bcomfortable margin\b"),
     ("vague-evaluative", r"\b(?:is|are|was|were)\s+(?:valid|robust|principled|natural)\b"),
