@@ -51,16 +51,31 @@ Agent(subagent_type: "general-purpose", prompt: """
 2. Read this draft: <path>
    It was written for <who receives it>. They have not read it yet.
 3. Produce the report the persona specifies in its section 4.
-Do not edit the file. Return the report as your final message.
+Do not edit the draft. Write the report to <scratchpad path>, and also return
+it as your final message.
 """)
 ```
 
-Ask for the report as the agent's final message, not as a file it writes.
-Telling it to write a file loses the whole run when a write is refused: five
-runs during this skill's own validation finished their reading and then went
-idle with nothing on disk and nothing returned.
+Ask for the report both ways, written to a file and returned as the final
+message, because each one alone has lost a run. Telling the agent to write a
+file loses the whole run when a write is refused: five runs during this
+skill's own validation finished their reading and then went idle with nothing
+on disk and nothing returned. Asking only for a message loses the run when no
+message arrives: on 2026-08-28 a run that asked for the report only as its
+final message went idle after about three minutes with no report, and a follow-up
+asking for the report produced a second idle notification and nothing else.
+Whether that agent wrote a report that was dropped on the way back or never
+wrote one could not be determined. With both asked for, one failure is not
+enough to lose the run --- a dropped message leaves a file behind, and a
+refused write still leaves a returned message.
 
-Three parts of that matter, and the pass fails without each of them.
+Name a path inside the session scratchpad directory, which the harness
+supplies per session and describes as generally usable without permission
+prompts. The ban on writing a file came from writes being refused. The
+scratchpad answers that objection, and it was not available when the ban was
+written.
+
+Three parts of the spawn call matter, and the pass fails without each of them.
 
 - **Fresh, not a fork.** A session that wrote or has already read the draft
   cannot read it cold, and reading it cold is the whole method. A fork
@@ -80,7 +95,8 @@ Findings in document order, each with a line number, the text quoted, the
 question Jake would ask, what is missing, and a proposed fix or a settling
 question. The report opens with the stopping point --- the first finding,
 and how far he gets before hitting it --- because he reads top to bottom and
-stops.
+stops. If the agent goes idle without returning a report, read the file at the
+scratchpad path before spawning another run.
 
 Treat the findings as candidates, the same way scanner hits are candidates.
 On a held-out 200-line draft the pass returned 12 findings, 9 of them marked
