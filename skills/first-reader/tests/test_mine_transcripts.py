@@ -24,6 +24,8 @@ message is the part nearest the reaction.
 Run: python3 test_mine_transcripts.py   (or via the repo-root Makefile: make test)
 """
 
+import contextlib
+import io
 import json
 import os
 import sys
@@ -223,6 +225,57 @@ class TestPairing(unittest.TestCase):
         self.assertEqual(rows[0]["assistant"], "")
 
 
+class TestDefaultCorpusLocation(unittest.TestCase):
+    """Where the corpus goes when --out is not given.
+
+    Jake keeps the corpus on Dropbox rather than in either repository,
+    because it spans every project he has used Claude Code on and therefore
+    holds other people's unpublished work, students' job materials,
+    confidential peer reviews, and medical notes. The script has to know that
+    location so a refresh is one command, but it must not hard-code one
+    person's machine, because this script ships in a public repository.
+    Hence: an environment variable wins, a Dropbox folder is found if there
+    is one, and otherwise the script asks for --out rather than guessing.
+    """
+
+    def test_environment_variable_wins(self):
+        env = {"FIRST_READER_CORPUS": "/somewhere/else/corpus.jsonl"}
+        self.assertEqual(mt.default_corpus_path(env=env, home="/home/x"),
+                         "/somewhere/else/corpus.jsonl")
+
+    def test_environment_variable_is_tilde_expanded(self):
+        env = {"FIRST_READER_CORPUS": "~/mine.jsonl"}
+        got = mt.default_corpus_path(env=env, home="/home/x")
+        self.assertTrue(got.endswith("/mine.jsonl"))
+        self.assertNotIn("~", got)
+
+    def test_macos_dropbox_is_found(self):
+        with tempfile.TemporaryDirectory() as home:
+            os.makedirs(os.path.join(home, "Library", "CloudStorage", "Dropbox"))
+            got = mt.default_corpus_path(env={}, home=home)
+        self.assertIn("CloudStorage/Dropbox", got)
+        self.assertTrue(got.endswith("corpus.jsonl"))
+
+    def test_plain_dropbox_is_found_when_macos_layout_is_absent(self):
+        """koelsch is Linux; the same script has to work there."""
+        with tempfile.TemporaryDirectory() as home:
+            os.makedirs(os.path.join(home, "Dropbox"))
+            got = mt.default_corpus_path(env={}, home=home)
+        self.assertIn("/Dropbox/", got)
+
+    def test_macos_layout_wins_when_both_exist(self):
+        with tempfile.TemporaryDirectory() as home:
+            os.makedirs(os.path.join(home, "Library", "CloudStorage", "Dropbox"))
+            os.makedirs(os.path.join(home, "Dropbox"))
+            got = mt.default_corpus_path(env={}, home=home)
+        self.assertIn("CloudStorage", got)
+
+    def test_no_dropbox_means_no_default(self):
+        """Guessing a path would write the corpus somewhere nobody looks."""
+        with tempfile.TemporaryDirectory() as home:
+            self.assertIsNone(mt.default_corpus_path(env={}, home=home))
+
+
 class TestMain(unittest.TestCase):
     """The command-line contract a Makefile or a shell pipeline depends on."""
 
@@ -235,6 +288,24 @@ class TestMain(unittest.TestCase):
             rows = [json.loads(l) for l in open(out)]
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["human"], "why?")
+
+    def test_missing_out_and_no_dropbox_is_a_clear_error(self):
+        """Refusing beats writing the corpus to a path nobody will look in."""
+        with tempfile.TemporaryDirectory() as d:
+            write_session(d, "p", "s", [assistant("prose"), human("why?")])
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                code = mt.main(["--root", d], home=d)
+            self.assertEqual(code, 2)
+            self.assertIn("--out", err.getvalue())
+
+    def test_out_directory_is_created_if_missing(self):
+        """A fresh machine has no Dropbox corpus folder yet."""
+        with tempfile.TemporaryDirectory() as d:
+            write_session(d, "p", "s", [assistant("prose"), human("why?")])
+            out = os.path.join(d, "new", "nested", "corpus.jsonl")
+            self.assertEqual(mt.main(["--root", d, "--out", out]), 0)
+            self.assertTrue(os.path.exists(out))
 
     def test_empty_corpus_is_an_error_status(self):
         """A silent empty corpus reads as 'nothing to learn'; it is a wrong path."""

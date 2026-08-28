@@ -17,16 +17,22 @@ built from objections alone learns a vocabulary of complaint rather than a
 set of failures to look for.
 
 Usage:
-    python3 mine_transcripts.py --out corpus.jsonl
+    python3 mine_transcripts.py                       # writes the Dropbox corpus
+    python3 mine_transcripts.py --out corpus.jsonl    # or anywhere you name
     python3 mine_transcripts.py --root ~/.claude/projects --since 2026-06-01 \
         --project fully-specified --tail 4000 --out corpus.jsonl
+
+With no --out the corpus goes to AI_Transcript_Corpus/corpus.jsonl inside your
+Dropbox folder, or to $FIRST_READER_CORPUS if that is set. It is kept out of
+both repositories on purpose; see default_corpus_path below.
 
 Output is one JSON object per line, sorted by timestamp:
     {"n", "ts", "project", "session", "assistant", "human"}
 
 Exit status: 0 when the corpus is non-empty, 1 when it is empty (which
 almost always means --root points somewhere with no transcripts, and a
-silent empty file would read as "this person never complained").
+silent empty file would read as "this person never complained"), 2 when
+there is nowhere to write and no --out was given.
 
 Stdlib only, offline, no third-party dependencies.
 """
@@ -39,6 +45,15 @@ import sys
 
 DEFAULT_ROOT = os.path.expanduser("~/.claude/projects")
 DEFAULT_TAIL = 2500
+
+# Where the corpus lives when --out is not given. It belongs in neither
+# repository: it spans every project the person has used Claude Code on, so it
+# holds other people's unpublished work, students' job materials, confidential
+# peer reviews, and personal notes. Jake keeps it in Dropbox. This script ships
+# in a public repository, so it finds a Dropbox folder rather than hard-coding
+# one machine, and asks for --out when it cannot.
+CORPUS_DIRNAME = "AI_Transcript_Corpus"
+DROPBOX_LAYOUTS = ("Library/CloudStorage/Dropbox", "Dropbox")
 
 # Text the person "sent" that they did not write as prose. Each is injected by
 # the harness or by another agent, so none of it is evidence about reading.
@@ -149,11 +164,33 @@ def mine(root, since=None, project=None, tail=DEFAULT_TAIL):
     return pairs
 
 
-def main(argv=None):
+def default_corpus_path(env=None, home=None):
+    """Where to write the corpus when the caller does not say.
+
+    An explicit FIRST_READER_CORPUS wins, so a machine that stores it
+    elsewhere needs no flag. Otherwise look for a Dropbox folder, checking the
+    macOS layout before the plain one because a Mac with the modern client has
+    both. Return None when there is no Dropbox: writing the corpus to an
+    invented path would hide it, and asking is better.
+    """
+    env = os.environ if env is None else env
+    explicit = env.get("FIRST_READER_CORPUS")
+    if explicit:
+        return os.path.expanduser(explicit)
+    home = home or os.path.expanduser("~")
+    for layout in DROPBOX_LAYOUTS:
+        root = os.path.join(home, layout)
+        if os.path.isdir(root):
+            return os.path.join(root, CORPUS_DIRNAME, "corpus.jsonl")
+    return None
+
+
+def main(argv=None, home=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--root", default=DEFAULT_ROOT,
                         help="transcript directory (default: %(default)s)")
-    parser.add_argument("--out", required=True, help="output JSONL path")
+    parser.add_argument("--out", help="output JSONL path (default: the corpus "
+                                     "in Dropbox, or $FIRST_READER_CORPUS)")
     parser.add_argument("--since", help="keep turns on or after YYYY-MM-DD")
     parser.add_argument("--project", help="substring filter on project folder")
     parser.add_argument("--tail", type=int, default=DEFAULT_TAIL,
@@ -161,9 +198,19 @@ def main(argv=None):
                              "(default: %(default)s; 0 keeps all)")
     args = parser.parse_args(argv)
 
+    out = args.out or default_corpus_path(home=home)
+    if not out:
+        sys.stderr.write(
+            "no Dropbox folder found, so there is no default corpus location.\n"
+            "Pass --out PATH, or set FIRST_READER_CORPUS.\n")
+        return 2
+    parent = os.path.dirname(os.path.abspath(out))
+    if parent and not os.path.isdir(parent):
+        os.makedirs(parent)
+
     rows = mine(os.path.expanduser(args.root), since=args.since,
                 project=args.project, tail=args.tail)
-    with open(args.out, "w") as fh:
+    with open(out, "w") as fh:
         for row in rows:
             fh.write(json.dumps(row) + "\n")
 
@@ -177,7 +224,7 @@ def main(argv=None):
     sys.stderr.write(
         "%d turns, %s to %s, %d projects, %d characters -> %s\n"
         % (len(rows), rows[0]["ts"][:10], rows[-1]["ts"][:10], projects,
-           chars, args.out))
+           chars, out))
     return 0
 
 

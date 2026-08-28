@@ -32,14 +32,27 @@ audit rather than in place of it.
 ## Step 1. Build the corpus
 
 ```
-python3 scripts/mine_transcripts.py --out corpus.jsonl
+python3 scripts/mine_transcripts.py --tail 0
 ```
 
 The script walks `~/.claude/projects/*/*.jsonl` and writes one JSON object
 per turn the person typed, each paired with the assistant prose that
 preceded it. Options: `--root` for a different transcript directory,
-`--since YYYY-MM-DD`, `--project SUBSTRING`, and `--tail N` for how much
-preceding prose to keep.
+`--since YYYY-MM-DD`, `--project SUBSTRING`, `--tail N` for how much
+preceding prose to keep, and `--out` for where to write it.
+
+With no `--out` it writes to `AI_Transcript_Corpus/corpus.jsonl` inside your
+Dropbox folder, or to `$FIRST_READER_CORPUS` when that is set. It finds
+Dropbox in either the macOS or the Linux layout, and refuses to guess a path
+when there is no Dropbox, because a corpus written somewhere nobody looks is
+worse than an error.
+
+Keep the corpus out of every repository, public or private. It spans every
+project the person has used Claude Code on, which in Jake's case means other
+people's unpublished work, graduate students' job materials, peer reviews
+written under confidentiality, and personal medical notes, all in one file.
+Nothing downstream needs it stored anywhere in particular, because rerunning
+this one command rebuilds it.
 
 Two things about this step matter more than they look.
 

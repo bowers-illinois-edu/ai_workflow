@@ -101,9 +101,13 @@ the new turns when the reactions start to look unfamiliar.
 
 ## Files
 
-- `~/.claude/first-reader/persona.md` --- the model of the reader. Kept
-  outside this repository because it quotes unpublished drafts.
+- `~/.claude/first-reader/persona.md` --- the model of the reader. It lives
+  in the private `ai_workflow_private` repository, symlinked here, because it
+  quotes unpublished drafts.
 - `~/.claude/first-reader/evidence/` --- the mechanism tally with turn
-  numbers, and the validation run.
+  numbers, the pre-registered ground truth, and the validation run.
+- `Dropbox/AI_Transcript_Corpus/corpus.jsonl` --- the corpus the persona was
+  built from. In no repository, on purpose: it spans every project and is
+  confidential throughout. Rebuild it by rerunning the miner.
 - `METHOD.md` --- how to build a persona like this from your own transcripts.
 - `scripts/mine_transcripts.py` --- builds the corpus. `make test` covers it.

@@ -126,10 +126,22 @@ done
 
 `first-reader` needs one step the others do not. It loads a persona from
 `~/.claude/first-reader/persona.md`, which is deliberately outside this
-repository because it quotes unpublished drafts. Copy that file across by
-hand, or rebuild it from your own transcripts by following
-`skills/first-reader/METHOD.md`. Without it the skill loads and finds nothing
-to read.
+repository because it quotes unpublished drafts. Jake keeps it in a private
+repository:
+
+```bash
+git clone git@github.com:jwbowers/ai_workflow_private.git ~/repos/ai_workflow_private
+ln -sfn ~/repos/ai_workflow_private/first-reader ~/.claude/first-reader
+```
+
+Anyone else should build their own by following
+`skills/first-reader/METHOD.md`. Without a persona the skill loads and finds
+nothing to read, while still reporting itself installed, so check that
+`~/.claude/first-reader/persona.md` resolves before relying on it.
+
+The corpus the persona is built from goes in neither repository. It writes to
+`AI_Transcript_Corpus/corpus.jsonl` inside Dropbox, because it spans every
+project and is confidential throughout, and rerunning the miner rebuilds it.
 
 Symlinking (rather than copying) keeps the repo the single source of truth: edits here take effect in the next session, and `git log` stays the history of the rules.
 
