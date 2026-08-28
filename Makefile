@@ -9,15 +9,18 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-claude-app check-claude-app app-skills
+.PHONY: test test-verify-citations test-style-audit test-first-reader test-claude-app check-claude-app app-skills
 
-test: test-verify-citations test-style-audit test-claude-app
+test: test-verify-citations test-style-audit test-first-reader test-claude-app
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
 
 test-style-audit:
 	$(PYTHON) skills/style-audit/tests/test_style_scan.py
+
+test-first-reader:
+	$(PYTHON) skills/first-reader/tests/test_mine_transcripts.py
 
 test-claude-app:
 	$(PYTHON) scripts/tests/test_check_claude_app.py
