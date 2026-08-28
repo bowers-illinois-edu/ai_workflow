@@ -119,10 +119,17 @@ to notice rather than easier.
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in math verify-citations reviewer2 review-response decks style-audit simulation-study; do
+for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader; do
   ln -sfn /path/to/this/repo/skills/$s ~/.claude/skills/$s
 done
 ```
+
+`first-reader` needs one step the others do not. It loads a persona from
+`~/.claude/first-reader/persona.md`, which is deliberately outside this
+repository because it quotes unpublished drafts. Copy that file across by
+hand, or rebuild it from your own transcripts by following
+`skills/first-reader/METHOD.md`. Without it the skill loads and finds nothing
+to read.
 
 Symlinking (rather than copying) keeps the repo the single source of truth: edits here take effect in the next session, and `git log` stays the history of the rules.
 

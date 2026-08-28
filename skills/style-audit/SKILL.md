@@ -15,6 +15,16 @@ Section 6 below holds the catalog of named offenders that used to sit in the
 global `CLAUDE.md`. It lives here now because a list of banned words helps an
 auditor and hurts a drafter.
 
+This pass is one of two. It checks a draft against offenders someone has
+already named, which is what a list is good for: a verbless fragment, a
+unicode character, a bold sentence opening a paragraph, a catalogued
+metaphor. It does not find an undefined referent or a false claim, because
+the offending word differs every time and a false claim is a fact about the
+subject matter. Those belong to `first-reader`, which reads the draft as Jake
+reads it instead of scanning it. Counted over three months of his reactions,
+the categories this scanner reaches come to about one complaint in eight, so
+run both passes and expect them to find different things.
+
 Scope: any prose leaving the desk --- papers, memos, grants, course
 materials, referee reports, response memos, slide text, README prose, long
 emails. Code style belongs to `CLAUDE_CODING.md`, but the ASCII rule and the

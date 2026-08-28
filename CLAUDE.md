@@ -14,7 +14,7 @@ The coding rules apply to any code work in any language --- R, Python, Go, Rust,
 
 ## Skills
 
-The task-specific protocols live as skills in `skills/` in the ai_workflow repository, symlinked into `~/.claude/skills/`. Each triggers on its description and can be invoked by name:
+The task-specific protocols live as skills in `skills/` in the ai_workflow repository, symlinked into `~/.claude/skills/`. Each triggers on its description and can be invoked by name. One of them, `first-reader`, also loads a file that is not in the repository: `~/.claude/first-reader/persona.md`, kept private because it quotes unpublished drafts. On a new machine that file has to be copied across or rebuilt, or the skill loads with nothing to read.
 
 - `math` --- proofs, derivations, theorem statements, counterexamples, mathematical-statistics prose. Cues: "prove," "derive," "show that," "estimand," "identification," "randomization inference"; LaTeX math; `.tex` files in scope.
 - `verify-citations` --- verify every citation against Crossref, OpenAlex, arXiv, and ORCID before a document leaves the desk. Cues: "verify citations," "check the bibliography," `.bib` files, "before I submit / post / circulate"; any bibliography an AI assistant touched. Bundles a script that automates the per-entry checks.
