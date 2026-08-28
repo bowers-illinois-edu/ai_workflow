@@ -51,9 +51,14 @@ Agent(subagent_type: "general-purpose", prompt: """
 2. Read this draft: <path>
    It was written for <who receives it>. They have not read it yet.
 3. Produce the report the persona specifies in its section 4.
-Do not edit the file. Your final message is the report.
+Do not edit the file. Return the report as your final message.
 """)
 ```
+
+Ask for the report as the agent's final message, not as a file it writes.
+Telling it to write a file loses the whole run when a write is refused: five
+runs during this skill's own validation finished their reading and then went
+idle with nothing on disk and nothing returned.
 
 Three parts of that matter, and the pass fails without each of them.
 
