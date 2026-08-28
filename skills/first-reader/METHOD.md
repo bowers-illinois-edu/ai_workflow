@@ -41,11 +41,11 @@ preceded it. Options: `--root` for a different transcript directory,
 `--since YYYY-MM-DD`, `--project SUBSTRING`, `--tail N` for how much
 preceding prose to keep, and `--out` for where to write it.
 
-With no `--out` it writes to `AI_Transcript_Corpus/corpus.jsonl` inside your
-Dropbox folder, or to `$FIRST_READER_CORPUS` when that is set. It finds
-Dropbox in either the macOS or the Linux layout, and refuses to guess a path
-when there is no Dropbox, because a corpus written somewhere nobody looks is
-worse than an error.
+With no `--out` it writes to `~/Claude_Transcript_Archive/corpus.jsonl`, or
+to `$FIRST_READER_CORPUS` when that is set. Two places it deliberately avoids:
+either repository, and anything under `~/Library/CloudStorage`. macOS denies a
+background process access to the latter, so a scheduled refresh there fails
+every night while working when run by hand.
 
 Keep the corpus out of every repository, public or private. It spans every
 project the person has used Claude Code on, which in Jake's case means other

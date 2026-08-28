@@ -106,8 +106,9 @@ the new turns when the reactions start to look unfamiliar.
   quotes unpublished drafts.
 - `~/.claude/first-reader/evidence/` --- the mechanism tally with turn
   numbers, the pre-registered ground truth, and the validation run.
-- `Dropbox/AI_Transcript_Corpus/corpus.jsonl` --- the corpus the persona was
-  built from. In no repository, on purpose: it spans every project and is
-  confidential throughout. Rebuild it by rerunning the miner.
+- `~/Claude_Transcript_Archive/` --- the corpus the persona was built from,
+  beside a permanent archive of the transcripts it came from. In no
+  repository, on purpose: it spans every project and is confidential
+  throughout. A launchd agent refreshes both daily.
 - `METHOD.md` --- how to build a persona like this from your own transcripts.
 - `scripts/mine_transcripts.py` --- builds the corpus. `make test` covers it.

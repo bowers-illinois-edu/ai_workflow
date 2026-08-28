@@ -9,9 +9,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-first-reader test-claude-app check-claude-app app-skills
+.PHONY: test test-verify-citations test-style-audit test-first-reader test-archive test-claude-app check-claude-app app-skills archive install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-first-reader test-claude-app
+test: test-verify-citations test-style-audit test-first-reader test-archive test-claude-app
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -21,6 +21,9 @@ test-style-audit:
 
 test-first-reader:
 	$(PYTHON) skills/first-reader/tests/test_mine_transcripts.py
+
+test-archive:
+	$(PYTHON) scripts/tests/test_archive_transcripts.py
 
 test-claude-app:
 	$(PYTHON) scripts/tests/test_check_claude_app.py
@@ -39,3 +42,24 @@ app-skills:
 	rm -rf claude_app/dist && mkdir -p claude_app/dist
 	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}" -x '*__pycache__*'; done
 	@ls -l claude_app/dist
+
+# The transcripts in ~/.claude/projects are the source the corpus and the
+# first-reader persona both derive from, and Claude Code prunes them on its own
+# schedule. Backblaze mirrors the disk but drops what the disk drops, so this
+# archive is additive: it never deletes, and a pruned session survives in it.
+# `archive` also refreshes the corpus, which costs about a second.
+archive:
+	./scripts/daily_archive.sh && tail -2 ~/Library/Logs/claude-archive.log
+
+install-archive-agent:
+	@mkdir -p ~/Library/LaunchAgents
+	@sed -e 's|__REPO__|$(CURDIR)|g' -e 's|__HOME__|$(HOME)|g' \
+	    scripts/com.jake.claude-archive.plist \
+	    > ~/Library/LaunchAgents/com.jake.claude-archive.plist
+	@launchctl unload ~/Library/LaunchAgents/com.jake.claude-archive.plist 2>/dev/null || true
+	launchctl load ~/Library/LaunchAgents/com.jake.claude-archive.plist
+	@echo "installed: runs daily at 09:30, logs to ~/Library/Logs/claude-archive.log"
+
+uninstall-archive-agent:
+	launchctl unload ~/Library/LaunchAgents/com.jake.claude-archive.plist
+	rm -f ~/Library/LaunchAgents/com.jake.claude-archive.plist

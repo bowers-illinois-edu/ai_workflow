@@ -140,8 +140,10 @@ nothing to read, while still reporting itself installed, so check that
 `~/.claude/first-reader/persona.md` resolves before relying on it.
 
 The corpus the persona is built from goes in neither repository. It writes to
-`AI_Transcript_Corpus/corpus.jsonl` inside Dropbox, because it spans every
-project and is confidential throughout, and rerunning the miner rebuilds it.
+`~/Claude_Transcript_Archive/`, beside a permanent additive archive of the
+transcripts themselves. `make archive` updates both, and
+`make install-archive-agent` schedules that daily. See `scripts/README` in the
+archive directory for why it is not in Dropbox.
 
 Symlinking (rather than copying) keeps the repo the single source of truth: edits here take effect in the next session, and `git log` stays the history of the rules.
 

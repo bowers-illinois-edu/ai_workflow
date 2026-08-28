@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jake.claude-archive</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__REPO__/scripts/daily_archive.sh</string>
+    </array>
+    <!-- Once a day. If the laptop is asleep at this hour, launchd runs the
+         job when it next wakes, so a closed lid does not skip a day. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>9</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <!-- daily_archive.sh writes its own log; these catch anything that
+         escapes it, such as a python that fails to start. -->
+    <key>StandardOutPath</key>
+    <string>__HOME__/Library/Logs/claude-archive.err</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/Library/Logs/claude-archive.err</string>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityIO</key>
+    <true/>
+</dict>
+</plist>

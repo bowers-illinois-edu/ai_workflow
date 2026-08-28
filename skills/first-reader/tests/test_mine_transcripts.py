@@ -228,14 +228,14 @@ class TestPairing(unittest.TestCase):
 class TestDefaultCorpusLocation(unittest.TestCase):
     """Where the corpus goes when --out is not given.
 
-    Jake keeps the corpus on Dropbox rather than in either repository,
-    because it spans every project he has used Claude Code on and therefore
+    It must not go in either repository, because it spans every project and
     holds other people's unpublished work, students' job materials,
-    confidential peer reviews, and medical notes. The script has to know that
-    location so a refresh is one command, but it must not hard-code one
-    person's machine, because this script ships in a public repository.
-    Hence: an environment variable wins, a Dropbox folder is found if there
-    is one, and otherwise the script asks for --out rather than guessing.
+    confidential peer reviews, and medical notes. It also must not go under
+    ~/Library/CloudStorage: macOS denies a launchd job access there, so the
+    daily refresh would fail silently every night while working by hand.
+
+    So the default is a plain directory in the home folder, which any
+    background job can write and which whole-disk backup already covers.
     """
 
     def test_environment_variable_wins(self):
@@ -244,36 +244,25 @@ class TestDefaultCorpusLocation(unittest.TestCase):
                          "/somewhere/else/corpus.jsonl")
 
     def test_environment_variable_is_tilde_expanded(self):
-        env = {"FIRST_READER_CORPUS": "~/mine.jsonl"}
-        got = mt.default_corpus_path(env=env, home="/home/x")
+        got = mt.default_corpus_path(env={"FIRST_READER_CORPUS": "~/mine.jsonl"},
+                                     home="/home/x")
         self.assertTrue(got.endswith("/mine.jsonl"))
         self.assertNotIn("~", got)
 
-    def test_macos_dropbox_is_found(self):
-        with tempfile.TemporaryDirectory() as home:
-            os.makedirs(os.path.join(home, "Library", "CloudStorage", "Dropbox"))
-            got = mt.default_corpus_path(env={}, home=home)
-        self.assertIn("CloudStorage/Dropbox", got)
+    def test_default_is_under_the_home_directory(self):
+        got = mt.default_corpus_path(env={}, home="/home/x")
+        self.assertTrue(got.startswith("/home/x/"))
         self.assertTrue(got.endswith("corpus.jsonl"))
 
-    def test_plain_dropbox_is_found_when_macos_layout_is_absent(self):
-        """koelsch is Linux; the same script has to work there."""
-        with tempfile.TemporaryDirectory() as home:
-            os.makedirs(os.path.join(home, "Dropbox"))
-            got = mt.default_corpus_path(env={}, home=home)
-        self.assertIn("/Dropbox/", got)
+    def test_default_avoids_the_protected_cloud_storage_path(self):
+        """A launchd job cannot write there, so the default must never be it."""
+        got = mt.default_corpus_path(env={}, home="/home/x")
+        self.assertNotIn("CloudStorage", got)
+        self.assertNotIn("Dropbox", got)
 
-    def test_macos_layout_wins_when_both_exist(self):
-        with tempfile.TemporaryDirectory() as home:
-            os.makedirs(os.path.join(home, "Library", "CloudStorage", "Dropbox"))
-            os.makedirs(os.path.join(home, "Dropbox"))
-            got = mt.default_corpus_path(env={}, home=home)
-        self.assertIn("CloudStorage", got)
-
-    def test_no_dropbox_means_no_default(self):
-        """Guessing a path would write the corpus somewhere nobody looks."""
-        with tempfile.TemporaryDirectory() as home:
-            self.assertIsNone(mt.default_corpus_path(env={}, home=home))
+    def test_default_needs_no_directory_to_exist_yet(self):
+        """A fresh machine has nothing; the caller creates the parent."""
+        self.assertIsNotNone(mt.default_corpus_path(env={}, home="/nonexistent"))
 
 
 class TestMain(unittest.TestCase):
@@ -289,18 +278,8 @@ class TestMain(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["human"], "why?")
 
-    def test_missing_out_and_no_dropbox_is_a_clear_error(self):
-        """Refusing beats writing the corpus to a path nobody will look in."""
-        with tempfile.TemporaryDirectory() as d:
-            write_session(d, "p", "s", [assistant("prose"), human("why?")])
-            err = io.StringIO()
-            with contextlib.redirect_stderr(err):
-                code = mt.main(["--root", d], home=d)
-            self.assertEqual(code, 2)
-            self.assertIn("--out", err.getvalue())
-
     def test_out_directory_is_created_if_missing(self):
-        """A fresh machine has no Dropbox corpus folder yet."""
+        """A fresh machine has no archive directory yet."""
         with tempfile.TemporaryDirectory() as d:
             write_session(d, "p", "s", [assistant("prose"), human("why?")])
             out = os.path.join(d, "new", "nested", "corpus.jsonl")

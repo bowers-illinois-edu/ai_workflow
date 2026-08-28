@@ -22,17 +22,17 @@ Usage:
     python3 mine_transcripts.py --root ~/.claude/projects --since 2026-06-01 \
         --project fully-specified --tail 4000 --out corpus.jsonl
 
-With no --out the corpus goes to AI_Transcript_Corpus/corpus.jsonl inside your
-Dropbox folder, or to $FIRST_READER_CORPUS if that is set. It is kept out of
-both repositories on purpose; see default_corpus_path below.
+With no --out the corpus goes to ~/Claude_Transcript_Archive/corpus.jsonl, or
+to $FIRST_READER_CORPUS if that is set. It is kept out of both repositories on
+purpose, and out of ~/Library/CloudStorage, where macOS would deny a scheduled
+job access. See default_corpus_path below.
 
 Output is one JSON object per line, sorted by timestamp:
     {"n", "ts", "project", "session", "assistant", "human"}
 
 Exit status: 0 when the corpus is non-empty, 1 when it is empty (which
 almost always means --root points somewhere with no transcripts, and a
-silent empty file would read as "this person never complained"), 2 when
-there is nowhere to write and no --out was given.
+silent empty file would read as "this person never complained").
 
 Stdlib only, offline, no third-party dependencies.
 """
@@ -49,11 +49,13 @@ DEFAULT_TAIL = 2500
 # Where the corpus lives when --out is not given. It belongs in neither
 # repository: it spans every project the person has used Claude Code on, so it
 # holds other people's unpublished work, students' job materials, confidential
-# peer reviews, and personal notes. Jake keeps it in Dropbox. This script ships
-# in a public repository, so it finds a Dropbox folder rather than hard-coding
-# one machine, and asks for --out when it cannot.
-CORPUS_DIRNAME = "AI_Transcript_Corpus"
-DROPBOX_LAYOUTS = ("Library/CloudStorage/Dropbox", "Dropbox")
+# peer reviews, and personal notes.
+#
+# It also must not sit under ~/Library/CloudStorage. macOS denies a launchd job
+# access there, so a scheduled refresh would fail every night while still
+# working when run by hand. A plain home directory works for background jobs
+# and is picked up by whole-disk backup.
+CORPUS_DIRNAME = "Claude_Transcript_Archive"
 
 # Text the person "sent" that they did not write as prose. Each is injected by
 # the harness or by another agent, so none of it is evidence about reading.
@@ -167,22 +169,16 @@ def mine(root, since=None, project=None, tail=DEFAULT_TAIL):
 def default_corpus_path(env=None, home=None):
     """Where to write the corpus when the caller does not say.
 
-    An explicit FIRST_READER_CORPUS wins, so a machine that stores it
-    elsewhere needs no flag. Otherwise look for a Dropbox folder, checking the
-    macOS layout before the plain one because a Mac with the modern client has
-    both. Return None when there is no Dropbox: writing the corpus to an
-    invented path would hide it, and asking is better.
+    An explicit FIRST_READER_CORPUS wins, so a machine that keeps it elsewhere
+    needs no flag. Otherwise it sits beside the transcript archive in the home
+    directory, which a scheduled job can write and whole-disk backup covers.
     """
     env = os.environ if env is None else env
     explicit = env.get("FIRST_READER_CORPUS")
     if explicit:
         return os.path.expanduser(explicit)
     home = home or os.path.expanduser("~")
-    for layout in DROPBOX_LAYOUTS:
-        root = os.path.join(home, layout)
-        if os.path.isdir(root):
-            return os.path.join(root, CORPUS_DIRNAME, "corpus.jsonl")
-    return None
+    return os.path.join(home, CORPUS_DIRNAME, "corpus.jsonl")
 
 
 def main(argv=None, home=None):
@@ -199,11 +195,6 @@ def main(argv=None, home=None):
     args = parser.parse_args(argv)
 
     out = args.out or default_corpus_path(home=home)
-    if not out:
-        sys.stderr.write(
-            "no Dropbox folder found, so there is no default corpus location.\n"
-            "Pass --out PATH, or set FIRST_READER_CORPUS.\n")
-        return 2
     parent = os.path.dirname(os.path.abspath(out))
     if parent and not os.path.isdir(parent):
         os.makedirs(parent)
