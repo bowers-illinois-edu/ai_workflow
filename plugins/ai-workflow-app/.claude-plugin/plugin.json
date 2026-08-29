@@ -1,6 +1,6 @@
 {
   "name": "ai-workflow-app",
-  "description": "The same rules translated for the Claude app, which has no CLAUDE.md and no working tree: drafting rules with worked examples, coding rules, and the style audit.",
+  "description": "The same rules translated for the Claude app, which has no CLAUDE.md and no working tree: drafting rules with worked examples, coding rules, the style audit, mathematical work in voice mode, and the handoff into Claude Code.",
   "author": {
     "name": "Jake Bowers"
   },

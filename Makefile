@@ -34,10 +34,11 @@ check-claude-app:
 # The Claude app takes a skill as a zipped folder whose root is the folder
 # itself. `zip` does that directly, so this needs no script and no tests.
 #
-# style-audit ships the scanner. Its scripts/ is a symlink to the one directory
-# that holds style_scan.py, and `zip -r` stores what a symlink points at, so
-# the upload carries the same scanner the Claude Code skill runs and there is
-# never a second copy to go stale.
+# Two of these skills reach the Claude Code originals by symlink rather than by
+# copy: style-audit/scripts/ points at the one directory holding style_scan.py,
+# and math/references/ at the one directory holding sections 4-16. `zip -r`
+# stores what a symlink points at, so each upload carries the same files the
+# Claude Code skill uses and there is never a second copy to go stale.
 app-skills:
 	rm -rf claude_app/dist && mkdir -p claude_app/dist
 	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}" -x '*__pycache__*'; done

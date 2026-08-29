@@ -181,23 +181,41 @@ and `skills/`.
   `CLAUDE.md` name the app's two writing-rule slots instead, Pass 1 runs the
   scanner over an attached file, and Pass 1 gains a fallback for when the
   scanner cannot run.
+- **`claude_app/skills/math/`** --- the mathematical discipline for a place
+  where I am usually walking with the phone in voice mode. The Claude Code
+  version assumes a screen, `.tex` files, and a simulation I can run; this one
+  assumes a spoken answer and no files, so it adds how to say mathematics
+  aloud, how to read a transcript back before working from it, what can and
+  cannot be checked here, and how to draft the memo I will carry into Claude
+  Code. Sections 4--16 are not rewritten: `references/` is a symlink to the
+  Claude Code skill's, so the app loads the same files.
+- **`claude_app/skills/handoff/`** --- the bridge I actually use from a
+  conversation here to a session in Claude Code. It is not the `/handoff`
+  command translated. That command reports the files it changed, and the app
+  changed none; this skill produces the text of a `HANDOFF.md` for me to paste,
+  and its distinctive requirement is that it keep what we checked separate from
+  what we only said, so a sentence spoken on a walk does not reach the
+  repository looking like a result.
 - **`claude_app/3_custom_style.md`** --- the same three passages, formatted for
   a custom style. The app appears to have dropped that feature, so the file is
   kept rather than installed.
 
-`bowers-prose` and `bowers-code` bundle no script, because they are
-instructions and have nothing to run. `style-audit` does bundle one: the app
-can run Python inside a skill, and the scanner needs no network, only a file
-and a list of patterns. Whether it runs there is untested, which is why the
-skill tells the auditor what to do when it does not.
+`bowers-prose`, `bowers-code`, and `handoff` bundle nothing, because they are
+instructions and have nothing to run. `style-audit` bundles the scanner: the
+app can run Python inside a skill, and the scanner needs no network, only a
+file and a list of patterns. Whether it runs there is untested, which is why
+the skill tells the auditor what to do when it does not. `math` bundles no
+script either, and its `references/` are prose the app reads on demand.
 
-The app skill's `scripts/` is a symlink to the one directory that holds
-`style_scan.py`. `zip -r` stores what a symlink points at and the plugin
-installer follows it too, so both routes ship the same scanner Claude Code runs
-and there is no second copy to go stale.
+Two app skills reach the Claude Code originals by symlink rather than by copy:
+`style-audit/scripts/` points at the one directory holding `style_scan.py`, and
+`math/references/` at the one directory holding sections 4--16. `zip -r` stores
+what a symlink points at and the plugin installer resolves it too, so both
+routes ship the same files Claude Code runs and there is no second copy to go
+stale.
 
 ```bash
-make app-skills   # writes claude_app/dist/bowers-prose.zip and bowers-code.zip
+make app-skills   # writes one zip per directory in claude_app/skills/
 ```
 
 Upload each zip in the app under `Customize > Skills`, with the "+" button, then
@@ -253,9 +271,9 @@ version of the style audit tells the auditor to reread the writing rules in
 Instructions for Claude, which do not exist in Claude Code; the Claude Code
 version names `CLAUDE.md`, which does not exist in the app.
 
-- **`plugins/ai-workflow`** --- the seven Claude Code skills and `/handoff`.
-- **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, and the app
-  version of `style-audit`.
+- **`plugins/ai-workflow`** --- the eight Claude Code skills and `/handoff`.
+- **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, `handoff`,
+  and the app versions of `style-audit` and `math`.
 
 Neither plugin holds a second copy of anything. Each one's `skills/` is a
 symlink to the real directory, `skills/` or `claude_app/skills/`, and the

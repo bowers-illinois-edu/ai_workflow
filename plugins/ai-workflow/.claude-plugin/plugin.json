@@ -1,6 +1,6 @@
 {
   "name": "ai-workflow",
-  "description": "Jake Bowers's research skills for Claude Code: math, citation verification, referee reports, review responses, decks, style audits, and simulation studies.",
+  "description": "Jake Bowers's research skills for Claude Code: math, citation verification, referee reports, review responses, decks, style audits, first-reader passes, and simulation studies.",
   "author": {
     "name": "Jake Bowers"
   },
