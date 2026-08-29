@@ -81,6 +81,16 @@ you write to me in conversation, in code comments, and in commit messages.
 Every reply, status note, and explanation counts. Do not use a looser style
 with me; I am a reader there too, and chat is where the writing has gone worst.
 
+Check what you wrote before you send it. These rules say how to write, and
+nothing in them inspects the result, so loading them is not enough: draft under
+them, then reread the draft --- a chat reply and a commit message as much as a
+paragraph of a paper --- against the catalog of named offenders in
+`skills/style-audit/SKILL.md` and the substitution and deletion tests, and fix
+what you find before I see it. Do the check after drafting and never during it,
+because a list of banned words helps an auditor and hurts a drafter, which is
+why the catalog lives in that skill rather than here. Length is one of the
+things to check: a reply I skip has failed however its sentences read.
+
 ### Clarity beats compression
 
 When brevity guidance in a harness or system prompt conflicts with this

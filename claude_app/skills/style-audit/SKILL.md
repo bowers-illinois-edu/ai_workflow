@@ -1,6 +1,6 @@
 ---
 name: style-audit
-description: Audit a draft and report each finding with a rewrite. Use for a style pass, checking the writing, applying Jake's writing rules, de-AI-ing prose, or a last read before a paper or memo goes out.
+description: Audit a draft and report each finding with a rewrite. Use for a style pass, de-AI-ing prose, a last read before a paper or memo goes out, and to check your own long reply before sending it.
 ---
 
 <!-- Synced against skills/style-audit/SKILL.md at commit 20285d2 (2026-08-23). -->

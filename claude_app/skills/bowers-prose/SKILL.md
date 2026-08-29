@@ -1,6 +1,6 @@
 ---
 name: bowers-prose
-description: Jake's writing rules and three passages of his own prose. Use whenever writing, editing, or revising prose: papers, grants, memos, referee reports, emails, course materials.
+description: Jake's writing rules and three passages of his own prose. Use for every reply to Jake, and for writing, editing, or revising prose: papers, grants, memos, referee reports, emails.
 ---
 
 <!-- Synced against CLAUDE.md at commit a460538 (2026-08-23). -->

@@ -11,7 +11,8 @@ prose, and the short version of the coding rules.
 If the field rejects it for length, cut in this order: the closing coding
 paragraph (the bowers-code skill carries it in full), then the two
 illustrations (the paragraph about the word "family" and the sentences about
-"Researcher A"), then the last two bullets.
+"Researcher A"), then the sentences about running style-audit over a long draft
+(the skill's own description still fires it), then the last two bullets.
 
 Synced against CLAUDE.md at commit a460538 (2026-08-23).
 
@@ -83,6 +84,13 @@ How to write to me, in every reply and not only in documents:
   because it is nearby and true.
 - When I say I do not understand, do not slow down or add words. Find the term
   you left undefined or the step you skipped, and fix that one thing.
+
+Check the reply before you send it. These rules say how to write, and nothing
+in them inspects the result, so reread what you wrote against them and fix what
+you find before I see it. Do this after drafting, not while drafting. For
+anything longer than a few paragraphs, run the style-audit skill over your own
+draft. Length is one of the things to check: a reply I skip has failed however
+its sentences read.
 
 For code: explain the statistical idea the code implements --- the estimand,
 the null, why this test --- and not only the implementation. Write the tests
