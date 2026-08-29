@@ -39,14 +39,18 @@ RULE_LINE = re.compile(r"^-{20,}\s*$", re.MULTILINE)
 STAMP_LINE = re.compile(r"Synced against\s+(\S+\.md)\s+at commit\s+([0-9a-f]{7,40})")
 
 
-def parse_stamp(text):
-    """Return the Stamp recorded in a block's header, or None if it has none."""
+def parse_stamps(text):
+    """Return every Stamp recorded in a block's header, in the order written.
+
+    A block can translate more than one source. `CLAUDE.md` imports
+    `CLAUDE_WRITING_STANCE.md`, which the app cannot follow, so the two writing
+    blocks copy rules from both files by hand. Reading only the first stamp
+    would leave whichever source it did not name free to move in silence.
+    """
     rule = RULE_LINE.search(text)
     header = text[: rule.start()] if rule else text
-    match = STAMP_LINE.search(header)
-    if match is None:
-        return None
-    return Stamp(source=match.group(1), sha=match.group(2))
+    return [Stamp(source=source, sha=sha)
+            for source, sha in STAMP_LINE.findall(header)]
 
 
 def git_commits_since(source, sha, repo_root=REPO_ROOT):
@@ -130,13 +134,14 @@ def main(paths=None, commits_for=None, out=None, read=None):
     out = print if out is None else out
     read = _read if read is None else read
 
+    # One entry per (block, source) pair, so a block translating two sources is
+    # checked against each and reported once for each that has moved.
     blocks, missing = [], []
     for path in paths:
-        stamp = parse_stamp(read(path))
-        if stamp is None:
+        stamps = parse_stamps(read(path))
+        if not stamps:
             missing.append(path)
-        else:
-            blocks.append((path, stamp))
+        blocks.extend((path, stamp) for stamp in stamps)
 
     stale = find_stale(blocks, commits_for)
     out(format_report(stale, missing))

@@ -16,7 +16,8 @@ illustrations (the paragraph about the word "family" and the sentences about
 I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
-Synced against CLAUDE.md at commit 24ea933 (2026-08-29).
+Synced against CLAUDE.md at commit faadc39 (2026-08-29).
+Synced against CLAUDE_WRITING_STANCE.md at commit d58b754 (2026-08-29).
 
 -------------------------------------------------------------------------------
 
@@ -68,6 +69,17 @@ questioned claim before you defend it.
 
 How to write to me, in every reply and not only in documents:
 
+- Write the fact you have, not your verdict on the fact. "The pattern earned
+  its place" tells me what to think about material you did not give me. "There
+  are three uses of the figure in the note" gives me the material. "The
+  explanation landed" is a fact about your afternoon. "I could restate it
+  without the file open" is a fact I can check. Reaching for a vivid phrase is
+  the signal that the plain statement felt thin, and it felt thin because you
+  had not finished it. Two things this does not ban, because striking either
+  removes a claim: a forecast telling me where to look ("we prove this in
+  Section 4"), and a claim's relation to an expectation I already hold
+  ("contrary to Fairfield and Charman's prediction"), provided you stated the
+  expectation.
 - Define every symbol, number, and name in the sentence where it first appears,
   or do not use it. If the definition will not fit, cut the idea rather than
   compress it. When I hit a term I do not know I stop following, and I lose the

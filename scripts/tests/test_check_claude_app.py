@@ -6,8 +6,13 @@ translations of `CLAUDE.md` and `CLAUDE_CODING.md`, so no program can tell
 whether their rules still agree with the sources. What a program can tell is
 whether the sources have moved since a block was last synced, which is the
 signal that a human re-read is owed. Every test below is about that signal:
-reading the stamp that records the last sync, checking the right source file
-against it, and failing loudly when a block carries no stamp at all.
+reading the stamps that record the last sync, checking the right source file
+against each, and failing loudly when a block carries no stamp at all.
+
+A block can carry more than one stamp because a block can translate more than
+one source. `CLAUDE.md` imports `CLAUDE_WRITING_STANCE.md`, so the two writing
+blocks copy rules from both files, and a block stamped against only one of them
+would go stale against the other with nothing to report it.
 
 Stdlib-only and offline: the git log is injected as a callable, so the suite
 runs the same way on a machine with no repository.
@@ -46,6 +51,37 @@ Paste the text below the line somewhere.
 Some rules.
 """
 
+# A block translating two sources at once, which is what the writing blocks now
+# do: the craft rules come from CLAUDE.md and the verdict rule from
+# CLAUDE_WRITING_STANCE.md, and either source can move without the other.
+HEADER_WITH_TWO_STAMPS = """# Block 2 of 4: Project custom instructions
+
+Make a project for writing work and paste the text below the line into its
+custom instructions.
+
+Synced against CLAUDE.md at commit 55ed9ea (2026-08-23).
+Synced against CLAUDE_WRITING_STANCE.md at commit abc1234 (2026-08-29).
+
+-------------------------------------------------------------------------------
+
+These rules cover any writing you help me with.
+"""
+
+# One stamp above the rule line and one below it. The one below gets pasted into
+# the app, so it is not a record of anything and must not be checked.
+HEADER_WITH_SECOND_STAMP_BELOW_THE_RULE = """# Block 7 of 7: Half-mislaid stamp
+
+Paste the text below the line somewhere.
+
+Synced against CLAUDE.md at commit 55ed9ea (2026-08-23).
+
+-------------------------------------------------------------------------------
+
+Synced against CLAUDE_WRITING_STANCE.md at commit deadbee (2026-08-29).
+
+Some rules.
+"""
+
 # A block whose only stamp-looking line sits below the rule line. That text is
 # pasted into the app, so a stamp there would be both wrong (it would travel
 # into every conversation) and useless as a record. The parser must not see it.
@@ -61,30 +97,49 @@ Some rules.
 """
 
 
-class ParseStampTests(unittest.TestCase):
+class ParseStampsTests(unittest.TestCase):
     def test_reads_the_source_file_and_the_commit(self):
-        stamp = checker.parse_stamp(HEADER_WITH_STAMP)
-        self.assertEqual(stamp.source, "CLAUDE.md")
-        self.assertEqual(stamp.sha, "55ed9ea")
+        stamps = checker.parse_stamps(HEADER_WITH_STAMP)
+        self.assertEqual([(s.source, s.sha) for s in stamps],
+                         [("CLAUDE.md", "55ed9ea")])
 
-    def test_returns_none_when_there_is_no_stamp(self):
+    def test_returns_nothing_when_there_is_no_stamp(self):
         # A new block added without a stamp must be reported, not silently
-        # treated as current. Returning None is how the checker learns that.
-        self.assertIsNone(checker.parse_stamp(HEADER_WITHOUT_STAMP))
+        # treated as current. An empty list is how the checker learns that.
+        self.assertEqual(checker.parse_stamps(HEADER_WITHOUT_STAMP), [])
 
     def test_ignores_a_stamp_below_the_rule_line(self):
-        self.assertIsNone(checker.parse_stamp(HEADER_WITH_STAMP_BELOW_THE_RULE))
+        self.assertEqual(checker.parse_stamps(HEADER_WITH_STAMP_BELOW_THE_RULE), [])
 
     def test_reads_a_source_other_than_claude_md(self):
-        # Block 4 is synced against CLAUDE_CODING.md. If the parser hard-coded
-        # CLAUDE.md, block 4 would be checked against a file it does not copy.
+        # bowers-code is synced against CLAUDE_CODING.md. If the parser
+        # hard-coded CLAUDE.md, that block would be checked against a file it
+        # does not copy.
         text = HEADER_WITH_STAMP.replace(
             "Synced against CLAUDE.md at commit 55ed9ea",
             "Synced against CLAUDE_CODING.md at commit a500d5f",
         )
-        stamp = checker.parse_stamp(text)
-        self.assertEqual(stamp.source, "CLAUDE_CODING.md")
-        self.assertEqual(stamp.sha, "a500d5f")
+        stamps = checker.parse_stamps(text)
+        self.assertEqual([(s.source, s.sha) for s in stamps],
+                         [("CLAUDE_CODING.md", "a500d5f")])
+
+    def test_reads_every_stamp_in_the_header(self):
+        # The failure this guards against: taking the first stamp and stopping,
+        # so that a block translating two sources is checked against one of
+        # them and rots against the other in silence.
+        stamps = checker.parse_stamps(HEADER_WITH_TWO_STAMPS)
+        self.assertEqual(
+            [(s.source, s.sha) for s in stamps],
+            [("CLAUDE.md", "55ed9ea"),
+             ("CLAUDE_WRITING_STANCE.md", "abc1234")],
+        )
+
+    def test_ignores_a_second_stamp_below_the_rule_line(self):
+        # Reading every stamp must not mean reading past the rule line: the
+        # text below it is pasted into the app, where a stamp is not a record.
+        stamps = checker.parse_stamps(HEADER_WITH_SECOND_STAMP_BELOW_THE_RULE)
+        self.assertEqual([(s.source, s.sha) for s in stamps],
+                         [("CLAUDE.md", "55ed9ea")])
 
 
 class FindStaleTests(unittest.TestCase):
@@ -163,6 +218,22 @@ class ExitCodeTests(unittest.TestCase):
         )
         self.assertNotEqual(code, 0)
 
+    def test_nonzero_when_only_a_second_source_moved(self):
+        # The case this whole change exists for: the block is current with
+        # CLAUDE.md and behind CLAUDE_WRITING_STANCE.md. Checking only the
+        # first stamp would exit zero and the re-read would never be asked for.
+        moved = {"CLAUDE.md": [],
+                 "CLAUDE_WRITING_STANCE.md": ["abc1234 Sharpen the verdict rule"]}
+        out = []
+        code = checker.main(
+            paths=["claude_app/1_personal_preferences.md"],
+            commits_for=lambda source, sha: moved[source],
+            out=out.append,
+            read=lambda path: HEADER_WITH_TWO_STAMPS,
+        )
+        self.assertNotEqual(code, 0)
+        self.assertIn("CLAUDE_WRITING_STANCE.md", "\n".join(out))
+
     def test_nonzero_when_a_block_has_no_stamp(self):
         code = checker.main(
             paths=["claude_app/9_unstamped.md"],
@@ -191,11 +262,29 @@ class RealBlockTests(unittest.TestCase):
         self.assertTrue(paths, "no blocks found in claude_app/")
         for path in paths:
             with open(os.path.join(REPO_ROOT, path)) as handle:
-                stamp = checker.parse_stamp(handle.read())
-            self.assertIsNotNone(stamp, "%s carries no sync stamp" % path)
-            source = os.path.join(REPO_ROOT, stamp.source)
-            self.assertTrue(os.path.exists(source),
-                            "%s is stamped against a missing file: %s" % (path, stamp.source))
+                stamps = checker.parse_stamps(handle.read())
+            self.assertTrue(stamps, "%s carries no sync stamp" % path)
+            for stamp in stamps:
+                source = os.path.join(REPO_ROOT, stamp.source)
+                self.assertTrue(
+                    os.path.exists(source),
+                    "%s is stamped against a missing file: %s" % (path, stamp.source))
+
+    def test_the_blocks_that_translate_the_stance_file_are_stamped_against_it(self):
+        # CLAUDE_WRITING_STANCE.md reaches Claude Code through an @-import,
+        # which the app cannot follow, so these two blocks translate it by hand.
+        # Without a stamp naming it, an edit to that file would never report a
+        # re-read as owed, which is the hole this test closes.
+        translators = [
+            os.path.join("claude_app", "1_personal_preferences.md"),
+            os.path.join("claude_app", "skills", "bowers-prose", "SKILL.md"),
+        ]
+        for path in translators:
+            with open(os.path.join(REPO_ROOT, path)) as handle:
+                sources = [s.source for s in checker.parse_stamps(handle.read())]
+            self.assertIn("CLAUDE_WRITING_STANCE.md", sources,
+                          "%s translates the stance file but is not stamped "
+                          "against it" % path)
 
 
 if __name__ == "__main__":

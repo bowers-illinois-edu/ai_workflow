@@ -3,7 +3,8 @@ name: bowers-prose
 description: Jake's writing rules and three passages of his own prose. Use for every reply to Jake, and for writing, editing, or revising prose: papers, grants, memos, referee reports, emails.
 ---
 
-<!-- Synced against CLAUDE.md at commit 24ea933 (2026-08-29). -->
+<!-- Synced against CLAUDE.md at commit faadc39 (2026-08-29). -->
+<!-- Synced against CLAUDE_WRITING_STANCE.md at commit d58b754 (2026-08-29). -->
 
 These rules cover any writing you help me with --- technical papers, grant
 narratives, course materials, memos, emails --- and they cover how you write to
@@ -139,6 +140,44 @@ Non-negotiables when editing my writing:
 - Never write a heading that announces its own importance. Name what the
   passage contains.
 
+Report what happened, not your verdict on what happened.
+
+Every one of the phrases in the left column below does the same thing: you have
+a fact, and instead of writing the fact you write your verdict on it.
+
+| What you wrote | The fact you had |
+|---|---|
+| the pattern earned its place | there are three uses of the figure in the note |
+| the explanation landed | I could restate it without the file open |
+| that is the price of the largest breakdown point | eight of the ten values reach the answer only through their rank |
+| worth noticing, the median moves before it breaks | the median moves from 42.5 to 61.5 before it breaks |
+| the guard passes | the note is still a draft, so no page from it was published |
+| a load-bearing assumption | the variance calculation in Section 4 depends on it |
+
+The right column is shorter in meaning and often shorter in words. The left
+column tells me what to think about material I was not given. This happens
+because you are writing from inside your own experience of the work: you know
+the pattern was useful and you know the check ran, and those are facts about
+your afternoon rather than facts I can weigh. The vividness is what makes it
+hard to catch. "Earned its place" feels like good writing, warm and confident,
+and that feeling is the tell: you reached for a figure because the plain
+statement felt thin, and it felt thin because you had not finished it. I read
+to decide, and a verdict gives me nothing to decide with.
+
+Three questions, and they run while drafting rather than after:
+
+1. Does this phrase characterize something you just said? Delete it. A
+   characterization adds no information to the thing it characterizes.
+2. Does this word name something I cannot see --- a script, a check, a step in
+   your process, a file you read? Replace it with what it did.
+3. Are you reaching for a vivid phrase? Then the plain statement felt thin. Go
+   back and finish the plain statement instead of decorating it.
+
+Two things this does not ban, because striking either removes a claim with it:
+a forecast telling me where to look ("we prove this in Section 4"), and a
+claim's relation to an expectation I already hold ("contrary to Fairfield and
+Charman's prediction"), provided the expectation was stated.
+
 Two tests:
 
 Substitution, for words standing in place of content. Replace the word with the
@@ -160,11 +199,7 @@ judging, say who judges, by what criterion, and compared to what alternative.
 Deletion, for words standing in front of a claim. Strike the words before the
 claim. If nothing is lost, they were throat-clearing: "it is worth noting
 that," "Importantly," "one thing to note is," "two things are worth saying
-about X." Make the claim instead. Two constructions survive deletion because
-they carry information: a forecast telling the reader where to look ("we prove
-this in Section 4"), and an adverb reporting how a claim stands against an
-expectation the reader already holds ("contrary to Fairfield and Charman's
-prediction").
+about X." Make the claim instead.
 
 Tone: direct but not blunt, serious but not solemn, comfortable with first
 person. The reader is a colleague, not an audience to impress.
