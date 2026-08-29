@@ -20,8 +20,7 @@ So run both, and run them for different things. The persona is ordered by
 how often a failure occurs, so it owns what is frequent and depends on
 context: the referent, the missing motivation, the false claim. It carries
 nothing about a failure Jake met only twice in three months, and the
-validated persona has no rule about a missing main verb anywhere in its 706
-lines. Rare but nameable failures --- a verbless fragment, a unicode
+validated persona has no rule about a missing main verb anywhere in it. Rare but nameable failures --- a verbless fragment, a unicode
 character, a bold sentence opening a paragraph --- belong to the scanner,
 which never forgets them. Neither pass covers the other's half.
 
@@ -99,18 +98,24 @@ stops. If the agent goes idle without returning a report, read the file at the
 scratchpad path before spawning another run.
 
 Treat the findings as candidates, the same way scanner hits are candidates.
-On a held-out 200-line draft the pass returned 12 findings, 9 of them marked
-confident and 3 borderline, and caught 3 of the 4 things Jake actually
-stopped on. An earlier version without the calibration returned 38 findings
-on the same draft and caught 2, so the number of findings is worth watching:
-a report much above a dozen per 200 lines means the pass has drifted back to
-reporting improvable prose rather than stopping points.
+Two measurements say how good the candidates are. On a held-out 200-line
+draft with four ground-truth stops taken from his chat complaints, the pass
+returned 12 findings and caught 3 of the 4. On 2026-08-29 Jake read a
+206-line memo himself and wrote down every stop before the pass ran --- 27
+of them, one every four lines of prose --- and the pass returned 9 findings
+and caught 3 of the 27. The misses sat in the two families his rules name
+first: a thing given a person's verb (nine misses) and a term he could not
+resolve (five). The persona's count cap, tuned on the first test, suppressed
+the second, and it has been removed. Expect the findings to run long on a
+draft that reads badly, and do not read a long list as drift.
 
-It still stops on prose he would read past --- 8 of 20 held-out control
-sentences. Triage before he sees anything, and drop the borderline block
-first. The measurements are in
-`~/.claude/first-reader/evidence/validation.md`, including what they do not
-establish, which is how often it catches what stops him.
+It still stops on prose he would read past --- 5 of the 9 findings on
+2026-08-29, and 8 of 20 held-out control sentences before that. Triage
+before he sees anything, and drop the borderline block first. The
+measurements are in `~/.claude/first-reader/evidence/validation.md`. The
+2026-08-29 test is the first with sensitivity measured against a linear
+read, and its files are `ground_truth_2026-08-29.md`,
+`report_two_models_2026-08-29.md`, and `scoring_2026-08-29.md` there.
 
 ## What it does not do
 
