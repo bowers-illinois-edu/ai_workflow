@@ -212,7 +212,14 @@ understood.
   settles it," "the decisive check," "in one sentence" --- all off-putting.
   Name what the passage contains.
 
-### Two tests, and where the catalog lives
+### Report what happened, not your verdict on it
+
+This rule applies to any writing you do for me --- papers, memos, commit
+messages, and chat replies alike --- and loads with this file:
+
+@~/repos/ai_workflow/CLAUDE_WRITING_STANCE.md
+
+### Two tests
 
 **Substitution**, for words that stand in place of content. Replace the word
 with the thing it refers to. If the substitution is easy and clarifies the
@@ -235,21 +242,13 @@ you cannot say all three, you have not finished the thought.
 **Deletion**, for words that stand in front of a claim. Strike the words before
 the claim. If nothing is lost, they were throat-clearing: "it is worth noting
 that," "Importantly," "one thing to note is," "two things are worth saying
-about X." Make the claim instead. Two constructions survive deletion, because
-each carries information: a forecast telling me where to look ("we prove this
-in Section 4"), and an adverb reporting how a claim stands against an
-expectation I already hold ("contrary to Fairfield and Charman's prediction").
+about X." Make the claim instead.
 
 Figures of speech get one rule rather than a list: use a metaphor only when it
 does work a plain verb cannot, and gloss it once when you use it. This applies
 to figures that appear on no list. A claim "wearing" a heading, an argument
 that "lands," a comparison that "runs along" dimensions --- each fails the
 substitution test exactly as "load-bearing" does.
-
-`skills/style-audit/SKILL.md` holds the full catalog of offenders I have caught
-before, with families and examples. Read it when auditing a draft. Do not read
-it while drafting. A long list of banned words turns attention toward
-avoidance, and the habit then reappears in words the list does not contain.
 
 ### Tone
 

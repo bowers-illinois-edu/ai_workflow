@@ -37,6 +37,13 @@ Two kinds of instruction live here, split by when they should load.
   `~/.claude/CLAUDE.md`, which Claude Code reads automatically.
 - **`CLAUDE_CODING.md`** --- rules for code work in any language. `CLAUDE.md`
   imports it with an `@`-reference, so it loads whenever `CLAUDE.md` does.
+- **`CLAUDE_WRITING_STANCE.md`** --- one rule: write the fact you have, not
+  your verdict on it. It names the impulse behind phrases like "earned its
+  place" and "the explanation landed," which a catalog of banned words kept
+  failing to stop, because the list records words and the impulse makes new
+  ones. `CLAUDE.md` imports it with an `@`-reference. It loads always, rather
+  than living in `skills/style-audit/`, because it is a drafting-time rule and
+  because chat replies carry no cue that would trigger a skill.
 
 **Task-triggered protocols** are kept in `skills/`, one directory per skill.
 Claude Code keeps each skill's one-paragraph description in context in every
@@ -170,7 +177,8 @@ and `skills/`.
   the line of dashes is the text to paste.
 - **`claude_app/skills/bowers-prose/`** --- the craft apparatus from `CLAUDE.md`
   followed by the three passages of my own prose: Gopen and Swan, technical
-  exposition, the non-negotiables for editing my writing, the substitution and
+  exposition, the non-negotiables for editing my writing, the rule about
+  writing the fact rather than my verdict on it, and the substitution and
   deletion tests.
 - **`claude_app/skills/bowers-code/`** --- `CLAUDE_CODING.md` translated for a
   place with no working tree, so "read the files first" becomes "ask me for the
