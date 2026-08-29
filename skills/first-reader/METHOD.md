@@ -133,9 +133,9 @@ by an agent that also has to read a draft.
 
 1. **Who is reading.** Concrete facts that change what stops them: what
    training they have, which vocabulary they own, what they are reading for.
-   Jake's version records that he learned statistics on his own, has one
-   pass/fail semester of calculus, and owns "prior" and "posterior" but not
-   "admissible" or "envelope."
+   Jake's version records that he learned statistics on his own, and that he
+   owns "prior" and "posterior" but not the vocabulary of theoretical
+   mathematical statistics.
 
 2. **How they read.** Jake reads linearly, takes every sentence at face
    value, and stops at the first break rather than skimming past it. That

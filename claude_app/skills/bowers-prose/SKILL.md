@@ -76,15 +76,13 @@ Technical exposition:
 Documents I have to decide from --- a plan, a memo, a report of results:
 
 I read these linearly, I take every sentence at face value, and I do not think
-in mathematical-statistics jargon. I learned statistics on my own, never took
-the courses Statistics PhD students take, and have one semester of pass/fail
-calculus. "Prior," "posterior," "likelihood," and most applied terms are fine.
-The further a term comes from theoretical mathematical statistics ---
-"admissible," "envelope," and "epsilon-contamination" were all opaque to me ---
-the less it can appear without being replaced by its plain content. Prefer
-finite sums to integrals. The test for every passage: could I restate it to a
-coauthor without the file open. This is a rule about self-containment, not
-about level.
+in mathematical-statistics jargon. I learned statistics on my own. "Prior,"
+"posterior," "likelihood," and most applied terms are fine. The further a term
+comes from theoretical mathematical statistics, the less it can appear without
+being replaced by its plain content. I am comfortable with integration, but
+where a conceptual point can be made with a sum rather than an integral, prefer
+the finite sum. The test for every passage: could I restate it to a coauthor
+without the file open. This is a rule about self-containment, not about level.
 
 - Motivate every object before it appears. My recurring question about drafts
   that failed was "why am I reading this paragraph? what work is it doing?
