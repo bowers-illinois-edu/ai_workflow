@@ -80,6 +80,125 @@ class TestNamedOffenders(unittest.TestCase):
         self.assertIn("locative-figure", cats("the framework maps onto the design"))
         self.assertIn("locative-figure", cats("the theory lives in the data"))
 
+    def test_locative_figure_catches_prepositions_other_than_in(self):
+        """The figure is "an abstract noun dwelling somewhere", and the
+        preposition it uses is incidental. An earlier pattern matched only
+        "lives in", so it caught "the examples live in regression" and slid
+        past "some questions live at the edges" written three days later in
+        the same document. Both are the same offender: a question cannot
+        dwell anywhere, and the plain verb ("some questions are about the
+        largest values") is what the figure is standing in for."""
+        for phrase in (
+            "some questions live at the edges",
+            "the interesting examples live inside regression",
+            "the difficulty lives at the boundary",
+            "the tension living within the model",
+            "the hard cases lived among the outliers",
+            "the assumption lives beneath the derivation",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn("locative-figure", cats(phrase))
+
+    def test_locative_figure_leaves_sits_plus_distance_alone(self):
+        """Broadening "live" must not broaden "sit". A number really does sit
+        at a distance from another number, and prose about where a summary
+        sits relative to data is literal, not figurative. Only "sits across"
+        is a named offender. Flagging every "sits close to" would bury the
+        real hits in a document about summaries of one variable."""
+        for phrase in (
+            "the summary sits close to the data",
+            "the mean now sits above nine of the ten values",
+            "the fraction sits just above one half",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertNotIn("locative-figure", cats(phrase))
+        self.assertIn("locative-figure", cats("the argument sits across both designs"))
+
+    def test_throat_clearing_catches_worth_plus_gerund(self):
+        """SKILL.md's throat-clearing entry already names "modifiers hung on a
+        noun": a reason worth stating, a point worth making, a case worth
+        noting. The scanner only had the expletive-"it" form, so "the failure
+        mode worth naming" and "one thing worth having" went through. The
+        deletion test is what condemns them: strike the modifier and the noun
+        still stands, so the words were announcing that a claim matters
+        instead of making it."""
+        for phrase in (
+            "the failure mode worth naming",
+            "one thing worth having",
+            "a reason worth stating",
+            "a point worth making",
+            "an observation worth flagging",
+            "that is worth emphasizing",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn("throat-clearing", cats(phrase))
+
+    def test_internal_shorthand_in_a_status_report(self):
+        """A different offender from the rest of this catalog, and the one
+        Jake named on 2026-08-29: not a figure of speech but a term that means
+        something to the writer and nothing to the reader. "Guard passes",
+        "scanner clean" and "numbers match" each name a check the reader has
+        never been shown, so the status line needs a glossary to read. The fix
+        is to say what was checked and what the result means for the reader,
+        or to say nothing when the check passed."""
+        for phrase in (
+            "guard passes",
+            "the guard passed",
+            "scanner clean",
+            "freeze current",
+            "the test suite is green",
+            "numbers match",
+            "the output matches",
+            "ASCII clean",
+            "CI green",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn("internal-shorthand", cats(phrase))
+
+    def test_internal_shorthand_leaves_explained_results_alone(self):
+        """The offender is the unexplained shorthand, not the report. A
+        sentence that says what was checked and what it means for the reader
+        must survive, or the pattern would punish the fix."""
+        for phrase in (
+            "every number in the prose is the number R printed",
+            "the note is still marked a draft, so nothing was published",
+            "the script found none of the words on its list",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertNotIn("internal-shorthand", cats(phrase))
+
+    def test_idiom_catches_the_whole_earn_its_x_family(self):
+        """Third instance of one gap shape. The catalog names "earn their
+        keep", so the pattern required the word "keep" and slid past "earns
+        its place", "earned its way" and the rest. The figure is "X is
+        justified" or "X is worth keeping", and the noun after the possessive
+        is incidental to it, exactly as the preposition is incidental to
+        "lives in"."""
+        for phrase in (
+            "these results earn their keep",
+            "the pattern earns its place",
+            "the longer derivation earned its way in",
+            "that section is earning its keep",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn("idiom", cats(phrase))
+
+    def test_idiom_catches_an_argument_that_lands(self):
+        """SKILL.md section 6 names "an argument that lands" as one of the
+        three figures whose absence from the catalog prompted moving the
+        catalog out of the global CLAUDE.md, and yet no pattern matched it.
+        The plain verbs it stands in for are "convinces", "works", or
+        "succeeds". Literal landings are flagged and exonerated in pass 2,
+        the same way "load-bearing wall" is."""
+        for phrase in (
+            "the argument lands",
+            "that explanation landed with the reader",
+            "only one of the analogies landed",
+            "the landing of the point is what matters",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn("idiom", cats(phrase))
+
     def test_idiom(self):
         self.assertIn("idiom", cats("these results shore up the claim"))
 

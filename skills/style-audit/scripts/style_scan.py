@@ -48,14 +48,40 @@ RAW_PATTERNS = [
     ("vague-evaluative", r"\bmakes sense\b|\bthe right choice\b|\bcomfortabl[ye]\b|\bcomfortable margin\b"),
     ("vague-evaluative", r"\b(?:is|are|was|were)\s+(?:valid|robust|principled|natural)\b"),
     ("locative-figure", r"\breads?\s+onto\b|\bmaps?\s+onto\b|\breads?\s+(?:cleanly\s+)?off\b"),
-    ("locative-figure", r"\blives?\s+in\b|\bsits?\s+across\b"),
-    ("idiom", r"\bearns?\s+(?:its|their)\s+keep\b|\bshor(?:e|ing)\s+up\b|\bhold\s+at\s+bay\b"),
+    # "live" takes whatever preposition is handy, and the preposition is
+    # incidental to the figure. Matching only "lives in" caught "the examples
+    # live in regression" and slid past "some questions live at the edges"
+    # three days later in the same document. "sit" is deliberately NOT
+    # broadened: a number really does sit at a distance from another number,
+    # so only the named offender "sits across" is matched.
+    ("locative-figure", r"\bliv(?:e|es|ed|ing)\s+(?:in|inside|within|at|on|among|amongst|between|beneath|underneath|under|above|over|across|through|beyond|near|alongside|behind)\b|\bsits?\s+across\b"),
+    # The noun after the possessive is incidental: "earns its place" and
+    # "earned its way" are the same figure as the catalogued "earn their
+    # keep", and the narrow pattern let the first two through.
+    ("idiom", r"\bearn(?:s|ed|ing)?\s+(?:its|their|his|her|your|our|my)\s+\w+\b|\bshor(?:e|ing)\s+up\b|\bhold\s+at\s+bay\b"),
     ("idiom", r"\bfold(?:s|ed|ing)?\s+in(?:to)?\b|\bwav(?:e|es|ed|ing)\s+away\b|\bkeep\s+faith\s+with\b"),
     ("idiom", r"\bwith\s+eyes\s+open\b|\bhand-?wav(?:e|ing|y)\b|\bwalk\s+the\s+list\b"),
+    # An argument that "lands" --- named in SKILL.md section 6 as one of the
+    # figures the catalog had missed, and matched by nothing until now. Bare
+    # "land" is left out: as a noun and as a verb about ground it is almost
+    # always literal.
+    ("idiom", r"\b(?:lands|landed|landing)\b"),
     ("throat-clearing", r"\bit\s+is\s+(?:important|worth|interesting|crucial|essential|useful|instructive)\b"),
+    # "worth" hung on a noun rather than on an expletive "it": a reason worth
+    # stating, a point worth making, the failure mode worth naming. SKILL.md
+    # names this family; only the "it is worth" form had a pattern.
+    ("throat-clearing", r"\bworth\s+\w+ing\b"),
     ("throat-clearing", r"\bit\s+should\s+be\s+noted\b|\bnote\s+that\b|\bone\s+should\s+observe\b"),
     ("ornamental-transition", r"\b(?:moreover|furthermore)\b"),
     ("empty-hedge", r"\barguably\b|\bit\s+is\s+perhaps\b"),
+    # Internal shorthand reporting a check the reader has never been shown.
+    # "Guard passes", "scanner clean", "numbers match": each names a tool or a
+    # comparison the writer knows and the reader has to be told. Say what was
+    # checked and what the result means for the reader, or, when a check
+    # passed and nothing follows from it, say nothing.
+    ("internal-shorthand", r"\b(?:guard|scanner|linter|suite|build|freeze|pipeline|CI|render|check|checks|tests?)\s+(?:passes|passed|pass|is\s+green|are\s+green|green|clean|current)\b"),
+    ("internal-shorthand", r"\b(?:numbers?|outputs?|figures?|results?)\s+match(?:es|ed)?\b"),
+    ("internal-shorthand", r"\bascii\s+clean\b|\ball\s+green\b|\bstill\s+green\b|\bis\s+green\b"),
     # Bold run-in topic sentence opening a paragraph. scan_line works one
     # line at a time, so ^ anchors at line start without re.M; list bullets
     # ("- **...**") do not match, and they are house style in the
