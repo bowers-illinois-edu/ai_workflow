@@ -16,7 +16,7 @@ illustrations (the paragraph about the word "family" and the sentences about
 I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
-Synced against CLAUDE.md at commit 476b5cd (2026-08-29).
+Synced against CLAUDE.md at commit 24ea933 (2026-08-29).
 
 -------------------------------------------------------------------------------
 
