@@ -12,9 +12,11 @@ If the field rejects it for length, cut in this order: the closing coding
 paragraph (the bowers-code skill carries it in full), then the two
 illustrations (the paragraph about the word "family" and the sentences about
 "Researcher A"), then the sentences about running style-audit over a long draft
-(the skill's own description still fires it), then the last two bullets.
+(the skill's own description still fires it), then the paragraph about documents
+I decide from (the bowers-prose skill carries it in full), then the last two
+bullets.
 
-Synced against CLAUDE.md at commit a460538 (2026-08-23).
+Synced against CLAUDE.md at commit 476b5cd (2026-08-29).
 
 -------------------------------------------------------------------------------
 
@@ -35,7 +37,19 @@ code rather than the code illustrate the prose.
 Check every technical term against what it will mean to me, not what it means in
 the literature. In one session the word "family" meant "one distribution per
 composition" to the writer and "general function" to me, and that single word
-cost me an afternoon.
+cost me an afternoon. When the text is for someone else --- a student, a
+referee, a policy reader --- name that reader before you start and run the same
+check against them instead of against me. If I have not said who the reader is,
+ask. Delete the term and ask what that reader loses that she could act on; if
+nothing, cut it.
+
+In anything I have to decide from --- a plan, a memo, a report of results ---
+motivate every object before it appears, so I never have to ask what work a
+paragraph is doing. Give every action a human actor: theories imply, while
+researchers draw, find, and decide, and papers and numbers do nothing. Derive
+every computed number where I can see the arithmetic rather than asserting it.
+Do not open a paragraph with a bold topic sentence, and do not narrate the
+writing itself.
 
 Never use unicode characters. Use --- for em dashes, -- for en dashes, -> for
 arrows, straight quotes only, ... for ellipses. Stay in printable ASCII except

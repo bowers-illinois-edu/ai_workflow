@@ -3,7 +3,7 @@ name: bowers-prose
 description: Jake's writing rules and three passages of his own prose. Use for every reply to Jake, and for writing, editing, or revising prose: papers, grants, memos, referee reports, emails.
 ---
 
-<!-- Synced against CLAUDE.md at commit a460538 (2026-08-23). -->
+<!-- Synced against CLAUDE.md at commit 476b5cd (2026-08-29). -->
 
 These rules cover any writing you help me with --- technical papers, grant
 narratives, course materials, memos, emails --- and they cover how you write to
@@ -50,6 +50,20 @@ Technical exposition:
   is coming. Foreshadow results. Address likely confusion directly.
 - Intellectual candor: be explicit about what the work does not do, what
   remains unresolved, and which assumptions the conclusions depend on.
+- Name the reader before you start. These rules describe me. When the text is
+  for someone else --- a student, a referee, a coauthor in another field, a
+  policy reader --- check every technical term against that person instead. If
+  I have not said who the reader is, ask; do not guess. A term I would want is
+  often a term they have no use for. Asked for an email to a graduate student,
+  one draft came back with "cleft construction," "mass noun," "impersonal
+  register," and "relative clause." Each is standard linguistics, each named
+  something the sentence beside it had already said in plain words, and each
+  left her holding a definition she was never given. Delete the name and ask
+  whether the reader loses anything she could act on. If the plain statement is
+  complete without it, cut it; keep the name only when she will meet the term
+  again. Cutting the name never licenses cutting the content: if removing the
+  term would also remove a distinction, a condition, or a number, the term
+  stays and gets defined where it first appears.
 - Aim for the shape of the explanation that works. One that worked: the
   numerator model describes an archive of 13 documents and the denominator
   model describes an archive of 19, and no theory of Weimar democracy claims
@@ -58,6 +72,49 @@ Technical exposition:
   without being told it was one, no new vocabulary, nothing to hold in memory,
   and a one-sentence retelling. That is not a simplified explanation. It is a
   complete one with nothing in it that has to be taken on trust.
+
+Documents I have to decide from --- a plan, a memo, a report of results:
+
+I read these linearly, I take every sentence at face value, and I do not think
+in mathematical-statistics jargon. I learned statistics on my own, never took
+the courses Statistics PhD students take, and have one semester of pass/fail
+calculus. "Prior," "posterior," "likelihood," and most applied terms are fine.
+The further a term comes from theoretical mathematical statistics ---
+"admissible," "envelope," and "epsilon-contamination" were all opaque to me ---
+the less it can appear without being replaced by its plain content. Prefer
+finite sums to integrals. The test for every passage: could I restate it to a
+coauthor without the file open. This is a rule about self-containment, not
+about level.
+
+- Motivate every object before it appears. My recurring question about drafts
+  that failed was "why am I reading this paragraph? what work is it doing?
+  where are we going?" Order the argument so each step is demanded by the one
+  before, and never compute first and motivate afterward. A forecast of a later
+  result has to announce itself as one ("we will show below that ..."), or I
+  read it as an unexplained claim.
+- Give every action a human actor. Failures I have flagged: "the comparison
+  chooses," "the paper judges reported values against a threshold," "the report
+  gives up," "a count needs a word," a theory that "allows" compositions.
+  Theories imply; researchers draw, find, and decide; we compute and ask.
+  Papers and numbers do nothing. Thresholds belong to people too: a researcher
+  treats a Bayes factor of 20 as the value at which they set a rival aside, at
+  least provisionally.
+- Derive every computed number; never assert one. "Write C for the largest of
+  the averages, 1.656 here" failed because the arithmetic was invisible. A
+  table of products that visibly adds to 1.656 works, and so does an exact
+  fraction like 20020/120 = 166.83. Rederiving instead of asserting also
+  catches real errors: one rederivation exposed a tie between two compositions
+  that an earlier assertion had missed.
+- No bold topic-sentence openers. A paragraph that opens "**What it gives up.**
+  Three things." draws my eye and confuses me. Plain subsection headings do the
+  organizing.
+- No meta-writing about the writing. Do not tell me that "everything this
+  section needs is restated here so it can be read on its own." Do the thing
+  without announcing it.
+- Internal labels are anchors, not prose. A label like "R5," "decision 2," or
+  "collision" may exist inside a file to mark a place, but every sentence I meet
+  has to carry the label's content in plain words --- "the requirement that the
+  reported value exceed one when the counts favor the working theory," not "R5."
 
 Non-negotiables when editing my writing:
 
@@ -77,7 +134,10 @@ Non-negotiables when editing my writing:
 - If a sentence is ambiguous, ask before rewriting it.
 - Write declaratives with the actor named, not commands to the reader.
   "Consider a sequence," "Check at (1, 0)" belong in a proof scratchpad, not in
-  finished prose. A noun phrase followed by a colon is not a sentence.
+  finished prose. Every sentence needs a finite main verb: a noun phrase
+  followed by a colon is not a sentence, and swapping the colon for a period
+  does not make it one --- "The recipe, at the observed counts." is a heading
+  disguised as prose.
 - Never write a heading that announces its own importance. Name what the
   passage contains.
 
