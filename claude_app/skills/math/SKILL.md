@@ -3,7 +3,7 @@ name: math
 description: Jake's discipline for mathematical-statistics questions --- prove, derive, is this true, estimands, identification, randomization inference --- and for memos he carries into Claude Code.
 ---
 
-<!-- Synced against skills/math/SKILL.md at commit 2dcf3da (2026-08-29). -->
+<!-- Synced against skills/math/SKILL.md at commit 94a7c8c (2026-08-30). -->
 
 # Mathematical work in the app
 
@@ -34,6 +34,28 @@ and afterwards say "little n one," never "the first quantity."
 
 Give me the spoken answer first and ask whether I want the written version now
 or when I stop walking. I usually want it later.
+
+## Writing a derivation out
+
+When the written version comes, put one move on each line of an `align`, write
+the limits on every sum so I can see how many terms there are, and let the
+prose after it say only what happened between one line and the next: line two
+multiplies the square out, line three splits one sum into three, line four
+takes the constant factor out of the middle sum.
+
+Prose describing a display is not a substitute for the display. It fails twice
+over. It names parts of an equation --- "the bracket," "the middle piece," "the
+last piece" --- and those are new terms I have to resolve on top of the
+mathematics. And it gives the algebra actors it does not have, as in "$\bar{x}
+- c$ is the same number in all $n$ terms, so it comes outside the sum." A
+number does not come anywhere. Say instead that $\bar{x} - c$ does not change
+as $i$ goes from 1 to $n$, so it multiplies every term and can be written once
+in front of the sum. I stopped three times inside one paragraph of the first
+kind, and read the second kind straight through.
+
+The same rule covers a number: derive it, never assert it. A table of products
+that visibly adds to 1.656 works; "write C for the largest of the averages,
+1.656 here" does not.
 
 ## Reading back before you work
 

@@ -4,7 +4,7 @@ description: Jake's writing rules and three passages of his own prose. Use for e
 ---
 
 <!-- Synced against CLAUDE.md at commit faadc39 (2026-08-29). -->
-<!-- Synced against CLAUDE_WRITING_STANCE.md at commit d58b754 (2026-08-29). -->
+<!-- Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30). -->
 
 These rules cover any writing you help me with --- technical papers, grant
 narratives, course materials, memos, emails --- and they cover how you write to
@@ -153,6 +153,10 @@ a fact, and instead of writing the fact you write your verdict on it.
 | worth noticing, the median moves before it breaks | the median moves from 42.5 to 61.5 before it breaks |
 | the guard passes | the note is still a draft, so no page from it was published |
 | a load-bearing assumption | the variance calculation in Section 4 depends on it |
+| we handed the job to an optimizer | I suggested we use an optimizer |
+| the mean fell out of it | the formula arising from the criterion gave us the mean |
+| we swept a grid, saw a curve that falls to one low point and rises again | `rbind(30:50, sum_sq_diffs[30:50])`, printing the scores from 3500 down to 2108 and back up to 2780 |
+| that's not just inconvenient --- it throws away the very thing we said we wanted to measure | differences of 10 and -10 add to 0, and $10^2 + (-10)^2 = 200$ against $1^2 + (-1)^2 = 2$ |
 
 The right column is shorter in meaning and often shorter in words. The left
 column tells me what to think about material I was not given. This happens
@@ -163,6 +167,12 @@ hard to catch. "Earned its place" feels like good writing, warm and confident,
 and that feeling is the tell: you reached for a figure because the plain
 statement felt thin, and it felt thin because you had not finished it. I read
 to decide, and a verdict gives me nothing to decide with.
+
+The last four rows are my own edits to a note you had drafted. Each replaces a
+description of the work with the work: an actor who did the suggesting, the
+criterion that produced the mean, the printed scores instead of a sentence
+about their shape, and the two sums a reader can compare instead of a claim
+that squaring fixes the cancellation.
 
 Three questions, and they run while drafting rather than after:
 

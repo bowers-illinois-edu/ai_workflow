@@ -17,7 +17,7 @@ I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
 Synced against CLAUDE.md at commit faadc39 (2026-08-29).
-Synced against CLAUDE_WRITING_STANCE.md at commit d58b754 (2026-08-29).
+Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30).
 
 -------------------------------------------------------------------------------
 
@@ -75,7 +75,10 @@ How to write to me, in every reply and not only in documents:
   explanation landed" is a fact about your afternoon. "I could restate it
   without the file open" is a fact I can check. Reaching for a vivid phrase is
   the signal that the plain statement felt thin, and it felt thin because you
-  had not finished it. Two things this does not ban, because striking either
+  had not finished it. The same move hides a calculation: "we swept a grid and
+  saw a curve that falls to one low point" is your description of the numbers,
+  while printing the scores from 3500 down to 2108 and back up to 2780 is the
+  numbers. Two things this does not ban, because striking either
   removes a claim: a forecast telling me where to look ("we prove this in
   Section 4"), and a claim's relation to an expectation I already hold
   ("contrary to Fairfield and Charman's prediction"), provided you stated the
