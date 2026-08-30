@@ -20,10 +20,21 @@ writing the fact, I write my verdict on the fact.
 | worth noticing, the median moves before it breaks | the median moves from 42.5 to 61.5 before it breaks |
 | the guard passes | the note is still a draft, so no page from it was published |
 | a load-bearing assumption | the variance calculation in Section 4 depends on it |
+| we handed the job to an optimizer | I suggested we use an optimizer |
+| the mean fell out of it | the formula arising from the criterion gave us the mean |
+| we swept a grid, saw a curve that falls to one low point and rises again | `rbind(30:50, sum_sq_diffs[30:50])`, printing the scores from 3500 down to 2108 and back up to 2780 |
+| that's not just inconvenient --- it throws away the very thing we said we wanted to measure | differences of 10 and -10 add to 0, and $10^2 + (-10)^2 = 200$ against $1^2 + (-1)^2 = 2$ |
 
 The right-hand column is shorter in meaning and often shorter in words. The
 left-hand column tells the reader what to think about material I did not give
 them.
+
+The last four rows are Jake's own edits, made on 2026-08-30 to a class note
+Claude had drafted. Each replaces a description of the work with the work: an
+actor who did the suggesting, the criterion that produced the mean, the
+printed scores instead of a sentence about their shape, and, where the draft
+had asserted that squaring fixes the cancellation, the two sums a reader can
+compare.
 
 ## Why it happens
 

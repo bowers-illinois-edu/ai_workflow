@@ -52,8 +52,15 @@ RAW_PATTERNS = [
     # incidental to the figure. Matching only "lives in" caught "the examples
     # live in regression" and slid past "some questions live at the edges"
     # three days later in the same document. "sit" is deliberately NOT
-    # broadened: a number really does sit at a distance from another number,
-    # so only the named offender "sits across" is matched.
+    # broadened here, but not for the reason this comment used to give. It
+    # said a number really does sit at a distance from another number. On
+    # 2026-08-30 Jake read a class note with 26 lines of it and wrote "in
+    # general 'sit' and 'sat' are not useful words for the values that
+    # summaries take," so that judgment was wrong. No pattern was added,
+    # because a bare \bsits?\b would flag every literal use in a paper about
+    # seating, and because the mechanism belongs to the judgment pass: the
+    # plain verb is "is" or "are". The catalog and the first-reader persona
+    # carry it as a worked example instead.
     ("locative-figure", r"\bliv(?:e|es|ed|ing)\s+(?:in|inside|within|at|on|among|amongst|between|beneath|underneath|under|above|over|across|through|beyond|near|alongside|behind)\b|\bsits?\s+across\b"),
     # The noun after the possessive is incidental: "earns its place" and
     # "earned its way" are the same figure as the catalogued "earn their

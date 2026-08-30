@@ -278,6 +278,8 @@ When drafting a theorem with proof, aim for this sequence. It is a checklist, no
 
 For a lemma supporting a bigger theorem, compress items 1 and 9 to one sentence each. For a corollary, shorter still.
 
+**One move per line, and the prose between the lines.** A step Jake cannot redo with a pencil is a step he does not have, and the fix is the step itself, not a sentence describing it. Put the derivation in an `align` environment with one move per line, write the limits on every sum so the number of terms is visible, and let the prose say only what happened between one line and the next --- "line three splits one sum of three terms into three sums." Prose that describes a display instead of showing it fails twice over: it names parts of the display ("the bracket," "the middle piece," "the last piece"), which are new tokens the reader has to resolve, and it gives the algebra actors it does not have, as in "$\bar{x} - c$ is the same number in all $n$ terms, so it comes outside the sum." He stopped three times inside one such paragraph on 2026-08-30, and the version he could redo showed every line and said, of the factoring, that $\bar{x} - c$ does not change as $i$ goes from 1 to $n$, so it multiplies every term and can be written once in front of the sum.
+
 ---
 
 ## 18. Final checklist
