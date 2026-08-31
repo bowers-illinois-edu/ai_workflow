@@ -8,7 +8,7 @@ description: Audit a draft and report each finding with a rewrite. Use for a sty
 # Style audit
 
 This skill turns Jake's writing rules into an audit procedure for existing
-text. Those rules live in the Instructions for Claude field and in the
+text. Those rules live in the app's standing instructions and in the
 `bowers-prose` skill, and they govern how new prose gets written; this skill
 checks prose that already exists --- written by Jake, a coauthor, an AI, or
 Jake-two-years-ago. It adds no rules of its own. Where this file and those
@@ -38,7 +38,7 @@ apply to prose inside code comments and documentation too.
 
 ## 0. Replies are in scope, and they are where this goes worst
 
-The Instructions for Claude field says the writing rules cover conversation,
+The app's standing instructions say the writing rules cover conversation,
 and that chat is where the writing has gone worst. An assistant that audits the
 attached document and not its own reply has audited the smaller half of what
 Jake reads. On 2026-08-29 he stopped reading a reply three times in one session
@@ -95,7 +95,7 @@ The scanner exists to make the first pass cheap and complete, not to decide.
 
 **Pass 2 is judgment, and it is the audit.** The catalog in section 6 is
 illustrative, not a closed checklist --- read for the pattern, not for the
-words. Reread the writing rules in Instructions for Claude and in the
+words. Reread the writing rules in the app's standing instructions and in the
 `bowers-prose` skill, and then section 6 below, before this pass; then work
 through the document paragraph by paragraph:
 

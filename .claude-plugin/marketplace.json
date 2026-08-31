@@ -1,6 +1,9 @@
 {
   "name": "ai-workflow",
-  "description": "Jake Bowers's instruction set: research skills for Claude Code, and the same rules translated for the Claude app.",
+  "description": "Jake Bowers's instruction set for research, writing, coding, mathematical work, and document review.",
+  "interface": {
+    "displayName": "Bowers AI Workflow"
+  },
   "owner": {
     "name": "Jake Bowers"
   },
@@ -8,12 +11,22 @@
     {
       "name": "ai-workflow",
       "source": "./plugins/ai-workflow",
-      "description": "Research skills for Claude Code: math, citation verification, referee reports, review responses, decks, style audits, first-reader passes, simulation studies, and /handoff."
+      "description": "Research skills for repository work: math, citation verification, referee reports, review responses, decks, style audits, first-reader passes, simulation studies, and /handoff.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     },
     {
       "name": "ai-workflow-app",
       "source": "./plugins/ai-workflow-app",
-      "description": "The same rules translated for the Claude app: drafting rules with worked examples, coding rules, the style audit, mathematical work in voice mode, and the handoff into Claude Code."
+      "description": "Drafting rules with worked examples, coding rules, style audits, mathematical work in voice mode, and handoffs to repository coding sessions.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }

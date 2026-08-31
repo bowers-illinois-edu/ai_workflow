@@ -9,9 +9,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-first-reader test-archive test-claude-app check-claude-app app-skills archive install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-first-reader test-archive test-claude-app test-chatgpt-plugin check-claude-app app-skills archive install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-first-reader test-archive test-claude-app
+test: test-verify-citations test-style-audit test-first-reader test-archive test-claude-app test-chatgpt-plugin
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -27,6 +27,9 @@ test-archive:
 
 test-claude-app:
 	$(PYTHON) scripts/tests/test_check_claude_app.py
+
+test-chatgpt-plugin:
+	$(PYTHON) scripts/tests/test_chatgpt_plugin.py
 
 check-claude-app:
 	$(PYTHON) scripts/check_claude_app.py

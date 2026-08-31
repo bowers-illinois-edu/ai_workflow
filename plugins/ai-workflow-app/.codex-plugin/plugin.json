@@ -1,0 +1,34 @@
+{
+  "name": "ai-workflow-app",
+  "version": "0.1.0",
+  "description": "Jake Bowers's rules for writing, coding, mathematical work, style audits, and repository handoffs.",
+  "author": {
+    "name": "Jake Bowers",
+    "url": "https://github.com/bowers-illinois-edu"
+  },
+  "homepage": "https://github.com/bowers-illinois-edu/ai_workflow",
+  "repository": "https://github.com/bowers-illinois-edu/ai_workflow",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "research",
+    "statistics",
+    "coding"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Bowers Research Workflow",
+    "shortDescription": "Write, code, reason, and audit using Jake Bowers's rules.",
+    "longDescription": "Apply Jake Bowers's rules for clear prose, reproducible code, mathematical-statistics work, style audits, and handoffs to repository coding sessions.",
+    "developerName": "Jake Bowers",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Apply my writing rules to this draft.",
+      "Help me work through this mathematical claim.",
+      "Prepare a handoff for a repository coding session."
+    ]
+  }
+}

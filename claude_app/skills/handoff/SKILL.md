@@ -1,26 +1,26 @@
 ---
 name: handoff
-description: Turn this conversation into a paste-ready HANDOFF.md for a Claude Code session in Jake's repository: decisions, what was checked and what was only asserted, open questions, next step.
+description: "Turn this conversation into a paste-ready HANDOFF.md for a coding agent in Jake's repository: decisions, what was checked and what was only asserted, open questions, next step."
 ---
 
 <!-- Synced against handoff_command.md at commit 2dcf3da (2026-08-29). -->
 
-# Handoff to Claude Code
+# Handoff to a repository coding agent
 
 I use this app for thinking out loud --- often by voice, often walking --- and I
-use Claude Code for work that touches files. This skill moves the first into
-the second. When I ask for a handoff, produce the text of a `HANDOFF.md` that I
-will paste into a repository, where a Claude Code session with no memory of
-this conversation will read it and pick up the work.
+use a coding agent for work that touches repository files. This skill records
+the first kind of work for the second. When I ask for a handoff, produce the
+text of a `HANDOFF.md` that I will paste into a repository, where a coding
+agent with no memory of this conversation will read it and continue the work.
 
 That reader has my repository and does not have us. Everything the work depends
 on has to be in the file, including things we settled so early in the
 conversation that they now feel like background.
 
-The Claude Code version of this command reports files changed and why, because
-it changed them. You cannot. You have no working tree, no repository, and no
-way to check a path. So do not name a file, a function, a line number, or a
-section that I did not name first. Where the next session needs to find
+A coding agent working inside the repository can report which files it changed
+and why. This conversation cannot. You have no working tree, no repository,
+and no way to check a path. So do not name a file, a function, a line number,
+or a section that I did not name first. Where the next session needs to find
 something, say what to look for and let it search.
 
 ## What to write
@@ -44,7 +44,7 @@ this order:
 - The open questions, each with the decision it blocks. "Whether the variance
   is over the assignment mechanism alone" is an open question; "whether we can
   report a standard error at all" is what it blocks.
-- What the Claude Code session should do first: one concrete next action for the Claude Code session.
+- What the coding agent should do first: one concrete next action for the repository session.
 - Notation and definitions: every symbol the rest of the file uses.
 
 ## Restoring what voice mode dropped

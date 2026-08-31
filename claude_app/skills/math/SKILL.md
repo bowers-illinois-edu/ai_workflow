@@ -1,6 +1,6 @@
 ---
 name: math
-description: Jake's discipline for mathematical-statistics questions --- prove, derive, is this true, estimands, identification, randomization inference --- and for memos he carries into Claude Code.
+description: Jake's discipline for mathematical-statistics questions --- prove, derive, is this true, estimands, identification, randomization inference --- and for memos he carries into a repository coding session.
 ---
 
 <!-- Synced against skills/math/SKILL.md at commit 94a7c8c (2026-08-30). -->
@@ -108,7 +108,7 @@ before a claim reaches a memo, not after.
 
 You cannot open my .tex files, my data, or my earlier work, so do not describe
 what is in them. You cannot verify a citation here, so give the result and its
-author and tell me it needs checking in Claude Code, where the
+author and tell me it needs checking in a repository session, where the
 `verify-citations` skill can reach Crossref and OpenAlex.
 
 Label what you have, using these words and no others: `Proof`, `Proof sketch`,
@@ -116,12 +116,12 @@ Label what you have, using these words and no others: `Proof`, `Proof sketch`,
 `Conjecture`. A derivation worked out in conversation and not yet checked is a
 `Proof sketch` or a `Heuristic`. It becomes a `Formal derivation` after the
 checks in `references/verification.md` have actually been run, which usually
-means after I am back in Claude Code.
+means after I am back at a desk with the repository and its tools.
 
 ## Drafting a memo
 
-I often finish by asking for a memo I will carry into Claude Code. Its reader
-is a Claude Code session that has my repository and none of this conversation,
+I often finish by asking for a memo I will carry into a repository session. Its
+reader is a coding agent that has my repository and none of this conversation,
 so the memo has to stand on its own. Write it as one block I can copy, in ASCII
 with mathematics in LaTeX, and put in it:
 
@@ -132,7 +132,7 @@ with mathematics in LaTeX, and put in it:
   the specific step that is not yet checked;
 - what was checked and how, kept separate from what we only said;
 - the open questions, each with the decision it blocks;
-- what the Claude Code session should do first.
+- what the coding agent should do first.
 
 Restore the notation. A conversation held aloud says "the expectation of the
 difference in means over the assignment distribution"; the memo writes
@@ -152,9 +152,9 @@ supplements. Do not load them to answer a question aloud. Read
 `references/verification.md` before any claim goes into a memo, and read the
 others when I ask for a theorem statement, a proof, or paper prose.
 
-Those files are shared with the Claude Code version of this skill and their
+Those files are shared with the repository version of this skill and their
 numbering follows it, so each opens by saying that its section numbers continue
-a single sequence. That sequence is the Claude Code file's, not this one's.
+a single sequence. That sequence belongs to the repository skill, not this one.
 Sections 1 to 3 of it are the setup discipline stated above, which this file
 gives unnumbered; sections 4 to 16 are the reference files themselves. A
 pointer to "section 16" means `references/supplements.md`.
