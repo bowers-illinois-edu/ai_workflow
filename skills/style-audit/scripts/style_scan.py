@@ -7,8 +7,8 @@ is a CANDIDATE for the judgment pass, not a verdict: literal uses pass,
 quotations pass, defined-and-glossed terms of art pass. The judgment pass
 (SKILL.md section 1, pass 2) decides.
 
-Skips fenced code blocks in .md/.qmd files and comment lines in .tex files;
---no-skip scans everything.
+Skips fenced code blocks and inline code spans in .md/.qmd files, and
+comment lines in .tex files. --no-skip scans everything.
 
 Usage:
   python3 style_scan.py FILE [FILE ...] [--no-skip] [--quiet]
@@ -97,8 +97,31 @@ RAW_PATTERNS = [
 ]
 PATTERNS = [(cat, re.compile(pat, re.I)) for cat, pat in RAW_PATTERNS]
 
+# Markdown's inline code: a run of backticks, whatever it encloses, and a
+# closing run. [^`]* cannot cross a backtick, so two spans on one line stay
+# two spans, and a lone backtick matches nothing and is left alone.
+INLINE_CODE = re.compile(r"`+[^`]*`+")
 
-def scan_line(path, lineno, line, findings):
+# What replaces a span. A single non-word, non-space character, because the
+# span has to do two things at once. It must not join the words around it: a
+# space would turn "hold `y` at bay" into the offender "hold at bay", which
+# the line never contained. And it must not merge with them: an underscore is
+# a word character, so "costs`*`" would become the single word "costs_" and a
+# true positive would disappear.
+INLINE_CODE_PLACEHOLDER = "~"
+
+
+def scan_line(path, lineno, line, findings, strip_inline_code=False):
+    """Append every candidate on one line to findings.
+
+    strip_inline_code makes code marks a skip region, the way a fence
+    already is. A word between them is being named rather than used, and
+    without that a report of a finding is itself a finding. The default is
+    False so that a caller with no notion of markdown, or one running under
+    --no-skip, sees the line exactly as written.
+    """
+    if strip_inline_code:
+        line = INLINE_CODE.sub(INLINE_CODE_PLACEHOLDER, line)
     for cat, rx in PATTERNS:
         for m in rx.finditer(line):
             findings.append((path, lineno, cat, m.group(0)))
@@ -121,6 +144,10 @@ def scan_file(path, skip_regions):
     in_fence = False
     is_md = path.endswith((".md", ".qmd", ".Rmd", ".markdown"))
     is_tex = path.endswith((".tex", ".sty", ".cls"))
+    # Only markdown, because only there does a backtick mean code. In LaTeX it
+    # opens a quotation, so deleting the text between two of them would delete
+    # prose.
+    strip_code = skip_regions and is_md
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
             for lineno, line in enumerate(fh, 1):
@@ -132,7 +159,8 @@ def scan_file(path, skip_regions):
                         continue
                 if skip_regions and is_tex and line.lstrip().startswith("%"):
                     continue
-                scan_line(path, lineno, line, findings)
+                scan_line(path, lineno, line, findings,
+                          strip_inline_code=strip_code)
     except OSError as e:
         print("cannot read %s: %s" % (path, e), file=sys.stderr)
     return findings
@@ -142,7 +170,7 @@ def main():
     ap = argparse.ArgumentParser(description="Mechanical pass of the style-audit skill.")
     ap.add_argument("files", nargs="+")
     ap.add_argument("--no-skip", action="store_true",
-                    help="also scan code fences and TeX comments")
+                    help="also scan code fences, inline code and TeX comments")
     ap.add_argument("--quiet", action="store_true",
                     help="summary only, no per-hit lines")
     args = ap.parse_args()

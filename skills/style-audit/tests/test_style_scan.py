@@ -48,6 +48,13 @@ def texts(line):
     return [t for (_p, _n, _c, t) in findings]
 
 
+def strip_cats(line):
+    """Categories the scanner assigns when inline code spans are stripped."""
+    findings = []
+    ss.scan_line("f", 1, line, findings, strip_inline_code=True)
+    return {cat for (_p, _n, cat, _t) in findings}
+
+
 def write_temp(text, suffix):
     """Write text to a temp file and return its path (caller removes it)."""
     fd, path = tempfile.mkstemp(suffix=suffix)
@@ -302,6 +309,79 @@ class TestSkipRegions(unittest.TestCase):
             os.remove(path)
         self.assertFalse(any("load" in t.lower() for (_p, _n, _c, t) in skipped))
         self.assertTrue(any("load" in t.lower() for (_p, _n, _c, t) in scanned_all))
+
+
+class TestInlineCodeSpans(unittest.TestCase):
+    """Inline code is a skip region, like a fence and for the same reason: a
+    word between code marks is being named, not used.
+
+    This is not the scanner starting to judge. A literal "load-bearing wall"
+    is still flagged, and so is an offender inside double quotes, because
+    quoted prose is still prose. Only the code marks exempt, and only in
+    markdown, since in LaTeX a backtick opens a quotation instead.
+
+    The case that forced the change: on 2026-09-01 the gate caught an idiom
+    in a reply, and the reply reporting which word it had caught quoted the
+    word and was logged in turn. Without a way to name an offender, no
+    report of one can be written.
+    """
+
+    def test_backticked_offender_is_skipped(self):
+        self.assertIn("idiom", cats("the argument lands"))
+        self.assertNotIn("idiom", strip_cats("the pattern for `lands` fired"))
+
+    def test_quoted_offender_is_still_flagged(self):
+        # Double quotes are prose. If this ever passes, someone has widened
+        # the exemption from "code marks" to "any mention", and the scanner
+        # has started deciding use against mention instead of skipping a
+        # region --- which is pass 2's job, not the scanner's.
+        self.assertIn("idiom", strip_cats('the pattern for "lands" fired'))
+
+    def test_offender_outside_the_span_on_the_same_line_is_caught(self):
+        self.assertIn("idiom",
+                      strip_cats("`lands` fired because the argument lands"))
+
+    def test_placeholder_does_not_join_the_words_around_it(self):
+        # Contrived on purpose: "hold at bay" is an offender and "hold `y` at
+        # bay" is not. Replacing the span with a space would close the gap and
+        # invent a match the line never contained.
+        self.assertNotIn("idiom", strip_cats("hold `y` at bay"))
+
+    def test_placeholder_does_not_swallow_a_word_touching_the_span(self):
+        # Also contrived. The placeholder is a non-word character so that
+        # "costs" keeps the word boundary the backtick gave it. An underscore
+        # would leave "costs~" as one word and hide a true positive.
+        self.assertIn("commercial-metaphor", strip_cats("it costs`*` nothing"))
+
+    def test_unicode_inside_a_span_is_exempt_like_a_fence(self):
+        # A fence already exempts unicode, and inline code does the same, so
+        # the rule stays "code is exempt" rather than splitting by category.
+        # What that gives up is a stray em dash between code marks, which now
+        # goes unrecorded.
+        line = "an em dash `\u2014` between code marks"
+        self.assertIn("unicode", cats(line))
+        self.assertNotIn("unicode", strip_cats(line))
+
+    def test_markdown_file_strips_inline_code_only_when_skipping(self):
+        path = write_temp("The regression `lands` in section 3.\n", ".md")
+        try:
+            skipped = ss.scan_file(path, skip_regions=True)
+            scanned_all = ss.scan_file(path, skip_regions=False)
+        finally:
+            os.remove(path)
+        self.assertEqual(skipped, [])
+        self.assertTrue(any(c == "idiom" for (_p, _n, c, _t) in scanned_all))
+
+    def test_tex_file_keeps_its_backticks(self):
+        # In LaTeX a backtick opens a quotation, so deleting the text between
+        # two of them would delete real prose. Only markdown gets the
+        # exemption.
+        path = write_temp("The argument `lands` in section 3.\n", ".tex")
+        try:
+            findings = ss.scan_file(path, skip_regions=True)
+        finally:
+            os.remove(path)
+        self.assertTrue(any(c == "idiom" for (_p, _n, c, _t) in findings))
 
 
 class TestExitStatus(unittest.TestCase):

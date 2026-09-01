@@ -34,7 +34,8 @@ Four design facts the tests must protect:
 
 Fenced code is skipped, reusing style_scan's fence handling: Claude shows
 shell and R constantly, and 'sandbox', 'pipeline' and 'costs' are ordinary
-words there.
+words there. Inline code is skipped too, so that a reply reporting which
+word the gate matched does not count as a violation of its own.
 
 Note on ASCII: this file tests unicode detection without containing unicode.
 Offending characters are written as Python escapes, so the file satisfies the
@@ -217,6 +218,35 @@ class TestFencedCodeIsSkipped(GateCase):
     def test_unclosed_fence_terminates_without_raising(self):
         code, _ = self.run_stop("```bash\nrun\n")
         self.assertEqual(code, 0)
+
+
+class TestInlineCodeIsSkipped(GateCase):
+    """A reply that reports a finding must not itself become one.
+
+    On 2026-09-01 the gate caught an idiom in a reply, and the next reply,
+    which told Jake which word had been caught, quoted the word and was
+    logged in turn: two log lines from one violation. Counting dirty turns
+    over time would run high by however many such reports there are, and it
+    would run high exactly in the sessions spent working on the gate.
+    Naming an offender between code marks is how a report says which word
+    without using it.
+    """
+
+    def test_offender_between_code_marks_is_not_a_finding(self):
+        self.assertEqual(sg.scan_message("the pattern for `lands` fired"), [])
+
+    def test_a_report_of_a_finding_adds_no_log_line(self):
+        code, out = self.run_stop(
+            "The scanner caught `lands` and `costs` in the last reply.")
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+        self.assertEqual(self.records(), [])
+
+    def test_the_same_words_in_prose_still_log(self):
+        self.run_stop("The argument lands and the delay costs us a week.")
+        recs = self.records()
+        self.assertEqual(len(recs), 1)
+        self.assertIn("idiom", recs[0]["categories"])
 
 
 class TestPreflight(unittest.TestCase):

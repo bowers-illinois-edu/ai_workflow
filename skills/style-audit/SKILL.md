@@ -72,7 +72,9 @@ carries its own copy of these patterns in `RAW_PATTERNS`, so it does not
 read section 6 at runtime; if you add an offender to the catalog, add the
 pattern to the script too, unless it is one no pattern can find, in which
 case the catalog entry says so and the offender belongs to Pass 2 alone. It
-skips fenced code blocks in markdown and comment lines in LaTeX.
+skips fenced code blocks and inline code spans in markdown, and comment lines
+in LaTeX. Inline code is what lets you name an offending word in a report
+without the scanner counting the report as a use of it.
 
 Every hit is a candidate, not a verdict. Literal uses pass ("an actual
 load-bearing wall"); a quotation from someone else's text passes (but note

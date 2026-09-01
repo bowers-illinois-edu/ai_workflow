@@ -170,10 +170,14 @@ The Stop event hands the script the final text of a turn. Prose I write between
 tool calls, which is most of what you read while I am working, is not in that
 field. Roughly, the gate sees my answers and not my narration.
 
-It also skips fenced code entirely, which means a unicode character inside a
-code block reaches you unflagged. That is deliberate, since flagging ordinary
-words in shell would fire constantly, but it is a real hole and the fix, if you
-want it, is a separate unicode-only scan that ignores fences.
+It also skips fenced code entirely, and since 2026-09-01 inline code between
+backticks as well, so a unicode character inside either reaches you unflagged.
+Both exemptions are deliberate. Flagging ordinary words in shell would fire on
+nearly every message carrying a command, and a reply telling you which word the
+gate matched has to name that word: before backticks were exempt, the report of
+a finding was logged as a second finding. Either way the unicode hole is real,
+and the fix, if you want it, is a separate unicode-only scan that reads every
+region.
 
 And it settles only the three faults that need no judgment. Whether "costs" is
 a metaphor or a literal statement about three days of cluster time is a

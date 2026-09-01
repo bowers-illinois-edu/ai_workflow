@@ -65,11 +65,17 @@ def ascii_only(text):
 
 
 def scan_message(text):
-    """Scan prose, skipping fenced code the way style_scan does for .md.
+    """Scan prose, skipping fenced and inline code as style_scan does for .md.
 
     Claude shows shell and R in most replies, where 'sandbox', 'pipeline'
     and 'costs' are ordinary words. Scanning fences would fire on nearly
     every message carrying a command.
+
+    Inline code is skipped for a second reason. build_note names the word it
+    matched, so any reply passing that word on to Jake was logged as a fresh
+    violation of its own: two lines from one offence, and the extra line
+    arrived exactly in the sessions spent working on the gate. Code marks
+    give a reply a way to name an offender without using it.
     """
     findings = []
     in_fence = False
@@ -79,7 +85,8 @@ def scan_message(text):
             continue
         if in_fence:
             continue
-        style_scan.scan_line("reply", lineno, line, findings)
+        style_scan.scan_line("reply", lineno, line, findings,
+                             strip_inline_code=True)
     return findings
 
 
