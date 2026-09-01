@@ -9,15 +9,18 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-first-reader test-archive test-claude-app test-chatgpt-plugin check-claude-app app-skills archive install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links check-claude-app app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-first-reader test-archive test-claude-app test-chatgpt-plugin
+test: test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
 
 test-style-audit:
 	$(PYTHON) skills/style-audit/tests/test_style_scan.py
+
+test-style-gate:
+	$(PYTHON) skills/style-audit/tests/test_style_gate.py
 
 test-first-reader:
 	$(PYTHON) skills/first-reader/tests/test_mine_transcripts.py
@@ -30,6 +33,9 @@ test-claude-app:
 
 test-chatgpt-plugin:
 	$(PYTHON) scripts/tests/test_chatgpt_plugin.py
+
+test-install-links:
+	$(PYTHON) scripts/tests/test_install_links.py
 
 check-claude-app:
 	$(PYTHON) scripts/check_claude_app.py
@@ -54,6 +60,18 @@ app-skills:
 # `archive` also refreshes the corpus, which costs about a second.
 archive:
 	./scripts/daily_archive.sh && tail -2 ~/Library/Logs/claude-archive.log
+
+# Claude Code reads ~/.claude; this repository lives somewhere else. On a new
+# machine `make install` is the one command that connects them, replacing ten
+# symlinks that were previously made by hand. It never touches a link pointing
+# outside this repository, and it stops rather than replace a real file, so it
+# is safe to run on a machine that is already set up. `make install-dry-run`
+# reports what it would do and changes nothing.
+install:
+	$(PYTHON) scripts/install_links.py
+
+install-dry-run:
+	$(PYTHON) scripts/install_links.py --dry-run
 
 install-archive-agent:
 	@mkdir -p ~/Library/LaunchAgents
