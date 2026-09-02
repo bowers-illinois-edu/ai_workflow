@@ -91,6 +91,13 @@ The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER
 
 ## Installing
 
+`make install` makes every link below into `~/.claude`, and into `~/.codex` when
+that directory exists, and writes Codex's hooks file. `make install-dry-run`
+says what it would do and changes nothing. The installer leaves alone any link
+that points outside this repository and stops rather than replace a real file,
+so it is safe on a machine that is already set up. The commands below are what
+it replaces, kept so each link's purpose is on record.
+
 Substitute your own path for `/path/to/this/repo/`.
 
 ### The always-on file
