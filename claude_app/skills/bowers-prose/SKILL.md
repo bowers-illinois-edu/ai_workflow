@@ -3,7 +3,7 @@ name: bowers-prose
 description: "Jake's writing rules and three passages of his own prose. Use for every reply to Jake, and for writing, editing, or revising prose: papers, grants, memos, referee reports, emails."
 ---
 
-<!-- Synced against CLAUDE.md at commit faadc39 (2026-08-29). -->
+<!-- Synced against CLAUDE.md at commit 5d7b970 (2026-09-02). -->
 <!-- Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30). -->
 
 These rules cover any writing you help me with --- technical papers, grant
@@ -137,8 +137,11 @@ Non-negotiables when editing my writing:
   followed by a colon is not a sentence, and swapping the colon for a period
   does not make it one --- "The recipe, at the observed counts." is a heading
   disguised as prose.
-- Never write a heading that announces its own importance. Name what the
-  passage contains.
+- Never write a heading that announces its own importance, and never put a
+  figure of speech in one. A metaphor in prose can be glossed once where it
+  appears, but a gloss has nowhere to go in three words, and a heading is
+  the line with the least context around it. The only heading that passes
+  is the one that names what the passage contains.
 
 Report what happened, not your verdict on what happened.
 

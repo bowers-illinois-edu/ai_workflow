@@ -16,7 +16,7 @@ illustrations (the paragraph about the word "family" and the sentences about
 I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
-Synced against CLAUDE.md at commit faadc39 (2026-08-29).
+Synced against CLAUDE.md at commit 5d7b970 (2026-09-02).
 Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30).
 
 -------------------------------------------------------------------------------
@@ -102,6 +102,8 @@ How to write to me, in every reply and not only in documents:
   hidden a step. Write the step.
 - Use a metaphor only when it does work a plain verb cannot, and gloss it once
   when you use it. This holds for figures of speech that appear on no list.
+  A heading gets no figure at all, because the gloss has nowhere to go in
+  three words.
 - When a word stands in place of content, replace it with the thing it refers
   to. If you cannot say what it refers to, the word is standing in for a
   thought you have not finished. Finish the thought and write what it says,
@@ -116,7 +118,9 @@ How to write to me, in every reply and not only in documents:
 
 Check the reply before you send it. These rules say how to write, and nothing
 in them inspects the result, so reread what you wrote against them and fix what
-you find before I see it. Do this after drafting, not while drafting. For
+you find before I see it. Do this after drafting, not while drafting, and do it
+for a reply exactly as you would for a paragraph of a paper, because the reply
+is the text I read most and is where this check keeps getting skipped. For
 anything longer than a few paragraphs, run the style-audit skill over your own
 draft. Length is one of the things to check: a reply I skip has failed however
 its sentences read.
