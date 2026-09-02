@@ -71,6 +71,17 @@ class TestNamedOffenders(unittest.TestCase):
         self.assertIn("structural-metaphor", cats("This assumption is load-bearing."))
         self.assertIn("structural-metaphor", cats("the spine of the argument"))
 
+    def test_structural_metaphor_catches_the_seam_family(self):
+        # "seamless" says two parts join without saying what joined what or
+        # what a reader would have noticed at the join. The noun and the
+        # adverb are in the same pattern so a reworded sentence does not
+        # escape. Pattern added 2026-09-02.
+        self.assertIn("structural-metaphor", cats("a seamless transition"))
+        self.assertIn("structural-metaphor",
+                      cats("the seam between the two sections"))
+        self.assertIn("structural-metaphor",
+                      cats("the parts fit together seamlessly"))
+
     def test_industrial_metaphor(self):
         self.assertIn("industrial-metaphor", cats("the machinery of inference"))
 

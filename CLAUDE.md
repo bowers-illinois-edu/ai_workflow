@@ -255,6 +255,11 @@ to figures that appear on no list. A claim "wearing" a heading, an argument
 that "lands," a comparison that "runs along" dimensions --- each fails the
 substitution test exactly as "load-bearing" does.
 
+A heading gets no figure at all. The gloss that licenses a metaphor elsewhere
+has nowhere to go in three words, and a heading is the line with the least
+context around it, so the only compliant heading is the one that names what the
+passage contains.
+
 ### Tone
 
 Direct but not blunt. Serious but not solemn. Comfortable with first person.

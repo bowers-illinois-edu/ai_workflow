@@ -31,6 +31,7 @@ RAW_PATTERNS = [
     ("structural-metaphor", r"\bscaffold(?:ing|ed|s)?\b"),
     ("structural-metaphor", r"\bpillars?\b|\bcornerstones?\b|\bfoundational\b"),
     ("structural-metaphor", r"\bconnective tissue\b"),
+    ("structural-metaphor", r"\bseam(?:s|less|lessly)?\b"),
     ("industrial-metaphor", r"\b(?:machinery|apparatus|engine|gears)\s+of\b"),
     ("infrastructure-metaphor", r"\bfirewalls?\b|\bguardrails?\b|\bsandbox(?:ed|ing|es)?\b"),
     ("infrastructure-metaphor", r"\bpipelines?\b|\bplumbing\b|\bthe stack\b"),
