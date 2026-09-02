@@ -3,7 +3,7 @@ name: bowers-code
 description: Jake's rules for code in any language, R most often. Use when writing, reviewing, or debugging code, when answering statistical software questions, and for R package work.
 ---
 
-<!-- Synced against CLAUDE_CODING.md at commit a500d5f (2026-08-23). -->
+<!-- Synced against CLAUDE_CODING.md at commit 2047e0a (2026-09-02). -->
 
 Before writing code, find out what the code is for. Code that supports a paper
 has a point --- an estimand, a hypothesis, a figure, a claim I am trying to
