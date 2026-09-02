@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 __REPO__/skills/style-audit/scripts/style_gate.py preflight"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 __REPO__/skills/style-audit/scripts/style_gate.py stop"
+          }
+        ]
+      }
+    ]
+  }
+}

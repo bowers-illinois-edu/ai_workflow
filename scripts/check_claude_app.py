@@ -53,10 +53,24 @@ def parse_stamps(text):
             for source, sha in STAMP_LINE.findall(header)]
 
 
+def physical_path(source, repo_root=REPO_ROOT):
+    """The path git records changes at for `source`, with symlinks resolved.
+
+    `skills/` is a symlink to `plugins/ai-workflow/skills/` since 2026-09-02,
+    so a stamp that names `skills/math/SKILL.md` has to be looked up under the
+    plugin path, or the log comes back empty and the block reads as current
+    forever.
+    """
+    real_root = os.path.realpath(repo_root)
+    real = os.path.realpath(os.path.join(repo_root, source))
+    return os.path.relpath(real, real_root)
+
+
 def git_commits_since(source, sha, repo_root=REPO_ROOT):
     """One-line log of commits touching `source` after `sha`, newest first."""
     result = subprocess.run(
-        ["git", "log", "--oneline", "%s..HEAD" % sha, "--", source],
+        ["git", "log", "--oneline", "%s..HEAD" % sha, "--",
+         physical_path(source, repo_root)],
         cwd=repo_root, capture_output=True, text=True,
     )
     if result.returncode != 0:

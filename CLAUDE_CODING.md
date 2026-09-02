@@ -67,7 +67,7 @@ Always prioritize readable, maintainable tests over comprehensive coverage.
 When working on an R package, run `devtools::document()` after adding or
 modifying roxygen2 documentation. Run `devtools::check()` before considering a
 task complete. When adding new exported functions, bump the patch version in
-DESCRIPTION (e.g., 0.0.3.0 → 0.0.3.1).
+DESCRIPTION (e.g., 0.0.3.0 -> 0.0.3.1).
 
 Build discipline will vary for other kinds of code tasks. Many of them will use
 a Makefile. So, you should be able to run the makefile for all dependencies for

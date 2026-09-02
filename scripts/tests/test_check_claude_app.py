@@ -287,5 +287,32 @@ class RealBlockTests(unittest.TestCase):
                           "against it" % path)
 
 
+
+class PhysicalPathTest(unittest.TestCase):
+    """A stamp names `skills/math/SKILL.md`, and since 2026-09-02 `skills/` is
+    a symlink into plugins/ai-workflow/. Git logs changes at the real path, so
+    the checker has to resolve the link before asking git, or every block
+    synced against a skill would read as current no matter what changed."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.mkdtemp()
+        os.makedirs(os.path.join(self.tmp, "plugins", "x", "skills", "math"))
+        with open(os.path.join(self.tmp, "plugins", "x", "skills", "math", "SKILL.md"), "w") as fh:
+            fh.write("rules\n")
+        os.symlink(os.path.join("plugins", "x", "skills"), os.path.join(self.tmp, "skills"))
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_a_path_through_the_symlink_resolves_to_the_plugin_path(self):
+        self.assertEqual(checker.physical_path("skills/math/SKILL.md", self.tmp),
+                         os.path.join("plugins", "x", "skills", "math", "SKILL.md"))
+
+    def test_a_plain_path_is_returned_unchanged(self):
+        self.assertEqual(checker.physical_path("plugins/x/skills/math/SKILL.md", self.tmp),
+                         os.path.join("plugins", "x", "skills", "math", "SKILL.md"))
+
 if __name__ == "__main__":
     unittest.main()

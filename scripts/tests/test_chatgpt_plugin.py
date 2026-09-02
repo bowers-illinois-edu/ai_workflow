@@ -101,9 +101,14 @@ class NativeManifestTests(unittest.TestCase):
 
 
 class SharedSkillTests(unittest.TestCase):
-    def test_plugin_uses_the_existing_skill_directory(self):
-        self.assertTrue(PLUGIN_SKILLS.is_symlink())
-        self.assertEqual(PLUGIN_SKILLS.resolve(), SKILLS_ROOT.resolve())
+    def test_the_plugin_holds_the_real_skills_and_claude_app_links_to_them(self):
+        """Codex and ChatGPT copy a plugin directory without following
+        symlinks, so the files have to be inside it. claude_app/skills/ is
+        the symlink, kept so the paths this repository documents still
+        resolve."""
+        self.assertFalse(PLUGIN_SKILLS.is_symlink())
+        self.assertTrue(SKILLS_ROOT.is_symlink())
+        self.assertEqual(SKILLS_ROOT.resolve(), PLUGIN_SKILLS.resolve())
 
     def test_each_skill_has_matching_frontmatter(self):
         skill_files = sorted(SKILLS_ROOT.glob("*/SKILL.md"))

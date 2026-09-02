@@ -37,6 +37,13 @@ class InstallLinksTest(unittest.TestCase):
         # for the Claude app, not for Claude Code; it must not be linked
         with open(os.path.join(self.repo, "skills", "math.zip"), "w") as fh:
             fh.write("not a skill\n")
+        # the Codex side: a built AGENTS.md and the hooks template
+        os.makedirs(os.path.join(self.repo, "codex"))
+        with open(os.path.join(self.repo, "codex", "AGENTS.md"), "w") as fh:
+            fh.write("# generated for codex\n")
+        with open(os.path.join(self.repo, "codex", "hooks.json"), "w") as fh:
+            fh.write('{"hooks": {"Stop": [{"hooks": [{"type": "command", '
+                     '"command": "python3 __REPO__/skills/style-audit/scripts/style_gate.py stop"}]}]}}\n')
         os.makedirs(self.home)
 
     def tearDown(self):
@@ -50,6 +57,14 @@ class InstallLinksTest(unittest.TestCase):
     def link_target(self, *parts):
         p = os.path.join(self.home, ".claude", *parts)
         return os.readlink(p) if os.path.islink(p) else None
+
+    def codex_target(self, *parts):
+        p = os.path.join(self.home, ".codex", *parts)
+        return os.readlink(p) if os.path.islink(p) else None
+
+    def install_codex(self):
+        """Codex is installed on this machine when ~/.codex exists."""
+        os.makedirs(os.path.join(self.home, ".codex"), exist_ok=True)
 
     # --- what it must create -------------------------------------------
 
@@ -132,6 +147,105 @@ class InstallLinksTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertFalse(os.path.exists(os.path.join(self.home, ".claude", "skills", "math")))
         self.assertIn("would link", r.stdout.lower())
+
+
+    # --- the Codex side ---------------------------------------------------
+    #
+    # Codex reads ~/.codex/AGENTS.md and ~/.codex/skills/<name>/, so the same
+    # rules and skills reach it through the same kind of link. Two things
+    # differ. The instruction file is the built codex/AGENTS.md, not
+    # CLAUDE.md, because Codex follows no import lines. And the hooks that
+    # run the style gate are written rather than linked, because a hook
+    # command needs the repository's absolute path, and only on request,
+    # because they change what every Codex session does.
+
+    def test_touches_nothing_under_codex_when_codex_is_not_installed(self):
+        self.run_install()
+        self.assertFalse(os.path.exists(os.path.join(self.home, ".codex")))
+
+    def test_links_the_built_agents_md_into_codex(self):
+        self.install_codex()
+        self.run_install()
+        self.assertEqual(self.codex_target("AGENTS.md"),
+                         os.path.join(self.repo, "codex", "AGENTS.md"))
+
+    def test_links_each_skill_directory_into_codex(self):
+        self.install_codex()
+        self.run_install()
+        self.assertEqual(self.codex_target("skills", "math"),
+                         os.path.join(self.repo, "skills", "math"))
+        self.assertEqual(self.codex_target("skills", "decks"),
+                         os.path.join(self.repo, "skills", "decks"))
+
+    def test_repoints_an_agents_md_link_that_went_to_claude_md(self):
+        """How this laptop was wired on 2026-08-06: the link went straight to
+        CLAUDE.md, whose two @ lines Codex cannot follow. The link is ours,
+        so the installer moves it to the built file."""
+        self.install_codex()
+        link = os.path.join(self.home, ".codex", "AGENTS.md")
+        os.symlink(os.path.join(self.repo, "CLAUDE.md"), link)
+        self.run_install()
+        self.assertEqual(os.readlink(link), os.path.join(self.repo, "codex", "AGENTS.md"))
+
+    def test_skips_the_agents_md_link_when_the_build_is_missing(self):
+        self.install_codex()
+        os.remove(os.path.join(self.repo, "codex", "AGENTS.md"))
+        r = self.run_install()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse(os.path.lexists(os.path.join(self.home, ".codex", "AGENTS.md")),
+                         "never link a file that does not exist")
+
+    def test_refuses_to_replace_a_real_codex_skill_directory(self):
+        """~/.codex/skills/ai-workflow-coding on this laptop is a real
+        directory made by hand. Nothing in the plan has that name, but a
+        real directory under a name the plan does use must survive."""
+        self.install_codex()
+        real = os.path.join(self.home, ".codex", "skills", "math")
+        os.makedirs(real)
+        with open(os.path.join(real, "SKILL.md"), "w") as fh:
+            fh.write("someone's real work\n")
+        r = self.run_install()
+        self.assertTrue(os.path.isdir(real) and not os.path.islink(real))
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_codex_hooks_are_not_written_unless_asked(self):
+        self.install_codex()
+        self.run_install()
+        self.assertFalse(os.path.exists(os.path.join(self.home, ".codex", "hooks.json")))
+
+    def test_codex_hooks_flag_writes_the_template_with_the_repo_path(self):
+        self.install_codex()
+        r = self.run_install("--codex-hooks")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(os.path.join(self.home, ".codex", "hooks.json")) as fh:
+            text = fh.read()
+        self.assertNotIn("__REPO__", text)
+        self.assertIn(os.path.join(self.repo, "skills", "style-audit", "scripts", "style_gate.py"), text)
+        import json
+        json.loads(text)
+
+    def test_codex_hooks_flag_refuses_a_hooks_file_it_did_not_write(self):
+        self.install_codex()
+        theirs = os.path.join(self.home, ".codex", "hooks.json")
+        with open(theirs, "w") as fh:
+            fh.write('{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "say done"}]}]}}\n')
+        r = self.run_install("--codex-hooks")
+        with open(theirs) as fh:
+            self.assertIn("say done", fh.read())
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_codex_hooks_flag_rewrites_a_file_it_wrote_before(self):
+        self.install_codex()
+        self.run_install("--codex-hooks")
+        with open(os.path.join(self.repo, "codex", "hooks.json"), "a") as fh:
+            pass
+        r = self.run_install("--codex-hooks")
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_dry_run_writes_no_codex_hooks(self):
+        self.install_codex()
+        self.run_install("--dry-run", "--codex-hooks")
+        self.assertFalse(os.path.exists(os.path.join(self.home, ".codex", "hooks.json")))
 
 
 if __name__ == "__main__":

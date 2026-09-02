@@ -1,7 +1,6 @@
-# Test runner for the bundled scripts (verify_bib.py, style_scan.py,
-# check_claude_app.py). Each suite is stdlib-only (unittest) and offline, so
-# `make test` runs on a bare python3 with no third-party dependencies and no
-# network.
+# Test runner for the bundled scripts and the packaging around them. Each
+# suite is stdlib-only (unittest) and offline, so `make test` runs on a bare
+# python3 with no third-party dependencies and no network.
 #
 # `make check-claude-app` is separate because it reads the git log rather than
 # running offline: it reports whether CLAUDE.md or CLAUDE_CODING.md has moved
@@ -9,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links check-claude-app app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links
+test: test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -37,20 +36,45 @@ test-chatgpt-plugin:
 test-install-links:
 	$(PYTHON) scripts/tests/test_install_links.py
 
+test-build-agents-md:
+	$(PYTHON) scripts/tests/test_build_agents_md.py
+
+test-plugins:
+	$(PYTHON) scripts/tests/test_plugins_self_contained.py
+
+test-codex-hooks:
+	$(PYTHON) scripts/tests/test_codex_hooks.py
+
 check-claude-app:
 	$(PYTHON) scripts/check_claude_app.py
 
+# Codex reads one AGENTS.md and follows no import lines, so it gets CLAUDE.md
+# with the two files CLAUDE.md imports written out in place. The built file is
+# tracked, and test-build-agents-md fails when it is behind its sources.
+agents-md:
+	$(PYTHON) scripts/build_agents_md.py
+
+# The plugin directories hold the real files, because Codex and ChatGPT copy a
+# plugin directory without following symlinks. Two directories have to exist
+# in both plugins, the math references and the style-audit scripts. The Claude
+# Code plugin holds the originals and the app plugin holds copies; this target
+# refreshes the copies, and test-plugins fails when they differ.
+plugins:
+	rsync -a --delete --exclude __pycache__ --exclude .DS_Store \
+	    plugins/ai-workflow/skills/math/references/ \
+	    plugins/ai-workflow-app/skills/math/references/
+	rsync -a --delete --exclude __pycache__ --exclude .DS_Store \
+	    plugins/ai-workflow/skills/style-audit/scripts/ \
+	    plugins/ai-workflow-app/skills/style-audit/scripts/
+
 # The Claude app takes a skill as a zipped folder whose root is the folder
-# itself. `zip` does that directly, so this needs no script and no tests.
-#
-# Two of these skills reach the Claude Code originals by symlink rather than by
-# copy: style-audit/scripts/ points at the one directory holding style_scan.py,
-# and math/references/ at the one directory holding sections 4-16. `zip -r`
-# stores what a symlink points at, so each upload carries the same files the
-# Claude Code skill uses and there is never a second copy to go stale.
-app-skills:
+# itself. `zip` does that directly, so this needs no script and no tests. The
+# zip is built from the plugin directory, where the files live; the output
+# path is absolute because the shell's `cd` through a symlink and the kernel's
+# idea of `..` disagree.
+app-skills: plugins
 	rm -rf claude_app/dist && mkdir -p claude_app/dist
-	cd claude_app/skills && for s in */; do zip -qr "../dist/$${s%/}.zip" "$${s%/}" -x '*__pycache__*'; done
+	cd plugins/ai-workflow-app/skills && for s in */; do zip -qr "$(CURDIR)/claude_app/dist/$${s%/}.zip" "$${s%/}" -x '*__pycache__*' -x '*.DS_Store'; done
 	@ls -l claude_app/dist
 
 # The transcripts in ~/.claude/projects are the source the corpus and the
@@ -61,17 +85,19 @@ app-skills:
 archive:
 	./scripts/daily_archive.sh && tail -2 ~/Library/Logs/claude-archive.log
 
-# Claude Code reads ~/.claude; this repository lives somewhere else. On a new
-# machine `make install` is the one command that connects them, replacing ten
-# symlinks that were previously made by hand. It never touches a link pointing
-# outside this repository, and it stops rather than replace a real file, so it
-# is safe to run on a machine that is already set up. `make install-dry-run`
-# reports what it would do and changes nothing.
-install:
-	$(PYTHON) scripts/install_links.py
+# Claude Code reads ~/.claude and Codex reads ~/.codex; this repository lives
+# somewhere else. On a new machine `make install` is the one command that
+# connects them. It never touches a link pointing outside this repository, it
+# stops rather than replace a real file, and it writes Codex's hooks.json only
+# when no hooks file is there or the one there already runs the style gate, so
+# it is safe to run on a machine that is already set up. `make
+# install-dry-run` reports what it would do and changes nothing. The Codex
+# links go in only when ~/.codex exists.
+install: agents-md
+	$(PYTHON) scripts/install_links.py --codex-hooks
 
 install-dry-run:
-	$(PYTHON) scripts/install_links.py --dry-run
+	$(PYTHON) scripts/install_links.py --codex-hooks --dry-run
 
 install-archive-agent:
 	@mkdir -p ~/Library/LaunchAgents

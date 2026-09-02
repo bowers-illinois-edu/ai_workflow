@@ -46,6 +46,8 @@ Two kinds of instruction live here, split by when they should load.
   because chat replies carry no cue that would trigger a skill.
 
 **Task-triggered protocols** are kept in `skills/`, one directory per skill.
+The directory `skills/` is a symlink to `plugins/ai-workflow/skills/`, which
+holds the files, for the reason given under "As a plugin" below.
 Claude Code keeps each skill's one-paragraph description in context in every
 session and loads the full instructions when the description matches the task
 or when the skill is invoked by name (`/math`, `/verify-citations`,
@@ -195,8 +197,9 @@ and `skills/`.
   assumes a spoken answer and no files, so it adds how to say mathematics
   aloud, how to read a transcript back before working from it, what can and
   cannot be checked here, and how to draft the memo I will carry into Claude
-  Code. Sections 4--16 are not rewritten: `references/` is a symlink to the
-  Claude Code skill's, so the app loads the same files.
+  Code. Sections 4--16 are not rewritten: `references/` is a copy of the
+  Claude Code skill's, refreshed by `make plugins` and held identical by a
+  test, so the app loads the same files.
 - **`claude_app/skills/handoff/`** --- the bridge I actually use from a
   conversation here to a session in Claude Code. It is not the `/handoff`
   command translated. That command reports the files it changed, and the app
@@ -215,12 +218,14 @@ file and a list of patterns. Whether it runs there is untested, which is why
 the skill tells the auditor what to do when it does not. `math` bundles no
 script either, and its `references/` are prose the app reads on demand.
 
-Two app skills reach the Claude Code originals by symlink rather than by copy:
-`style-audit/scripts/` points at the one directory holding `style_scan.py`, and
-`math/references/` at the one directory holding sections 4--16. `zip -r` stores
-what a symlink points at and the plugin installer resolves it too, so both
-routes ship the same files Claude Code runs and there is no second copy to go
-stale.
+Two app skills carry directories that also belong to Claude Code skills:
+`style-audit/scripts/` holds `style_scan.py`, and `math/references/` holds
+sections 4--16. Until 2026-09-02 each was a symlink to the Claude Code
+directory. They are copies now, because the plugin route below copies a plugin
+directory without following symlinks. `make plugins` refreshes the copies,
+`make app-skills` runs it first, and a test fails when a copy differs from its
+original, so an edit to the scanner that is not followed by `make plugins`
+fails `make test` rather than reaching the app stale.
 
 ```bash
 make app-skills   # writes one zip per directory in claude_app/skills/
@@ -249,7 +254,7 @@ the app as instructions. `make check-claude-app` reads those stamps and prints
 the commits that have touched the sources since, exiting nonzero when anything
 is behind or unstamped. It reports that a re-read is owed; the re-read is mine
 to do, and afterwards I update the stamp to the commit the report names. `make
-test` runs the offline unittest suites for this and the two skill scripts.
+test` runs every offline unittest suite in the repository.
 
 ### Statistics chats in the Claude app and ChatGPT
 
@@ -269,7 +274,45 @@ instruction field rejects the text for length, and the loop that keeps the
 concept map current, which matters because neither app can write to an uploaded
 file.
 
-### As a plugin, in Claude Code or the app
+### Codex
+
+Codex reads `~/.codex/AGENTS.md` at startup, the way Claude Code reads
+`~/.claude/CLAUDE.md`, and it reads skills from `~/.codex/skills/`. `make
+install` links both, and handles the two ways Codex differs.
+
+Codex follows no import lines. `CLAUDE.md` pulls in `CLAUDE_CODING.md` and
+`CLAUDE_WRITING_STANCE.md` with lines that begin with `@`, which Codex reads as
+bare paths, so a link from `~/.codex/AGENTS.md` straight to `CLAUDE.md` hands
+Codex the writing rules and neither of the other two files. That is how this
+laptop was wired from 2026-08-06 to 2026-09-02. `scripts/build_agents_md.py`
+writes `codex/AGENTS.md`, which is `CLAUDE.md` with the two imported files
+written out in place and nothing reworded, and the link goes there. The built
+file is tracked so a clone carries it, `make agents-md` rebuilds it, and `make
+test` fails when it is behind its sources.
+
+Codex reads at most `project_doc_max_bytes` of instructions, 32 KiB by default,
+and drops the rest without saying so. The built file is above that, so
+`~/.codex/config.toml` needs
+
+```toml
+project_doc_max_bytes = 65536
+```
+
+The budget is shared with a project's own `AGENTS.md`, or its `CLAUDE.md` when
+`project_doc_fallback_filenames = ["CLAUDE.md"]` is set, so a project file gets
+whatever the global file leaves.
+
+Codex hooks take the same JSON as Claude Code's, and `style_gate.py` reads the
+same fields from both, so `make install` also writes `~/.codex/hooks.json` from
+the template `codex/hooks.json` with this repository's path filled in. The gate
+then runs in Codex as it runs in Claude Code. The installer refuses to overwrite
+a hooks file that does not already run the gate; merge the template into such a
+file by hand.
+
+The plugin route below reaches Codex too. With the links in place, disable the
+two plugins in `config.toml`, or every skill loads twice.
+
+### As a plugin, in Claude Code, the Claude app, Codex, or ChatGPT
 
 The repository is also a plugin marketplace, which is a second way to install
 everything above: one `add` instead of a set of symlinks, and updates by syncing
@@ -283,9 +326,17 @@ version names `CLAUDE.md`, which does not exist in the app.
 - **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, `handoff`,
   and the app versions of `style-audit` and `math`.
 
-Neither plugin holds a second copy of anything. Each one's `skills/` is a
-symlink to the real directory, `skills/` or `claude_app/skills/`, and the
-installer follows it and copies the files.
+The plugin directories hold the real files. `skills/` at the top level is a
+symlink to `plugins/ai-workflow/skills/`, `claude_app/skills/` to
+`plugins/ai-workflow-app/skills/`, and `handoff_command.md` to the command
+inside the first plugin, so every path this README names still resolves and
+an edit through any of them changes the file in the plugin. The layout used to run the
+other way, with each plugin's `skills/` a symlink out to the real directory.
+Claude Code's installer followed those links. Codex's copies a plugin
+directory without following symlinks, and ChatGPT installs by the same route,
+so on 2026-09-02 both plugins as installed in Codex held no skills at all. A
+test now fails on any symlink under `plugins/`. The one directory that has to
+exist in both plugins is described under "The Claude app" above.
 
 In Claude Code:
 
@@ -295,6 +346,19 @@ claude plugin install ai-workflow@ai-workflow
 ```
 
 In the app: `Customize > Plugins`, the "Add" button, then the GitHub repository.
+
+In Codex, which reads the same marketplace file:
+
+```bash
+codex plugin marketplace add bowers-illinois-edu/ai_workflow
+codex plugin add ai-workflow@ai-workflow
+codex plugin add ai-workflow-app@ai-workflow
+codex plugin marketplace upgrade   # after a push, to refresh the snapshot
+```
+
+In ChatGPT the plugin installs from the same marketplace once the account has
+added it, and a skill is invoked as `@name`. I have not checked that click path
+against the live app.
 
 Plugin skills are namespaced, so `/math` becomes `/ai-workflow:math`. Installing
 the plugin while the symlinks in `~/.claude/skills/` are still there loads every
