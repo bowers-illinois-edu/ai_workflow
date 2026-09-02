@@ -183,7 +183,8 @@ and `skills/`.
   that matter everywhere: who I am, ASCII only, how to disagree with me, the
   compression rules, and three sentences of coding rules. Its header says what
   to cut first if the field rejects the text for length, and everything below
-  the line of dashes is the text to paste.
+  the line of dashes is the text to paste. This puts it on the clipboard:
+  `sed '1,/^-\{20,\}$/d' claude_app/1_personal_preferences.md | pbcopy`.
 - **`claude_app/skills/bowers-prose/`** --- the craft apparatus from `CLAUDE.md`
   followed by the three passages of my own prose: Gopen and Swan, technical
   exposition, the non-negotiables for editing my writing, the rule about
@@ -234,8 +235,15 @@ directory without following symlinks. `make plugins` refreshes the copies,
 original, so an edit to the scanner that is not followed by `make plugins`
 fails `make test` rather than reaching the app stale.
 
+The skills reach the app as the `ai-workflow-app` plugin, installed once from
+this repository's marketplace as described under "As a plugin" below and
+updated from inside the app after a push. That has been the route in use since
+2026-09-02. Uploading the zips as well would load every skill twice.
+
+The zips are the fallback for an account that cannot install plugins:
+
 ```bash
-make app-skills   # writes one zip per directory in claude_app/skills/
+make app-skills   # writes one zip per skill into claude_app/dist/
 ```
 
 Upload each zip in the app under `Customize > Skills`, with the "+" button, then
@@ -249,7 +257,7 @@ trigger words.
 
 Everywhere else in this repository a rule is stated once and loaded by
 reference. These files cannot work that way, because the app cannot read a file
-on my laptop: the rules have to be pasted or uploaded, and a pasted rule is a
+on my laptop: the rules have to be pasted or installed, and a pasted rule is a
 copy that can go stale. They are not copies in any case. They are translations,
 rewritten in the first person and cut to fit.
 
