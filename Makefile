@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
+test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -28,6 +28,13 @@ test-first-reader:
 # or it loads only when someone names it by hand.
 test-skill-registry:
 	$(PYTHON) scripts/tests/test_skill_registry.py
+
+# The randomized reading experiment: assignment must be reproducible from a
+# seed and written before any text changes, and a dropped stop must raise.
+test-reading-experiment:
+	$(PYTHON) scripts/reading_experiment/tests/test_pool.py
+	$(PYTHON) scripts/reading_experiment/tests/test_assign.py
+	$(PYTHON) scripts/reading_experiment/tests/test_score.py
 
 test-archive:
 	$(PYTHON) scripts/tests/test_archive_transcripts.py
