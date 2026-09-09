@@ -34,26 +34,57 @@ emails, **and every reply an assistant writes to Jake in a session**. Code
 style belongs to `CLAUDE_CODING.md`, but the ASCII rule and the banned
 patterns apply to prose inside code comments and documentation too.
 
-## 0. Replies are in scope, and they are where this goes worst
+## 0. Replies are in scope, and the scanner does not cover them
 
 The global `CLAUDE.md` says the writing rules cover conversation, and that
-chat is where the writing has gone worst. An assistant that scans the document
-and not its own reply has audited the smaller half of what Jake reads. On
-2026-08-29 he stopped reading a reply three times in one session while the
-note under discussion scanned clean.
+chat is where the writing has gone worst. Measured on Jake's own transcripts
+from 2026-08-15 to 2026-09-09: of 1181 replies carrying prose, he stopped on
+155. He quotes the offending words often enough that 47 of those stops can be
+located exactly, and `style_scan.py` flags 2 of the 47, one of which is a
+pattern added hours after he complained about that very phrase, so the
+uncontaminated count is 1. The scanner fires on
+59 percent of the replies he stopped on and 53 percent of the rest, and
+shuffling the labels within deciles of word count leaves 4.4 points with a
+randomization p-value of 0.271. Reply length does not separate them either,
+at a rank correlation of 0.042 and p = 0.154.
 
-So before sending a reply of more than a few sentences, write it to a file in
-the session scratchpad, run the scanner over that file, triage the hits, and
-then send it. Three things the scanner cannot see, to read for by hand:
+So running the scanner over a reply is not a check on the reply. Run it,
+because it takes a second and it settles the three mechanical faults, and
+then do the reading below, which is the check. On 2026-09-09 an assistant ran
+the scanner on five consecutive replies, sent all five clean, and Jake stopped
+on every one.
 
-- **A verbless fragment.** "Full suite green." No pattern finds a missing main
-  verb; section 6 says so. Read every short sentence and find its verb.
-- **A term the reader has never met.** Section 6's `internal-shorthand` entry
-  covers the common forms, but the shorthand particular to a project is
-  invisible to any list. Read each status line as someone who was not in the
-  session.
-- **Length.** A reply Jake skips has failed however its sentences read. Fewer
-  points in full sentences, not more points in fragments.
+Read the draft against these four questions, in this order. The order is how
+often each failure accounts for the 47 located stops.
+
+1. **Is every term one this reader can resolve?** 23 of 47. The words are not
+   exotic: he stopped on "collection," "boundary," "holder," "the count,"
+   "residuals," "report," "scanner," "registry," "robust." Each is ordinary
+   English doing technical duty the text never assigned it. Testing a draft
+   against his vocabulary finds none of these, because he knows every word.
+   Define the term where it first appears, or write the plain content instead.
+2. **Does every sentence give its action to a person?** 9 of 47. "The first
+   step collects the pairs," "the two theories allow," "two of the 112
+   residuals follow from the other 110." Section 6 names this and no pattern
+   implements it; a verb list alone was measured and separates nothing,
+   because the fault is the subject, not the verb.
+3. **Does every pronoun have exactly one antecedent?** 6 of 47. "do both,"
+   "which of these," "either," "says what each one depends on." Say the thing
+   instead of pointing at it.
+4. **Is any word here a name you chose for something he already names?** He
+   says skill, an assistant wrote file. He says judgment, an assistant wrote
+   reading. Use his word, and when a distinction needs a new word, state the
+   distinction.
+
+Then length, which no question above reaches. A reply he skips has failed
+however its sentences read. Fewer points in full sentences, not more points in
+fragments.
+
+Two faults the scanner cannot see and the four questions do not name. A
+verbless fragment: "Full suite green." No pattern finds a missing main verb,
+so read every short sentence and find its verb. And internal shorthand: a
+status line naming a script or a check he has never seen. Read each one as
+someone who was not in the session.
 
 Say a check ran only when it failed, or when its result changes what Jake
 should do next. A passing check that changes nothing is not news.
