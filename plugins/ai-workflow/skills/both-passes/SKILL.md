@@ -26,9 +26,9 @@ file and the numbers move and the quoted sentences are gone, so the report
 describes a document that no longer exists.
 
 And every sentence written during those minutes is prose that nobody has read.
-`first-reader/SKILL.md` records what happened on 2026-08-30: of the 28 places
-Jake stopped in one class note, 16 were replacement sentences an earlier
-review round had written. Editing while the reader reads produces the exact
+`first-reader/SKILL.md` records what happened on 2026-08-30. Jake listed 29
+places where he stopped in one class note. 28 could be traced to a sentence,
+and 16 of those were replacements an earlier review round had written. Editing while the reader reads produces the exact
 material the reader was sent to find, and produces it too late for the reader
 to see.
 

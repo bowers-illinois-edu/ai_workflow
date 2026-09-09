@@ -212,9 +212,11 @@ Everything above counts how often a detector points at a place you stopped.
 That is not the quantity that decides which detector to use. What decides is
 how many places you stop in the document that finally reaches you.
 
-The two come apart, and your own class note shows how far. Of the 28 stops you
-found there, 16 were sentences a review round had written as a replacement and
-6 more were written after the last round had read. Every one of those rounds
+The two come apart, and your own class note shows how far. You listed 29
+places where you stopped. 28 of them could be traced to a sentence, and 22 of
+those 28 are prose written after a pass had already read: 16 are sentences a
+first-reader round proposed as a replacement, and 6 more were written by the
+session that applied the findings. Every one of those rounds
 had good sensitivity by the count above. The document you received still had 28
 stops in it, because applying a finding means writing a sentence, and a
 sentence written after the last reading is a sentence nobody has read.
