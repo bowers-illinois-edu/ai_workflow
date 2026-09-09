@@ -3,7 +3,7 @@ name: style-audit
 description: Audit a draft and report each finding with a rewrite. Use for a style pass, de-AI-ing prose, a last read before a paper or memo goes out, and to check your own long reply before sending it.
 ---
 
-<!-- Synced against skills/style-audit/SKILL.md at commit 740f66d (2026-09-09). -->
+<!-- Synced against skills/style-audit/SKILL.md at commit 547756c (2026-09-09). -->
 
 # Style audit
 
@@ -36,26 +36,52 @@ emails, **and every reply you write to Jake in a conversation**. Code style
 belongs to the `bowers-code` skill, but the ASCII rule and the banned patterns
 apply to prose inside code comments and documentation too.
 
-## 0. Replies are in scope, and they are where this goes worst
+## 0. Replies are in scope, and the catalog does not cover them
 
-The app's standing instructions say the writing rules cover conversation,
-and that chat is where the writing has gone worst. An assistant that audits the
+The app's standing instructions say the writing rules cover conversation, and
+that chat is where the writing has gone worst. An assistant that audits the
 attached document and not its own reply has audited the smaller half of what
-Jake reads. On 2026-08-29 he stopped reading a reply three times in one session
-while the note under discussion scanned clean.
+Jake reads.
 
-So reread any reply longer than a few sentences against section 6 before
-sending it. With code execution on and a file to work from, write the draft out
-and run the scanner over it; otherwise read for the catalog by hand. Three
-things the scanner cannot see either way:
+Measured on a transcript of his sessions from 2026-08-15 to 2026-09-09, the
+only record of this anyone has: of 1181 replies carrying prose he stopped on
+155. He quotes the offending words often enough that 47 of those
+stops can be located exactly, and the scanner in section 1 flags 1 of the 47,
+once the single span whose pattern was written hours after he complained about
+it is set aside. So scanning a reply, or reading it for section 6, is not a
+check on the reply.
 
-- **A verbless fragment.** "Full suite green." No pattern finds a missing main
-  verb; section 6 says so. Read every short sentence and find its verb.
-- **A term Jake has never met.** Section 6's `internal-shorthand` entry covers
-  the common forms, but the shorthand particular to a project is invisible to
-  any list. Read each status line as someone who was not in the conversation.
-- **Length.** A reply Jake skips has failed however its sentences read. Fewer
-  points in full sentences, not more points in fragments.
+Read the draft against these four questions instead, in this order. The order
+is how often each failure accounts for the 47 located stops.
+
+1. **Is every term one Jake can resolve?** 23 of 47. The words are not exotic:
+   he stopped on "collection," "boundary," "holder," "the count," "residuals,"
+   "report," "registry," "robust." Each is ordinary English doing technical
+   duty the text never assigned it. Testing a draft against his own vocabulary
+   finds none of these, because he knows every word. Define the term where it
+   first appears, or write the plain content instead.
+2. **Does every sentence give its action to a person?** 9 of 47. "The first
+   step collects the pairs," "the two theories allow," "two of the 112
+   residuals follow from the other 110." Section 6 names this and no pattern
+   implements it, and a list of the offending verbs was measured and separates
+   nothing, because the fault is the subject rather than the verb.
+3. **Does every pronoun have exactly one antecedent?** 6 of 47. "do both,"
+   "which of these," "either," "says what each one depends on." Say the thing
+   instead of pointing at it.
+4. **Is any word here a name you chose for something Jake already names?** He
+   says skill, an assistant wrote file. He says judgment, an assistant wrote
+   reading. Use his word, and when a distinction needs a new word, state the
+   distinction.
+
+Then length, which no question above reaches. A reply he skips has failed
+however its sentences read. Fewer points in full sentences, not more points in
+fragments.
+
+Two faults neither the catalog nor the four questions name. A verbless
+fragment: "Full suite green." No pattern finds a missing main verb, so read
+every short sentence and find its verb. And internal shorthand: a status line
+naming a tool or a check he has never seen. Read each one as someone who was
+not in the conversation.
 
 Say a check ran only when it failed, or when its result changes what Jake
 should do next. A passing check that changes nothing is not news.
