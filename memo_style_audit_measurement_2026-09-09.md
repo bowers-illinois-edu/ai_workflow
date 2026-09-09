@@ -232,6 +232,38 @@ things. It now says the scanner is not a check on a reply, gives the two
 numbers above that say so, and replaces the three items with four questions
 ordered by how often each family appears among the 47 spans.
 
+## The one thing here that was tested rather than described
+
+Everything above describes what already happened. This section reports a
+check made afterwards, against phrases nobody had looked at while writing the
+four questions.
+
+The rule was written first, in `memo_detector_prereg_2026-09-09.md`, before
+anything was run. Take the replies from 30 August onward, which is after the
+last scanner pattern was added. Twenty-one of them contain words Jake quoted
+back, 31 different phrases in all, and each phrase is a place he stopped. A
+check keeps its place if it points at 8 or more of the 31 and loses it at 3 or
+fewer.
+
+A fresh assistant was given those 21 replies and the four questions, with
+nothing about Jake's reactions and no other list. It named 10 of the 31, using
+86 guesses over 10,124 words, which is 8 guesses per thousand words.
+
+`style_scan.py` names 1 of the 31, `load-bearing`.
+
+So the four questions stay and the scanner is not a way to find where he
+stops. It keeps its place for what it was built for: a unicode character, a
+line carrying a dash and a semicolon, a paragraph opening in bold.
+
+The 21 phrases it missed are mostly one ordinary word carrying a meaning the
+text never gave it: "left", "robust", "start", "which", "against", "measure".
+That is the first family in the list above, and the four questions reach less
+than half of it.
+
+No interval or p-value is reported. The 31 phrases are the ones Jake happened
+to quote, not a sample drawn by any process that could be repeated, so there
+is nothing for an interval to describe.
+
 ## What I did not measure
 
 Whether the four questions work. They were derived from the same 47 spans
