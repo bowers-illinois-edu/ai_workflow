@@ -135,7 +135,7 @@ to notice rather than easier.
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader; do
+for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader both-passes; do
   ln -sfn /path/to/this/repo/skills/$s ~/.claude/skills/$s
 done
 ```
@@ -337,7 +337,7 @@ version of the style audit tells the auditor to reread the writing rules in
 Instructions for Claude, which do not exist in Claude Code; the Claude Code
 version names `CLAUDE.md`, which does not exist in the app.
 
-- **`plugins/ai-workflow`** --- the eight Claude Code skills and `/handoff`.
+- **`plugins/ai-workflow`** --- the nine Claude Code skills and `/handoff`.
 - **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, `handoff`,
   and the app versions of `style-audit` and `math`.
 

@@ -23,7 +23,10 @@ the offending word differs every time and a false claim is a fact about the
 subject matter. Those belong to `first-reader`, which reads the draft as Jake
 reads it instead of scanning it. Counted over three months of his reactions,
 the categories this scanner reaches come to about one complaint in eight, so
-run both passes and expect them to find different things.
+run both passes and expect them to find different things. When both are
+wanted on one draft, load `both-passes` before applying anything from this
+audit: editing while the `first-reader` agent is still reading makes its
+report unusable.
 
 Scope: any prose leaving the desk --- papers, memos, grants, course
 materials, referee reports, response memos, slide text, README prose, long

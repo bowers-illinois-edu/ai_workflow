@@ -40,6 +40,9 @@ which never forgets them. Neither pass covers the other's half.
 
 ## How to run it
 
+When `style-audit` runs on the same draft, `both-passes` gives the order to
+run the two passes in. What follows is for this pass on its own.
+
 Spawn a **fresh subagent**, not a fork of the current session, and give it
 exactly two things: the persona and the draft.
 

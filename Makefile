@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-first-reader test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
+test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -23,6 +23,11 @@ test-style-gate:
 
 test-first-reader:
 	$(PYTHON) skills/first-reader/tests/test_mine_transcripts.py
+
+# Every skill has to be listed in CLAUDE.md and in the README install loop,
+# or it loads only when someone names it by hand.
+test-skill-registry:
+	$(PYTHON) scripts/tests/test_skill_registry.py
 
 test-archive:
 	$(PYTHON) scripts/tests/test_archive_transcripts.py
