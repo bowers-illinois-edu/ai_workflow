@@ -95,6 +95,11 @@ RAW_PATTERNS = [
     # ("- **...**") do not match, and they are house style in the
     # instruction files.
     ("bold-run-in-opener", r"^\*\*[^*]+[.?!]\*\*"),
+    # A connective asserting an inference the reader cannot make. The word is
+    # innocent; the judgment pass has to go back and look for the premise.
+    ("unsupported-connective",
+     r"(?:^|[.!?]\s+)(?:therefore|thus|hence)\b|\bit follows that\b"
+     r"|\b(?:and|so)\s+(?:therefore|thus)\b"),
 ]
 PATTERNS = [(cat, re.compile(pat, re.I)) for cat, pat in RAW_PATTERNS]
 

@@ -54,25 +54,54 @@ then do the reading below, which is the check. On 2026-09-09 an assistant ran
 the scanner on five consecutive replies, sent all five clean, and Jake stopped
 on every one.
 
-Read the draft against these four questions, in this order. The order is how
-often each failure accounts for the 47 located stops.
+Read the draft against these seven questions, in this order. The order is how
+often each failure accounts for what stopped him, counted twice: on 47 phrases
+he quoted back in chat between 2026-08-15 and 2026-09-09, and on 127 notes he
+typed while reading one paper straight through on 2026-09-09.
 
-1. **Is every term one this reader can resolve?** 23 of 47. The words are not
-   exotic: he stopped on "collection," "boundary," "holder," "the count,"
-   "residuals," "report," "scanner," "registry," "robust." Each is ordinary
-   English doing technical duty the text never assigned it. Testing a draft
-   against his vocabulary finds none of these, because he knows every word.
-   Define the term where it first appears, or write the plain content instead.
-2. **Does every sentence give its action to a person?** 9 of 47. "The first
-   step collects the pairs," "the two theories allow," "two of the 112
-   residuals follow from the other 110." Section 6 names this and no pattern
-   implements it; a verb list alone was measured and separates nothing,
-   because the fault is the subject, not the verb.
-3. **Does every pronoun have exactly one antecedent?** 6 of 47. "do both,"
+1. **Is every technical term spelled out where it first appears?** 36 of the
+   127. The largest family, and no earlier version of this skill looked for
+   it. He stopped on "sharp null", "weak null", "noncentrality", "limit law",
+   "local alternatives", "Bonferroni level", "order one", "Cauchy tail", and
+   above all on "alternative" and "null" written without the word
+   "hypothesis", which he marked so often that he wrote partway through that
+   he would stop marking it. Unlike the words in question 2, these are terms
+   of art and a field has a finite supply of them, so this question can be
+   answered by going through the draft and listing them.
+2. **Is every other term one he can resolve?** 23 of the 47. Not exotic words:
+   he stopped on "collection," "boundary," "holder," "the count," "residuals,"
+   "registry," "robust." Each is ordinary English doing technical duty the
+   text never assigned it. The same fault wearing a definite article accounts
+   for about 10 of the 127: "the problem", "The insight", "the power
+   argument", "the sequence of experiments", where nothing above fixes which
+   one. Testing a draft against his own vocabulary finds none of these,
+   because he knows every word.
+3. **Does every sentence give its action to a person?** 9 of the 47 and about
+   21 of the 127, which together make it second. "The first step collects the
+   pairs", "two of the 112 residuals follow from the other 110", a test that
+   "sees", a proposition that "says", a score that "carries", a statistic that
+   "shifts its mean", degrees of freedom that "take power", a combination that
+   "gains" something. Section 6 names this and no pattern implements it: a
+   list of the offending verbs was measured and separates nothing, because the
+   fault is which noun is doing the verb.
+4. **Does every pronoun have exactly one antecedent?** 6 of the 47. "do both,"
    "which of these," "either," "says what each one depends on." Say the thing
    instead of pointing at it.
-4. **Is any word here a name you chose for something he already names?** He
-   says skill, an assistant wrote file. He says judgment, an assistant wrote
+5. **Does any sentence end in a clause that adds nothing?** 14 of the 127. ",
+   which is what...", ", whatever the direction", ", and leads...", ", and
+   Section 6 gives...". Each arrives after the sentence has said what it came
+   to say. No pattern finds these: one tried on
+   2026-09-09 raised 113 candidates on a 1555-line paper and hit 9 of the 20
+   he marked, and every tightening of it lost more than it saved. Cut the
+   clause and ask whether a claim went with it.
+6. **Does every "therefore" have its premise in the sentence before it?**
+   About 5 of the 127. He stopped on "saying therefore with no real preceding
+   argument" and on "so, I do not understand how the second phrase follows
+   from the first". The scanner raises these under `unsupported-connective`,
+   and the judgment is whether the reader can make the inference from what he
+   has just read.
+7. **Is any word a name you chose for something he already names?** He says
+   skill, an assistant wrote file. He says judgment, an assistant wrote
    reading. Use his word, and when a distinction needs a new word, state the
    distinction.
 
@@ -80,11 +109,11 @@ Then length, which no question above reaches. A reply he skips has failed
 however its sentences read. Fewer points in full sentences, not more points in
 fragments.
 
-Two faults the scanner cannot see and the four questions do not name. A
-verbless fragment: "Full suite green." No pattern finds a missing main verb,
-so read every short sentence and find its verb. And internal shorthand: a
-status line naming a script or a check he has never seen. Read each one as
-someone who was not in the session.
+Two faults neither the scanner nor the seven questions name. A verbless
+fragment: "Full suite green." No pattern finds a missing main verb, so read
+every short sentence and find its verb. And internal shorthand: a status line
+naming a tool or a check he has never seen. Read each one as someone who was
+not in the session.
 
 Say a check ran only when it failed, or when its result changes what Jake
 should do next. A passing check that changes nothing is not news.
@@ -244,6 +273,39 @@ that fails the substitution test is still a finding.
 - **A technical term arriving before its content.** Naming a phenomenon in a heading or topic sentence ("the example is an identification failure at the coding map") and defining the term paragraphs later reverses graduated formalization: the reader meets the label while the thought is still owed. State the plain content first --- "a flipped coding with share 1 - t produces the same distribution of coded records as the original coding with share t, so no data can tell the two apart" --- and then ask whether the term still earns a mention. Often the plain statement is complete and the term adds only a name; keep the name only for an audience that needs it, introduced after the statement it names.
 - **A technical term the addressee has no use for.** The entry above is about order: the label arrives before the content it names. This one is about the reader: the plain content is present and adjacent, and the term is still wrong, because the person reading will never meet it again. An email to a graduate student about one abstract carried "cleft construction," "mass noun," "the impersonal register," and "a relative clause." All four are correct, all four sit next to a plain statement of the same thing, and each one was then used again as a referring noun --- "the cleft buys emphasis" --- so the reader had to hold a definition she was never given in order to follow the next sentence. Two arguments usually offered for keeping the name: it is searchable, and it lets the reader spot the pattern elsewhere. Neither survives when the pattern occurs once and the construction announces itself in its own words ("it is X that Y"). Test: delete the name and ask what the reader loses that she could act on. Nothing lost means cut it. If something is lost --- a distinction, a condition, or a number --- the finding is that the term needs a definition, not that it needs deleting.. Keep the name for an audience that will meet the term again, and then define it where it first appears. No pattern can find these, so they belong to Pass 2 alone.
 - **Internal shorthand reporting a check the reader has never been shown.** "Guard passes." "Scanner clean." "Numbers match." "Freeze current." "Full suite green." Each names a tool, a script, or a comparison that the writer runs and the reader has never met, so the status line needs a glossary before it can be read. This is not a figure of speech and it fails none of the metaphor tests, which is why it survived every earlier pass: the words are literal, and they are literally about something the reader cannot see. Two questions expose it: what was checked, and what does the result mean for the person reading? "Guard passes" becomes "the note is still marked a draft, so no page from it was published." "Numbers match" becomes "every number in the prose is the number R printed." Better still, when a check passed and nothing follows from it for the reader, say nothing. A reader does not need to hear that a thing you were supposed to do got done. The scanner flags the common forms under `internal-shorthand`; the ones it cannot know are the shorthand particular to a project, so read every status line against someone who has not been in the session. (Named after Jake read "guard passes, freeze current, ASCII clean" and asked what any of it meant to him, 2026-08-29.)
+- **A clause hung on the end of a finished sentence.** ", which is what the
+  randomization gives us", ", whatever the direction", ", and leads to a
+  smaller variance", ", and Section 6 gives the design". Each arrives after the
+  sentence has said what it came to say, and each reads as one more thing the
+  writer thought of. Jake marked 20 of these while reading one paper on
+  2026-09-09. No pattern can find them: a pattern for ", which", ", whatever",
+  and a sentence-initial ", and" raised 113 candidates on that paper and hit 9
+  of the 20, and tightening it to clauses that reach the end of the sentence
+  gave 15 candidates and 2 hits. Whether the clause adds anything depends on
+  whether the sentence was already complete, which is a judgment. Cut the
+  clause and ask whether a claim went with it. This belongs to Pass 2 alone.
+- **A connective asserting an inference the reader cannot make.** "Therefore
+  the reference distribution is chi-squared with six degrees of freedom",
+  where nothing above it establishes that. Jake stopped on "saying therefore
+  with no real preceding argument" and on "so, I do not understand how the
+  second phrase follows from the first". The word is innocent, so the finding
+  is the missing premise rather than the word: go back one sentence and ask
+  whether the reader can make the step. The scanner flags sentence-initial
+  "therefore", "thus", and "hence", plus "it follows that", under
+  `unsupported-connective`. On the paper above that raised 2 candidates and
+  one of them was a line he marked, so the family is worth the two glances
+  even though the pattern reaches only a seventh of it.
+- **A term of art used without being spelled out.** "sharp null", "weak null",
+  "noncentrality", "limit law", "local alternatives", "Bonferroni level",
+  "order one", "Cauchy tail", and "alternative" and "null" written without the
+  word "hypothesis". 36 of the 127 notes Jake typed while reading one paper on
+  2026-09-09 are this, which makes it the largest single family anyone has
+  counted. It differs from the entry above about a term the addressee has no
+  use for: there the plain content sits next to the name, here the name
+  arrives with no content anywhere. A field has a finite supply of these, so
+  a reader can go through a draft and list them, which is question 1 of
+  section 0. No pattern implements it, because the list is different in every
+  field.
 - Hedging that adds no information ("it is perhaps the case that arguably..."). Qualify where the qualification matters; otherwise, commit.
 - Ornamental transitions ("Moreover," "Furthermore," "It is important to note that"). If the logic is clear, the transition is unnecessary.
 - **Throat-clearing that announces a claim instead of making it.** The governing test is deletion: strike the words standing in front of the claim, and if nothing is lost --- not information, not emphasis --- they were throat-clearing, and what remains is the sentence you wanted. This pattern changes grammatical form freely, so a search for any one form misses the rest. The families: expletive "it" ("it is important to," "it is worth (noting / saying / mentioning / emphasizing) that," "it should be noted that," "it is interesting / crucial / essential / useful that," "note that," "one should observe that"); modifiers hung on a noun ("a reason worth stating," "a point worth making," "a case worth noting," "which is worth emphasizing," "an observation worth flagging," "the failure mode worth naming") --- the scanner reaches this family through `worth` followed by a gerund, which it did not before 2026-08-29; existential "there" ("there is an important point here," "there are several things worth noting"); first-person announcements ("I want to emphasize that," "let me note that," "we should observe that," "this bears mentioning," "this cannot be overstated"); sentence adverbs asserting importance ("Importantly," "Notably," "Crucially," "Significantly," "Tellingly"); nominal setups ("one thing to note is that," "a key point is that," "the important thing here is that," "what is worth emphasizing is that"); and forward-pointing counts ("two things are worth saying about X," "three points deserve emphasis"). Each defers the sentence's real subject and hides who cares and why. Make the claim directly --- "it is worth saying what the weights are" becomes "the weights are X"; "it is important to control the FWER" becomes "controlling the FWER matters because ..." with the reason supplied, or name what fails if you do not; "no for the hypergeometric, for a reason worth stating" becomes "no for the hypergeometric," with the reason in the sentence after. Emphasis comes from a short declarative sentence, never from an announcement that emphasis is coming. Two constructions resemble this one and survive the deletion test. A forecast that tells the reader where to look carries information the announcement lacks --- "we prove this in Section 4," "the derivation is in the supplement" --- and the pedagogical voice described above depends on it. An adverb that reports how a claim stands against an expectation the reader already holds also does real work: "unexpectedly," "contrary to Fairfield and Charman's prediction," and "against our own prior" state a relation rather than the writer's enthusiasm, provided the expectation was stated. Delete the word and ask whether a claim disappeared with it. (This generalizes the "It is important to note that" example under Ornamental transitions above.)

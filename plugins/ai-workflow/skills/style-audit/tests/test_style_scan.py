@@ -395,6 +395,62 @@ class TestInlineCodeSpans(unittest.TestCase):
         self.assertTrue(any(c == "idiom" for (_p, _n, c, _t) in findings))
 
 
+class NoTrailingClausePatternTests(unittest.TestCase):
+    """A clause hung on a finished sentence has no pattern, and this records why.
+
+    Jake marked 20 lines for this fault while reading one 1555-line paper on
+    2026-09-09. A pattern for ", which" and ", whatever" and a sentence-initial
+    ", and" raised 113 candidates and hit 9 of the 20. Requiring the clause to
+    reach the end of the line cut the candidates to 15 and the hits to 2, and
+    also capping it at eight words gave 8 candidates and 1 hit. There is no
+    threshold that finds this family at a rate the judgment pass could use,
+    because whether a trailing clause adds anything depends on whether the
+    sentence had already said what it came to say.
+
+    So it belongs to the reading, as question 5 of section 0, and this test
+    keeps the pattern from being added again by someone who has not measured it.
+    """
+
+    def test_a_trailing_clause_raises_no_candidate(self):
+        self.assertEqual(cats("The test is exact, which is what the randomization gives us."), set())
+
+    def test_a_trailing_and_clause_raises_no_candidate(self):
+        self.assertEqual(cats("We report the five statistics, and Section 6 gives the design."), set())
+
+    def test_no_pattern_carries_the_trailing_clause_category(self):
+        self.assertNotIn("trailing-clause", {cat for cat, _pat in ss.RAW_PATTERNS})
+
+
+class UnsupportedConnectiveTests(unittest.TestCase):
+    """A connective asserting an inference the reader cannot make.
+
+    Jake stopped five times on this while reading one paper: "saying
+    'therefore' with no real preceding argument", "why 'therefore'? I do not
+    see how this follows", "'so' I do not understand how the second phrase
+    follows from the first". The word itself is innocent, so this is a
+    candidate for the judgment pass, which has to go back and find the premise.
+    """
+
+    def test_sentence_initial_therefore_is_flagged(self):
+        self.assertIn("unsupported-connective",
+                      cats(("Therefore the reference distribution is chi-squared.")))
+
+    def test_sentence_initial_thus_is_flagged(self):
+        self.assertIn("unsupported-connective", cats(("Thus the test is exact.")))
+
+    def test_it_follows_that_is_flagged(self):
+        self.assertIn("unsupported-connective",
+                      cats(("It follows that the size is at most alpha.")))
+
+    def test_therefore_inside_a_sentence_is_flagged(self):
+        self.assertIn("unsupported-connective",
+                      cats(("The scores are exchangeable and therefore the test is exact.")))
+
+    def test_an_ordinary_sentence_is_not_flagged(self):
+        self.assertNotIn("unsupported-connective",
+                         cats(("The scores are exchangeable under the null hypothesis.")))
+
+
 class TestExitStatus(unittest.TestCase):
     """The Makefile gate: main() returns 2 when candidates exist, 0 when the
     scan is clean (docstring of style_scan.py; SKILL.md 1)."""
