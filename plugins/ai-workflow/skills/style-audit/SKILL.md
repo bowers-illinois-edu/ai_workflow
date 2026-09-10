@@ -89,11 +89,13 @@ typed while reading one paper straight through on 2026-09-09.
    instead of pointing at it.
 5. **Does any sentence end in a clause that adds nothing?** 14 of the 127. ",
    which is what...", ", whatever the direction", ", and leads...", ", and
-   Section 6 gives...". Each arrives after the sentence has said what it came
-   to say. No pattern finds these: one tried on
-   2026-09-09 raised 113 candidates on a 1555-line paper and hit 9 of the 20
-   he marked, and every tightening of it lost more than it saved. Cut the
-   clause and ask whether a claim went with it.
+   Section 6 gives...". The scanner flags these under `trailing-clause`, and
+   the flag does not say a fault is there. It says to stop at that sentence and
+   answer two questions. Can it be split in two? If it can, write the second
+   sentence out and ask whether it says anything. If it does not, cut it; if it
+   does, let it stand as its own sentence. The flag reaches about one line in
+   fourteen, which is why it directs a second look rather than reporting a
+   finding, and why `style_gate.py` keeps it out of the note it injects.
 6. **Does every "therefore" have its premise in the sentence before it?**
    About 5 of the 127. He stopped on "saying therefore with no real preceding
    argument" and on "so, I do not understand how the second phrase follows
@@ -276,14 +278,19 @@ that fails the substitution test is still a finding.
 - **A clause hung on the end of a finished sentence.** ", which is what the
   randomization gives us", ", whatever the direction", ", and leads to a
   smaller variance", ", and Section 6 gives the design". Each arrives after the
-  sentence has said what it came to say, and each reads as one more thing the
-  writer thought of. Jake marked 20 of these while reading one paper on
-  2026-09-09. No pattern can find them: a pattern for ", which", ", whatever",
-  and a sentence-initial ", and" raised 113 candidates on that paper and hit 9
-  of the 20, and tightening it to clauses that reach the end of the sentence
-  gave 15 candidates and 2 hits. Whether the clause adds anything depends on
-  whether the sentence was already complete, which is a judgment. Cut the
-  clause and ask whether a claim went with it. This belongs to Pass 2 alone.
+  sentence has said what it came to say. Jake marked 20 of these while reading
+  one paper on 2026-09-09. The scanner flags them under `trailing-clause`, and
+  the flag reports no fault: on that paper it fired on 113 lines and only 9 of
+  his 20 were among them, so read as a finding it is hopeless. Narrowing it to
+  clauses reaching the end of a sentence gave 15 lines and 2 of his 20, and
+  capping the clause at eight words gave 8 and 1, so no narrowing helps either.
+  Jake proposed the use that works: treat the flag as an instruction to look at
+  that sentence twice and answer two questions. Can it be split in two? If it
+  can, write the second sentence out and ask whether it says anything. Precision
+  stops mattering under that use, because the reader is reading every line
+  anyway and 113 lines out of 1555 is one in fourteen. `style_gate.py` keeps
+  this category out of the note it injects for the same reason: one line in
+  fourteen would fill his terminal.
 - **A connective asserting an inference the reader cannot make.** "Therefore
   the reference distribution is chi-squared with six degrees of freedom",
   where nothing above it establishes that. Jake stopped on "saying therefore

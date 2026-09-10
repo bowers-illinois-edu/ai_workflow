@@ -357,5 +357,33 @@ class TestTierMembershipIsOneLine(unittest.TestCase):
                          {"unicode", "bold-run-in-opener", "dash-semicolon"})
 
 
+class AttentionCategoryTests(unittest.TestCase):
+    """Some categories direct a second look rather than report a fault.
+
+    `trailing-clause` flags about one line in fourteen. That is cheap when a
+    reader is going through a draft anyway and asking, at each flag, whether
+    the sentence splits in two and whether the second half says anything. It
+    is not cheap in the note this gate injects, which Jake reads in his
+    terminal after every reply: a category firing that often would fill his
+    screen with candidates and bury the ones that admit no argument.
+
+    So the gate logs it and leaves it out of the note.
+    """
+
+    def test_trailing_clause_is_not_named_in_the_note(self):
+        findings = [("f", 1, "trailing-clause", ", which is what"),
+                    ("f", 2, "unicode", "\u2014")]
+        note = sg.build_note(findings)
+        self.assertNotIn("trailing-clause", note)
+        self.assertIn("unicode", note)
+
+    def test_a_reply_with_only_attention_categories_gets_no_note_at_all(self):
+        self.assertIsNone(sg.build_note([("f", 1, "trailing-clause", ", and the")]))
+
+    def test_the_category_is_still_logged(self):
+        """Dropping it from the note must not drop it from the measurement."""
+        self.assertIn("trailing-clause", sg.ATTENTION)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

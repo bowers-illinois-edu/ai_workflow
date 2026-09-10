@@ -395,30 +395,43 @@ class TestInlineCodeSpans(unittest.TestCase):
         self.assertTrue(any(c == "idiom" for (_p, _n, c, _t) in findings))
 
 
-class NoTrailingClausePatternTests(unittest.TestCase):
-    """A clause hung on a finished sentence has no pattern, and this records why.
+class TrailingClauseTests(unittest.TestCase):
+    """A clause hung on a finished sentence, flagged to be looked at twice.
 
-    Jake marked 20 lines for this fault while reading one 1555-line paper on
-    2026-09-09. A pattern for ", which" and ", whatever" and a sentence-initial
-    ", and" raised 113 candidates and hit 9 of the 20. Requiring the clause to
-    reach the end of the line cut the candidates to 15 and the hits to 2, and
-    also capping it at eight words gave 8 candidates and 1 hit. There is no
-    threshold that finds this family at a rate the judgment pass could use,
-    because whether a trailing clause adds anything depends on whether the
-    sentence had already said what it came to say.
+    This pattern was measured and rejected once, on 2026-09-09, because as a
+    reporter of faults it is hopeless: on a 1555-line paper it flagged 113
+    lines, and 9 of the 20 lines Jake had marked for this fault were among
+    them. Narrowing it to clauses reaching the end of a sentence gave 15 lines
+    and 2 of his 20; also capping the clause at eight words gave 8 and 1.
 
-    So it belongs to the reading, as question 5 of section 0, and this test
-    keeps the pattern from being added again by someone who has not measured it.
+    Jake then proposed the use that works. The flag does not say a fault is
+    there. It says to stop at that sentence and answer two questions: can it
+    be split in two, and if it can, does the second sentence say anything?
+    Precision stops mattering under that use, because the reader is reading
+    every line in any case and 113 lines out of 1555 is one line in fourteen
+    getting a second look. `style_gate.py` keeps this category out of the note
+    it injects, so the flag reaches the reading and not the terminal.
     """
 
-    def test_a_trailing_clause_raises_no_candidate(self):
-        self.assertEqual(cats("The test is exact, which is what the randomization gives us."), set())
+    def test_a_trailing_which_clause_is_flagged(self):
+        self.assertIn("trailing-clause",
+                      cats("The test is exact, which is what the randomization gives us."))
 
-    def test_a_trailing_and_clause_raises_no_candidate(self):
-        self.assertEqual(cats("We report the five statistics, and Section 6 gives the design."), set())
+    def test_a_trailing_and_clause_is_flagged(self):
+        self.assertIn("trailing-clause",
+                      cats("We report the five statistics, and Section 6 gives the design."))
 
-    def test_no_pattern_carries_the_trailing_clause_category(self):
-        self.assertNotIn("trailing-clause", {cat for cat, _pat in ss.RAW_PATTERNS})
+    def test_a_trailing_whatever_clause_is_flagged(self):
+        self.assertIn("trailing-clause",
+                      cats("The bound holds, whatever the direction of the effect."))
+
+    def test_a_comma_before_an_ordinary_word_is_not_flagged(self):
+        self.assertNotIn("trailing-clause", cats("If the null holds, the test is exact."))
+
+    def test_a_list_is_not_flagged(self):
+        """A list has a comma before the one that precedes "and"."""
+        self.assertNotIn("trailing-clause",
+                         cats("We use three statistics, two designs, and one outcome."))
 
 
 class UnsupportedConnectiveTests(unittest.TestCase):

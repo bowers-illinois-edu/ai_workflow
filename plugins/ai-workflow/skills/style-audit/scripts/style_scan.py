@@ -95,6 +95,11 @@ RAW_PATTERNS = [
     # ("- **...**") do not match, and they are house style in the
     # instruction files.
     ("bold-run-in-opener", r"^\*\*[^*]+[.?!]\*\*"),
+    # A clause hung on the end of a finished sentence. This one directs
+    # attention rather than reporting a fault: it flags about one line in
+    # fourteen, which is too many to be a finding and cheap as a second look.
+    # See the catalog entry and TrailingClauseTests for the measurement.
+    ("trailing-clause", r",\s+which\b|,\s+whatever\b|^[^,]*,\s+and\s+\w"),
     # A connective asserting an inference the reader cannot make. The word is
     # innocent; the judgment pass has to go back and look for the premise.
     ("unsupported-connective",

@@ -37,6 +37,12 @@ import style_scan  # noqa: E402
 # a candidate for the judgment pass and never more than that.
 MECHANICAL = frozenset({"unicode", "bold-run-in-opener", "dash-semicolon"})
 
+# Categories that tell a reader to look twice rather than that something is
+# wrong. `trailing-clause` fires on about one line in fourteen, which is cheap
+# inside a reading and ruinous in a note Jake sees after every reply. The scan
+# still records them; only the note leaves them out.
+ATTENTION = frozenset({"trailing-clause"})
+
 DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 
 # Kept short because it rides on every single turn. It points at the check
@@ -106,7 +112,11 @@ def build_note(findings):
     """
     cats = {}
     for (_p, _n, cat, matched) in findings:
+        if cat in ATTENTION:
+            continue
         cats.setdefault(cat, []).append(matched)
+    if not cats:
+        return None
 
     lines = ["Your last reply broke the writing rules in these places:"]
     for cat in sorted(cats):
@@ -157,7 +167,9 @@ def run_stop(stdin_text, log_path):
     except OSError:
         pass  # the note below is worth sending even with no log
 
-    emit("Stop", build_note(findings))
+    note = build_note(findings)
+    if note is not None:
+        emit("Stop", note)
     return 0
 
 
