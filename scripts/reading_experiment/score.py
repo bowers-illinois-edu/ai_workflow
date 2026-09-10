@@ -56,6 +56,22 @@ def read_stops(path):
     return stops, quit_line
 
 
+def translate(stops, line_map):
+    """Carry marks made on the reflowed copy back to the draft's line numbers.
+
+    A reflowed line can draw its words from more than one draft line, so one
+    mark can land on more than one. A mark the map does not know is kept as
+    itself rather than dropped: it then shows up in the summary as a stop at
+    no location, which is visible, whereas a dropped mark is not.
+    """
+    if not line_map:
+        return set(stops)
+    out = set()
+    for s in stops:
+        out |= set(line_map.get(s, [s]))
+    return out
+
+
 def usable_stops(stops, quit_line):
     """Split his marked stops into the ones he read and the ones he did not."""
     if quit_line is None:
@@ -134,6 +150,8 @@ def main(argv):
     ap.add_argument("assignment", help="assignment.json from assign.py")
     ap.add_argument("stops", help="file of line numbers Jake stopped at, one per line")
     ap.add_argument("--quit-line", type=int, default=None)
+    ap.add_argument("--line-map", default=None,
+                    help="line_map.json from rewrap.py, when he read a reflowed copy")
     ap.add_argument("--reps", type=int, default=10000)
     ap.add_argument("--seed", type=int, default=1)
     args = ap.parse_args(argv)
@@ -141,6 +159,14 @@ def main(argv):
     rows = json.load(open(args.assignment))["rows"]
     stops, quit_from_file = read_stops(args.stops)
     quit_line = args.quit_line if args.quit_line is not None else quit_from_file
+
+    line_map = None
+    if args.line_map:
+        line_map = {int(k): v for k, v in json.load(open(args.line_map)).items()}
+        stops = translate(stops, line_map)
+        if quit_line is not None:
+            quit_line = max(translate({quit_line}, line_map))
+
     out = summarize(rows, stops, quit_line, args.reps, args.seed)
     for k in ("locations_read", "applied", "held", "stops_read",
               "stops_after_quit_line", "stops_at_no_location",

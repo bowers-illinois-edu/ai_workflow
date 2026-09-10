@@ -32,6 +32,7 @@ test-skill-registry:
 # The randomized reading experiment: assignment must be reproducible from a
 # seed and written before any text changes, and a dropped stop must raise.
 test-reading-experiment:
+	$(PYTHON) scripts/reading_experiment/tests/test_rewrap.py
 	$(PYTHON) scripts/reading_experiment/tests/test_pool.py
 	$(PYTHON) scripts/reading_experiment/tests/test_assign.py
 	$(PYTHON) scripts/reading_experiment/tests/test_score.py

@@ -136,5 +136,30 @@ class StopsFileTest(unittest.TestCase):
             self.parse("# line  note\nsomewhere near the top  x\n")
 
 
+class LineMapTest(unittest.TestCase):
+    """The copy Jake reads is reflowed, so the line he marks is not the line a
+    finding sits on. rewrap.py records where each reflowed line came from, and
+    a mark has to be carried back through that record before anything is
+    compared. Getting this wrong would move every stop by a line or two, which
+    would look like noise rather than like a bug."""
+
+    def test_a_mark_is_carried_back_to_every_line_it_covers(self):
+        # Reflowed line 5 was built from source lines 7 and 8.
+        line_map = {5: [7, 8], 6: [8]}
+        self.assertEqual(score.translate({5}, line_map), {7, 8})
+
+    def test_marks_on_several_lines_are_unioned(self):
+        line_map = {1: [1], 2: [2, 3], 3: [4]}
+        self.assertEqual(score.translate({1, 3}, line_map), {1, 4})
+
+    def test_a_mark_on_a_line_the_map_does_not_know_is_kept_as_itself(self):
+        """Better to carry an unknown mark forward, where it shows up as a
+        stop at no location, than to drop it silently."""
+        self.assertEqual(score.translate({9}, {1: [1]}), {9})
+
+    def test_no_map_leaves_the_marks_alone(self):
+        self.assertEqual(score.translate({3, 4}, None), {3, 4})
+
+
 if __name__ == "__main__":
     unittest.main()
