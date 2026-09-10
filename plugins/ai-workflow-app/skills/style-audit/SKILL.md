@@ -3,7 +3,7 @@ name: style-audit
 description: Audit a draft and report each finding with a rewrite. Use for a style pass, de-AI-ing prose, a last read before a paper or memo goes out, and to check your own long reply before sending it.
 ---
 
-<!-- Synced against skills/style-audit/SKILL.md at commit 547756c (2026-09-09). -->
+<!-- Synced against skills/style-audit/SKILL.md at commit 09eba22 (2026-09-09). -->
 
 # Style audit
 
