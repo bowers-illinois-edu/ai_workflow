@@ -69,16 +69,18 @@ typed while reading one paper straight through on 2026-09-09.
    of art and a field has a finite supply of them, so this question can be
    answered by going through the draft and listing them.
 2. **Does the passage say what question it answers, before it answers it?**
-   Five of the 28 items Jake listed while reading the class note on 2026-08-30
-   were passages whose job he could not name. Name, in one sentence, the
-   question each
-   paragraph answers, then find where the draft asks it. A pointer is not a
-   question: "the section called 'Where to go next' says what fixes that"
-   tells him where to look and never why to read on. He stopped on two of the
-   three pointers a review round wrote for that purpose. When the draft
-   never asks the question, the finding is the missing question and the
-   rewrite supplies it. When the draft asks it only after answering it, the
-   finding is the order.
+   On 2026-09-14 Jake named what is at stake: he goes on reading because he is
+   working out whether he agrees with the writer, or because he expects the
+   next part to teach him something. That stake is what makes him do the work
+   that following complex prose requires. Five of the 28 items he listed while
+   reading the class note on 2026-08-30 were passages whose job he could not
+   name. Name, in one sentence, the question each paragraph answers, then find
+   where the draft asks it. A pointer is not a question: "the section called
+   'Where to go next' says what fixes that" tells him where to look and never
+   why to read on. He stopped on two of the three pointers a review round
+   wrote for that purpose. When the draft never asks the question, the finding
+   is the missing question and the rewrite supplies it. When the draft asks it
+   only after answering it, the finding is the order.
 3. **Is every other term one he can resolve?** 23 of the 47. Not exotic words:
    he stopped on "collection," "boundary," "holder," "the count," "residuals,"
    "registry," "robust." Each is ordinary English doing technical duty the
