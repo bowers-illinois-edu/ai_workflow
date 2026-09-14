@@ -183,9 +183,12 @@ paragraph of a paper --- against the catalog of named offenders in
 `skills/style-audit/SKILL.md` and the substitution and deletion tests, and fix
 what you find before I see it. The reread is a command rather than a memory
 exercise: write the draft to a file and run
-`skills/style-audit/scripts/style_scan.py` over it. Do that for a reply to me in
-this session exactly as you would for a paragraph of a paper, because the reply
-is the text I read most and is where this check keeps getting skipped. Do the
+`skills/style-audit/scripts/style_scan.py` over it, then read the draft against
+the eight questions in section 0 of `skills/style-audit/SKILL.md`. The scanner
+settles the mechanical faults, and those eight questions are the check on
+everything else. Do both for a reply to me in this session exactly as you would
+for a paragraph of a paper, because the reply is the text I read most and is
+where this check keeps getting skipped. Do the
 check after drafting and never during it, because a list of banned words helps
 an auditor and hurts a drafter, which is why the catalog lives in that skill
 rather than here. Length is one of the things to check: a reply I skip has
@@ -268,7 +271,8 @@ understood.
   statement it names, never before it.
 - **Motivate before method**: Open with a tangible scenario --- a policy-maker
   facing a decision, a researcher confronting a puzzle --- before introducing
-  the technical apparatus. The reader should understand *why* before *how*.
+  the technical apparatus. The reader should understand *why* they are reading
+  this sentence, paragraph, or section before being told *how* something works.
 - **Pedagogical voice**: Use "we" as a genuine guide-the-reader move. Preview
   what is coming. Foreshadow results. Step outside the argument to address
   likely confusion.

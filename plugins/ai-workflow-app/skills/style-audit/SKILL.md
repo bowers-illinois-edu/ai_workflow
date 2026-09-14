@@ -3,7 +3,7 @@ name: style-audit
 description: Audit a draft and report each finding with a rewrite. Use for a style pass, de-AI-ing prose, a last read before a paper or memo goes out, and to check your own long reply before sending it.
 ---
 
-<!-- Synced against skills/style-audit/SKILL.md at commit 8642702 (2026-09-09). -->
+<!-- Synced against skills/style-audit/SKILL.md at commit 9d2e3e1 (2026-09-14). -->
 
 # Style audit
 
@@ -51,7 +51,7 @@ once the single span whose pattern was written hours after he complained about
 it is set aside. So scanning a reply, or reading it for section 6, is not a
 check on the reply.
 
-Read the draft against these seven questions, in this order. The order is how
+Read the draft against these eight questions, in this order. The order is how
 often each failure accounts for what stopped him, counted twice: on 47 phrases
 he quoted back in chat between 2026-08-15 and 2026-09-09, and on 127 notes he
 typed while reading one paper straight through on 2026-09-09.
@@ -62,10 +62,23 @@ typed while reading one paper straight through on 2026-09-09.
    "local alternatives", "Bonferroni level", "order one", "Cauchy tail", and
    above all on "alternative" and "null" written without the word
    "hypothesis", which he marked so often that he wrote partway through that
-   he would stop marking it. Unlike the words in question 2, these are terms
+   he would stop marking it. Unlike the words in question 3, these are terms
    of art and a field has a finite supply of them, so this question can be
    answered by going through the draft and listing them.
-2. **Is every other term one he can resolve?** 23 of the 47. Not exotic words:
+2. **Does the passage say what question it answers, before it answers it?**
+   On 2026-09-14 Jake named what is at stake: he goes on reading because he is
+   working out whether he agrees with the writer, or because he expects the
+   next part to teach him something. That stake is what makes him do the work
+   that following complex prose requires. Five of the 28 items he listed while
+   reading the class note on 2026-08-30 were passages whose job he could not
+   name. Name, in one sentence, the question each paragraph answers, then find
+   where the draft asks it. A pointer is not a question: "the section called
+   'Where to go next' says what fixes that" tells him where to look and never
+   why to read on. He stopped on two of the three pointers a review round
+   wrote for that purpose. When the draft never asks the question, the finding
+   is the missing question and the rewrite supplies it. When the draft asks it
+   only after answering it, the finding is the order.
+3. **Is every other term one he can resolve?** 23 of the 47. Not exotic words:
    he stopped on "collection," "boundary," "holder," "the count," "residuals,"
    "registry," "robust." Each is ordinary English doing technical duty the
    text never assigned it. The same fault wearing a definite article accounts
@@ -73,7 +86,7 @@ typed while reading one paper straight through on 2026-09-09.
    argument", "the sequence of experiments", where nothing above fixes which
    one. Testing a draft against his own vocabulary finds none of these,
    because he knows every word.
-3. **Does every sentence give its action to a person?** 9 of the 47 and about
+4. **Does every sentence give its action to a person?** 9 of the 47 and about
    21 of the 127, which together make it second. "The first step collects the
    pairs", "two of the 112 residuals follow from the other 110", a test that
    "sees", a proposition that "says", a score that "carries", a statistic that
@@ -81,10 +94,10 @@ typed while reading one paper straight through on 2026-09-09.
    "gains" something. Section 6 names this and no pattern implements it: a
    list of the offending verbs was measured and separates nothing, because the
    fault is which noun is doing the verb.
-4. **Does every pronoun have exactly one antecedent?** 6 of the 47. "do both,"
+5. **Does every pronoun have exactly one antecedent?** 6 of the 47. "do both,"
    "which of these," "either," "says what each one depends on." Say the thing
    instead of pointing at it.
-5. **Does any sentence end in a clause that adds nothing?** 14 of the 127. ",
+6. **Does any sentence end in a clause that adds nothing?** 14 of the 127. ",
    which is what...", ", whatever the direction", ", and leads...", ", and
    Section 6 gives...". The scanner flags these under `trailing-clause`, and
    the flag does not say a fault is there. It says to stop at that sentence and
@@ -93,22 +106,27 @@ typed while reading one paper straight through on 2026-09-09.
    does, let it stand as its own sentence. The flag reaches about one line in
    fourteen, which is why it directs a second look rather than reporting a
    finding, and why `style_gate.py` keeps it out of the note it injects.
-6. **Does every "therefore" have its premise in the sentence before it?**
+7. **Does every "therefore" have its premise in the sentence before it?**
    About 5 of the 127. He stopped on "saying therefore with no real preceding
    argument" and on "so, I do not understand how the second phrase follows
    from the first". The scanner raises these under `unsupported-connective`,
    and the judgment is whether the reader can make the inference from what he
    has just read.
-7. **Is any word a name you chose for something he already names?** He says
-   skill, an assistant wrote file. He says judgment, an assistant wrote
-   reading. Use his word, and when a distinction needs a new word, state the
-   distinction.
+8. **Is any word one he did not give you?** This goes wrong two ways. The
+   first is a name you chose for something he already names. He says skill, an
+   assistant wrote file. He says judgment, an assistant wrote reading. Use his
+   word, and when a distinction needs a new word, state the distinction. The
+   second is a name carried across from a file he has not read. On 2026-09-14
+   an assistant read a memo that numbered the parts of an explanation and then
+   wrote to Jake about "beats" and "instance," and he answered that he had no
+   idea what they meant. Before sending, take each noun that names a thing in
+   the draft and say whether he used it or a file did.
 
 Then length, which no question above reaches. A reply he skips has failed
 however its sentences read. Fewer points in full sentences, not more points in
 fragments.
 
-Two faults neither the scanner nor the seven questions name. A verbless
+Two faults neither the scanner nor the eight questions name. A verbless
 fragment: "Full suite green." No pattern finds a missing main verb, so read
 every short sentence and find its verb. And internal shorthand: a status line
 naming a tool or a check he has never seen. Read each one as someone who was
@@ -158,6 +176,15 @@ words. Reread the writing rules in the app's standing instructions and in the
 `bowers-prose` skill, and then section 6 below, before this pass; then work
 through the document paragraph by paragraph:
 
+- **The question each paragraph answers, asked before it is answered**: name
+  in one sentence the question the paragraph answers, then find where the draft
+  asks it. A question the draft never asks is a finding whose rewrite supplies
+  it. A question asked after its answer is a finding about order. This is
+  question 2 of section 0 applied paragraph by paragraph.
+- **Words the reader was never given**: list the names in the draft that came
+  from a source rather than from Jake or from the draft itself. Define each one
+  where it first appears, or replace it with his word. Question 8 of section 0
+  gives the two ways this goes wrong.
 - **The substitution test, on everything evaluative, structural,
   impressive, or idiomatic** --- including words on no list. Try to replace
   the word with its concrete content. Easy substitution: the word was
@@ -202,7 +229,7 @@ Report each finding with:
 3. **The category** (structural-metaphor, vague-evaluative, locative,
    idiom, throat-clearing, hedge, transition, nominalization, stress
    position, end-weight, verb-drift, term-drift, reader-unknown-term,
-   attribution, unicode).
+   unasked-question, imported-term, attribution, unicode).
 4. **Why it fails, concretely** --- one sentence naming what the word hides
    or misplaces. Not "this is on the banned list" but "appropriate hides
    the criterion: clustered at the school level because assignment was."
@@ -246,13 +273,17 @@ below." Bad: "The draft largely follows the style rules."
    words?
 3. Intended reader named before the judgment pass, and every technical term
    checked against that reader rather than against Jake?
-4. Every finding located, quoted, categorized, explained concretely, and
+4. For each paragraph, the question it answers named, and the draft checked
+   for where it asks that question?
+5. Every name in the draft traced to Jake, to the draft itself, or to a source
+   he has not read?
+6. Every finding located, quoted, categorized, explained concretely, and
    paired with a rewrite or a question?
-5. Meaning-changing findings separated from surface findings?
-6. Nothing rewritten silently?
-7. The report says what was and was not covered?
-8. Draft read straight through once more, the way Jake reads it, with each
-   stopping point reported as the question he would ask?
+7. Meaning-changing findings separated from surface findings?
+8. Nothing rewritten silently?
+9. The report says what was and was not covered?
+10. Draft read straight through once more, the way Jake reads it, with each
+    stopping point reported as the question he would ask?
 
 ## 6. The catalog of named offenders
 

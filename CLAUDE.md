@@ -89,9 +89,12 @@ paragraph of a paper --- against the catalog of named offenders in
 `skills/style-audit/SKILL.md` and the substitution and deletion tests, and fix
 what you find before I see it. The reread is a command rather than a memory
 exercise: write the draft to a file and run
-`skills/style-audit/scripts/style_scan.py` over it. Do that for a reply to me in
-this session exactly as you would for a paragraph of a paper, because the reply
-is the text I read most and is where this check keeps getting skipped. Do the
+`skills/style-audit/scripts/style_scan.py` over it, then read the draft against
+the eight questions in section 0 of `skills/style-audit/SKILL.md`. The scanner
+settles the mechanical faults, and those eight questions are the check on
+everything else. Do both for a reply to me in this session exactly as you would
+for a paragraph of a paper, because the reply is the text I read most and is
+where this check keeps getting skipped. Do the
 check after drafting and never during it, because a list of banned words helps
 an auditor and hurts a drafter, which is why the catalog lives in that skill
 rather than here. Length is one of the things to check: a reply I skip has

@@ -24,9 +24,12 @@ Four design facts the tests must protect:
     transcripts, 40% carried a mechanical violation (212 unicode em dashes,
     95 bold run-in openers, 14 em-dash + semicolon collisions) and 16%
     touched a judgment category. Only the mechanical tier admits no
-    judgment, so only it belongs in the injected rules. "costs" is usually
-    literal, and banning the word would train avoidance of an item instead
-    of the habit.
+    judgment, so only it is named as a fault in the injected reminder.
+    "costs" is usually literal, and banning the word would train avoidance
+    of an item instead of the habit. The reminder also carries the eight
+    reading questions from SKILL.md section 0, added 2026-09-14 after the
+    log showed the mechanical reminder working; those ask about the draft
+    and name no words.
 
   * IT FAILS OPEN AND SILENT. Malformed JSON, a missing field, a raised
     exception: exit 0, no log line, no output. Losing one measurement is a
@@ -50,6 +53,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -290,10 +294,69 @@ class TestPreflight(unittest.TestCase):
         self.assertTrue(all(ord(c) <= 126 for c in ctx))
 
     def test_injection_is_short(self):
-        """It rides on every single turn, so length is not free."""
+        """It rides on every single turn, so length is not free.
+
+        The cap was 600 characters while the injection named only the three
+        mechanical faults. It rose on 2026-09-14, when the injection took on
+        the reading check as well, and the reason is in the gate's own log:
+        from 2026-09-01 to 2026-09-14 the log holds 15 replies with a
+        mechanical fault against a pre-gate rate of 40 percent of all
+        replies, so the adjacent reminder works for what it names, and what
+        Jake still stops on is what it did not name. Eight questions and the
+        instruction to scan the draft fit in about 1500 characters, which is
+        roughly 350 tokens on every turn.
+        """
         _, out = self.run_preflight()
         ctx = out["hookSpecificOutput"]["additionalContext"]
-        self.assertLess(len(ctx), 600)
+        self.assertLess(len(ctx), 1700)
+
+    def test_tells_claude_to_write_the_draft_to_a_file_and_scan_it(self):
+        """CLAUDE.md already says to write the draft to a file and run the
+        scanner over it. The injection repeats that instruction because the
+        one 28KB away kept getting skipped and the adjacent one did not."""
+        _, out = self.run_preflight()
+        ctx = out["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("style_scan.py", ctx)
+        self.assertIn("file", ctx.lower())
+
+    def test_names_every_reading_question(self):
+        """The eight questions of SKILL.md section 0 are the check on a reply,
+        since the scanner locates 1 of the 47 stops Jake quoted back. Each is
+        identified by a phrase from its heading, in the order the skill gives
+        them, so a question dropped or reworded out of recognition fails
+        here."""
+        _, out = self.run_preflight()
+        ctx = out["hookSpecificOutput"]["additionalContext"].lower()
+        phrases = ("technical term", "what question it answers", "resolve",
+                   "person", "pronoun", "adds nothing", "therefore",
+                   "did not give")
+        positions = [ctx.find(ph) for ph in phrases]
+        for ph, pos in zip(phrases, positions):
+            self.assertNotEqual(pos, -1, "injection does not name: " + ph)
+        self.assertEqual(positions, sorted(positions),
+                         "questions are out of the order section 0 gives")
+
+    def test_question_count_matches_skill_section_0(self):
+        """The gate carries its own copy of the questions, as it carries the
+        scanner's patterns through style_scan, and a copy drifts. This pins
+        the number of questions in the injection to the number of bold
+        numbered questions in section 0 of SKILL.md, so adding a question to
+        one file and not the other fails loudly."""
+        skill = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "..", "SKILL.md")
+        with open(skill, encoding="utf-8") as fh:
+            text = fh.read()
+        section = text.split("## 0.", 1)[1].split("## 1.", 1)[0]
+        in_skill = sum(1 for ln in section.splitlines()
+                       if ln[:1].isdigit() and ". **" in ln[:6])
+        self.assertEqual(in_skill, 8)
+        self.assertEqual(len(sg.QUESTIONS), in_skill)
+
+    def test_questions_name_no_particular_words(self):
+        """The questions ask about the draft, never about a word. A question
+        naming a word would be a ban list by another route."""
+        for q in sg.QUESTIONS:
+            self.assertNotIn('"', q, "a quoted word in a question: " + q)
 
 
 class TestFailsOpen(GateCase):

@@ -7,6 +7,10 @@ Two entry points, one per hook event:
               Claude generates. This is the only half that can PREVENT a
               violation, because a Stop hook fires after the text has already
               reached the terminal and no hook can retract displayed text.
+              Since 2026-09-14 the reminder carries the whole reply audit:
+              the three mechanical faults, the instruction to write the draft
+              to a file and scan it, and the eight reading questions from
+              SKILL.md section 0.
 
   stop        Stop. Scans the finished reply, appends a record to a log, and
               injects a note Claude is told not to surface. It never blocks.
@@ -17,9 +21,11 @@ The split into tiers comes from measurement, not taste. Over 329 assistant
 prose messages in 12 recent transcripts, 40% carried a mechanical violation
 (212 unicode em dashes, 95 bold run-in openers, 14 em-dash + semicolon
 collisions) and 16% touched a judgment category. Only the mechanical tier
-admits no argument, so only it goes into the injected reminder. Naming
-"costs" or "appropriate" there would teach avoidance of words rather than of
-the habit, which is the failure the global CLAUDE.md warns about directly.
+admits no argument, so only it is named as a fault in the injected reminder.
+Naming "costs" or "appropriate" there would teach avoidance of words rather
+than of the habit, which is the failure the global CLAUDE.md warns about
+directly. The reading questions the reminder carries name no words at all;
+they ask about the draft.
 
 Every path returns 0. A gate that wedges a session is worse than no gate.
 """
@@ -45,16 +51,41 @@ ATTENTION = frozenset({"trailing-clause"})
 
 DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 
-# Kept short because it rides on every single turn. It points at the check
-# CLAUDE.md already requires rather than restating it, so there is one
-# statement of the rule instead of two that can drift apart.
-PREFLIGHT = """Before sending your reply, run the reread CLAUDE.md requires.
-Three faults a mechanical scan can settle, so settle them yourself:
-1. No unicode. Write --- for an em dash, -- for an en dash, -> for an arrow,
-   and straight quotes. This is the one you break most often.
-2. No paragraph opening with a bold run-in sentence.
-3. No line carrying an em dash and a semicolon together.
-Fenced code is exempt. Reread after drafting, never during."""
+# The reading check on a reply, copied from SKILL.md section 0. The gate
+# carries its own copy for the same reason style_scan carries RAW_PATTERNS:
+# a hook cannot parse a skill file on every turn. test_style_gate pins the
+# count here to the count in section 0, so the copies cannot drift silently.
+# Each question asks about the draft and never names a word, because a named
+# word teaches avoidance of that word rather than of the habit behind it.
+QUESTIONS = (
+    "Is every technical term spelled out where it first appears?",
+    "Does each passage say what question it answers, before it answers it?",
+    "Is every other term one Jake can resolve from what is on the page?",
+    "Does every sentence give its action to a person?",
+    "Does every pronoun have exactly one antecedent?",
+    "Does any sentence end in a clause that adds nothing?",
+    "Does every therefore have its premise in the sentence before it?",
+    "Is any word one Jake did not give you, chosen by you or carried in "
+    "from a file he has not read?",
+)
+
+# Rides on every single turn, so it stays under 1700 characters. Until
+# 2026-09-14 it named only the three mechanical faults. The gate's log then
+# showed 15 replies with a mechanical fault in two weeks against a pre-gate
+# rate of 40 percent, so the adjacent reminder does what it names, and what
+# Jake still stopped on was the part it left out: the reading.
+PREFLIGHT = "\n".join(
+    ["Before sending your reply, run the check CLAUDE.md requires. Reread",
+     "after drafting, never during. First the three faults a scan settles:",
+     "1. No unicode. Write --- for an em dash, -- for an en dash, -> for an",
+     "   arrow, and straight quotes.",
+     "2. No paragraph opening with a bold run-in sentence.",
+     "3. No line carrying an em dash and a semicolon together.",
+     "Then the reading, which no scan can do. Write the draft to a file in",
+     "your scratchpad, run skills/style-audit/scripts/style_scan.py on it,",
+     "and read the draft against these eight questions:"]
+    + ["%d. %s" % (i, q) for i, q in enumerate(QUESTIONS, 1)]
+    + ["Fix what you find, then send. Fenced code is exempt from the scan."])
 
 
 def ascii_only(text):
