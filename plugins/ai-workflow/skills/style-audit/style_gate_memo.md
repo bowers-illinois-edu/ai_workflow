@@ -141,8 +141,10 @@ to the test target's list, then add:
 You asked that documents get the scan without the skill being invoked by
 name. The same script now has a `posttool` entry point, run from the
 PostToolUse event, which fires after a tool finishes. When the tool was Write
-or Edit and the file ends in .md, .tex, .Rmd, .qmd or .txt, in any letter
-case, it scans that file. When the tool was Bash, it reads the command for
+or Edit and the file ends in .md, .tex, .Rmd, .qmd, .txt or .docx, in any
+letter case, it scans that file. A .docx is a zip archive, so the gate reads
+the document text out of it, one line per paragraph, and the note numbers
+paragraphs rather than lines. When the tool was Bash, it reads the command for
 paths with those endings, and it also searches the working directory for any
 file with those endings changed in the last minute, skipping hidden
 directories. The search is what catches a file the command named through a

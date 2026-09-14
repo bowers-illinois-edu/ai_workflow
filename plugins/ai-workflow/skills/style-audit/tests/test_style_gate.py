@@ -625,6 +625,99 @@ class TestPostTool(GateCase):
         self.assertIsNone(out)
 
 
+def make_docx(path, paragraphs):
+    """A minimal Word file: a zip holding word/document.xml with one w:p per
+    paragraph. Word writes far more than this, but the text of a document is
+    entirely inside w:t elements, which is all the extractor reads."""
+    import zipfile
+    body = "".join(
+        "<w:p><w:r><w:t>%s</w:t></w:r></w:p>" % p for p in paragraphs)
+    xml = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           '<w:document xmlns:w="http://schemas.openxmlformats.org/'
+           'wordprocessingml/2006/main"><w:body>%s</w:body></w:document>'
+           % body)
+    with zipfile.ZipFile(path, "w") as zf:
+        zf.writestr("[Content_Types].xml", "<Types/>")
+        zf.writestr("word/document.xml", xml)
+    return path
+
+
+class TestDocx(GateCase):
+    """Word files, which Jake meets through collaborators on Google Drive.
+
+    A .docx is a zip archive, and its text sits in w:t elements inside
+    w:p paragraphs in word/document.xml. Scanning the raw bytes would report
+    the markup, so the gate extracts one line of text per paragraph and
+    scans those, and the note numbers paragraphs rather than lines.
+    """
+
+    def run_posttool(self, tool_name, tool_input):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], posttool_event(tool_name, tool_input),
+                           self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def test_paragraph_text_is_scanned_and_markup_is_not(self):
+        path = make_docx(os.path.join(self._tmp.name, "memo.docx"),
+                         ["The estimand is the average treatment effect.",
+                          "The estimate %s not the estimand." % EM_DASH])
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        ctx = self.context_of(out)
+        self.assertIn("memo.docx", ctx)
+        self.assertIn("unicode", ctx)
+        self.assertNotIn("w:", ctx, "markup reached the note")
+
+    def test_note_numbers_the_paragraph(self):
+        path = make_docx(os.path.join(self._tmp.name, "memo.docx"),
+                         ["clean", "clean", "a %s b" % EM_DASH])
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIn("paragraph 3", self.context_of(out))
+
+    def test_a_clean_docx_is_silent(self):
+        path = make_docx(os.path.join(self._tmp.name, "memo.docx"),
+                         ["The estimand is the average treatment effect."])
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_a_docx_that_is_not_a_zip_is_silent(self):
+        path = os.path.join(self._tmp.name, "broken.docx")
+        with open(path, "w") as fh:
+            fh.write("not a zip %s" % EM_DASH)
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_docx_is_found_by_the_bash_route(self):
+        path = make_docx(os.path.join(self._tmp.name, "memo.docx"),
+                         ["a %s b" % EM_DASH])
+        event = json.loads(posttool_event("Bash", {"command": "pandoc memo.md -o memo.docx"}))
+        event["cwd"] = self._tmp.name
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.main(["posttool"], json.dumps(event), self.log)
+        self.assertIn("memo.docx", buf.getvalue())
+
+    def test_extractor_joins_runs_within_a_paragraph(self):
+        """Word splits one sentence across several w:r runs when formatting
+        changes mid-sentence. The scan must see the sentence whole, or a
+        pattern spanning two runs is missed."""
+        import zipfile
+        path = os.path.join(self._tmp.name, "runs.docx")
+        xml = ('<w:document xmlns:w="http://schemas.openxmlformats.org/'
+               'wordprocessingml/2006/main"><w:body><w:p>'
+               '<w:r><w:t>Clustering here is </w:t></w:r>'
+               '<w:r><w:t>appropriate.</w:t></w:r>'
+               '</w:p></w:body></w:document>')
+        with zipfile.ZipFile(path, "w") as zf:
+            zf.writestr("word/document.xml", xml)
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIn("vague-evaluative", self.context_of(out))
+
+
 class TestTierMembershipIsOneLine(unittest.TestCase):
     """If the judgment tier should ever be treated as mechanical, that is a
     one-line edit to a constant, not a change spread through the code."""

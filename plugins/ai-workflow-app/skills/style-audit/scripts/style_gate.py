@@ -42,6 +42,8 @@ import os
 import re
 import sys
 import time
+import xml.etree.ElementTree as ET
+import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import style_scan  # noqa: E402
@@ -62,7 +64,14 @@ DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 # The files the posttool entry point scans, matched without regard to case.
 # These are the formats Jake writes prose in; code files stay out because
 # the scanner reads comments as prose and fires on ordinary identifiers.
-PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd", ".txt")
+PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd", ".txt", ".docx")
+
+# Where the text of a Word file lives. A .docx is a zip archive; the words
+# are in w:t elements inside w:p paragraphs in this one member. Word splits
+# a paragraph into runs (w:r) wherever formatting changes, so the runs are
+# joined before scanning or a pattern spanning two of them is missed.
+DOCX_DOCUMENT = "word/document.xml"
+DOCX_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
 # A Bash command names files it reads as well as files it writes. Only a
 # file whose modification time is this recent counts as one the command
@@ -73,8 +82,8 @@ FRESH_SECONDS = 60
 # A path-shaped token ending in a prose suffix, as it appears inside a shell
 # command: heredoc targets, sed -i arguments, python scripts that name the
 # file. Quotes and shell operators end a token.
-_PROSE_PATH = re.compile(r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd|txt)\b",
-                         re.IGNORECASE)
+_PROSE_PATH = re.compile(
+    r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd|txt|docx)\b", re.IGNORECASE)
 
 # After a Bash command the working directory is searched for prose files
 # changed in the last minute, because a command like `f=memo.md; cat > $f`
@@ -268,6 +277,28 @@ def fresh_prose_files(root, now=None):
     return found
 
 
+def docx_findings(path):
+    """Scan a Word file one paragraph per line; the line number in each
+    finding is the paragraph number. Anything that is not a readable Word
+    file yields nothing, since the gate must never wedge a turn."""
+    findings = []
+    try:
+        with zipfile.ZipFile(path) as zf:
+            root = ET.fromstring(zf.read(DOCX_DOCUMENT))
+    except (zipfile.BadZipFile, KeyError, ET.ParseError, OSError):
+        return findings
+    for number, para in enumerate(root.iter(DOCX_NS + "p"), 1):
+        text = "".join(t.text or "" for t in para.iter(DOCX_NS + "t"))
+        style_scan.scan_line(path, number, text, findings)
+    return findings
+
+
+def scan_path(path):
+    if path.lower().endswith(".docx"):
+        return docx_findings(path)
+    return style_scan.scan_file(path, True)
+
+
 def build_file_note(path, findings):
     """The context injected after a tool writes a dirty prose file.
 
@@ -282,10 +313,11 @@ def build_file_note(path, findings):
              if cat not in ATTENTION]
     if not shown:
         return None
+    unit = "paragraph" if path.lower().endswith(".docx") else "line"
     lines = ["The file you just wrote, %s, breaks the writing rules here:"
              % os.path.basename(path)]
     for (n, cat, matched) in shown[:NOTE_LIMIT]:
-        lines.append("  line %d, %s: %s" % (n, cat, ascii_only(matched)))
+        lines.append("  %s %d, %s: %s" % (unit, n, cat, ascii_only(matched)))
     if len(shown) > NOTE_LIMIT:
         lines.append("  ... and %d more." % (len(shown) - NOTE_LIMIT))
     lines.append("")
@@ -299,7 +331,7 @@ def run_posttool(stdin_text, log_path):
     event = json.loads(stdin_text)
     notes = []
     for path in files_to_scan(event):
-        findings = style_scan.scan_file(path, True)
+        findings = scan_path(path)
         note = build_file_note(path, findings)
         if note is None:
             continue
