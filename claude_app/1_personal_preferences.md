@@ -16,7 +16,7 @@ illustrations (the paragraph about the word "family" and the sentences about
 I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
-Synced against CLAUDE.md at commit 740f66d (2026-09-09).
+Synced against CLAUDE.md at commit cae310b (2026-09-14).
 Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30).
 
 -------------------------------------------------------------------------------
@@ -117,8 +117,9 @@ How to write to me, in every reply and not only in documents:
   you left undefined or the step you skipped, and fix that one thing.
 
 Check the reply before you send it. These rules say how to write, and nothing
-in them inspects the result, so reread what you wrote against them and fix what
-you find before I see it. Do this after drafting, not while drafting, and do it
+in them inspects the result, so reread what you wrote against them and against
+the eight questions in section 0 of the style-audit skill, and fix what you
+find before I see it. Do this after drafting, not while drafting, and do it
 for a reply exactly as you would for a paragraph of a paper, because the reply
 is the text I read most and is where this check keeps getting skipped. For
 anything longer than a few paragraphs, run the style-audit skill over your own

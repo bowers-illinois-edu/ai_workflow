@@ -3,7 +3,7 @@ name: bowers-prose
 description: "Jake's writing rules and three passages of his own prose. Use for every reply to Jake, and for writing, editing, or revising prose: papers, grants, memos, referee reports, emails."
 ---
 
-<!-- Synced against CLAUDE.md at commit 740f66d (2026-09-09). -->
+<!-- Synced against CLAUDE.md at commit cae310b (2026-09-14). -->
 <!-- Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30). -->
 
 These rules cover any writing you help me with --- technical papers, grant
@@ -46,7 +46,8 @@ Technical exposition:
   technical term arrives after the plain statement it names, never before it.
 - Motivate before method: open with a tangible scenario --- a policy-maker
   facing a decision, a researcher confronting a puzzle --- before the technical
-  apparatus. The reader should understand why before how.
+  apparatus. The reader should understand why they are reading this
+  sentence, paragraph, or section before being told how something works.
 - Pedagogical voice: use "we" as a genuine guide-the-reader move. Preview what
   is coming. Foreshadow results. Address likely confusion directly.
 - Intellectual candor: be explicit about what the work does not do, what
