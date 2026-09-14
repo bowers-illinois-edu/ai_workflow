@@ -66,6 +66,12 @@ DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 # the scanner reads comments as prose and fires on ordinary identifiers.
 PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd", ".txt", ".docx")
 
+# Formats the scanner cannot read. Jake chose on 2026-09-14 to leave .rtf
+# unscanned and asked for a warning instead, so a file with one of these
+# suffixes gets a note saying the writing rules were not checked on it, and
+# the assistant is told to say so in the reply.
+UNCHECKED_SUFFIXES = (".rtf",)
+
 # Where the text of a Word file lives. A .docx is a zip archive; the words
 # are in w:t elements inside w:p paragraphs in this one member. Word splits
 # a paragraph into runs (w:r) wherever formatting changes, so the runs are
@@ -83,7 +89,13 @@ FRESH_SECONDS = 60
 # command: heredoc targets, sed -i arguments, python scripts that name the
 # file. Quotes and shell operators end a token.
 _PROSE_PATH = re.compile(
-    r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd|txt|docx)\b", re.IGNORECASE)
+    r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd|txt|docx|rtf)\b", re.IGNORECASE)
+
+# A `cd` at the start of a command or after a connective, with its target
+# bare, double-quoted, single-quoted, or absent (which means home). A
+# command that changes directory names its files relative to where it went,
+# and the harness reports only where the session started (Jake, 2026-09-14).
+_CD = re.compile(r"""(?:^|&&|\|\||;)\s*cd(?:\s+(?:"([^"]*)"|'([^']*)'|([^\s;&|]+)))?(?=\s|;|&|\||$)""")
 
 # After a Bash command the working directory is searched for prose files
 # changed in the last minute, because a command like `f=memo.md; cat > $f`
@@ -208,6 +220,31 @@ def is_prose_path(path):
     return path.lower().endswith(PROSE_SUFFIXES)
 
 
+def is_unchecked_path(path):
+    return path.lower().endswith(UNCHECKED_SUFFIXES)
+
+
+def effective_cwd(command, cwd):
+    """The directory a command's relative names refer to after its `cd`s.
+
+    Each `cd` is followed in order from the reported working directory. A
+    `cd` to a directory that does not exist leaves the answer unknown, and
+    None tells the caller to resolve nothing relative and search nowhere.
+    """
+    current = cwd or ""
+    for match in _CD.finditer(command):
+        target = match.group(1) or match.group(2) or match.group(3) or "~"
+        target = os.path.expanduser(target)
+        if not os.path.isabs(target):
+            if not current:
+                return None
+            target = os.path.join(current, target)
+        if not os.path.isdir(target):
+            return None
+        current = os.path.abspath(target)
+    return current or None
+
+
 def paths_in_command(command):
     """Every distinct prose path a shell command mentions, in order."""
     seen = []
@@ -241,15 +278,19 @@ def files_to_scan(event):
     cwd = event.get("cwd") or ""
     if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
         path = tool_input.get("file_path") or ""
-        if path and is_prose_path(path) and os.path.isfile(path):
+        if path and os.path.isfile(path) and (is_prose_path(path)
+                                              or is_unchecked_path(path)):
             return [path]
         return []
     if tool == "Bash":
+        command = tool_input.get("command") or ""
+        base = effective_cwd(command, cwd)
         found = []
-        named = paths_in_command(tool_input.get("command") or "")
-        for path in named + fresh_prose_files(cwd):
-            if cwd and not os.path.isabs(path):
-                path = os.path.join(cwd, path)
+        for path in paths_in_command(command) + fresh_prose_files(base):
+            if not os.path.isabs(path):
+                if not base:
+                    continue
+                path = os.path.join(base, path)
             path = os.path.abspath(path)
             if path in found:
                 continue
@@ -270,7 +311,7 @@ def fresh_prose_files(root, now=None):
             seen += 1
             if seen > WALK_LIMIT:
                 return found
-            if is_prose_path(name):
+            if is_prose_path(name) or is_unchecked_path(name):
                 path = os.path.join(dirpath, name)
                 if changed_recently(path, now):
                     found.append(path)
@@ -291,6 +332,17 @@ def docx_findings(path):
         text = "".join(t.text or "" for t in para.iter(DOCX_NS + "t"))
         style_scan.scan_line(path, number, text, findings)
     return findings
+
+
+def unchecked_note(path):
+    """For a format the scanner cannot read: no findings, one warning, and
+    the instruction to pass the warning on, since the note itself reaches
+    only the assistant."""
+    return ("The file you just wrote, %s, is in a format the writing rules "
+            "are not checked on: the scanner does not read %s files, so "
+            "nothing in it has been checked. Tell Jake that in your reply, "
+            "in those words, when you report the file."
+            % (os.path.basename(path), os.path.splitext(path)[1].lower()))
 
 
 def scan_path(path):
@@ -331,15 +383,19 @@ def run_posttool(stdin_text, log_path):
     event = json.loads(stdin_text)
     notes = []
     for path in files_to_scan(event):
-        findings = scan_path(path)
-        note = build_file_note(path, findings)
+        if is_unchecked_path(path):
+            findings, note, tier = [], unchecked_note(path), "unchecked"
+        else:
+            findings = scan_path(path)
+            note = build_file_note(path, findings)
+            tier = tier_of(findings)
         if note is None:
             continue
         cats = sorted({cat for (_p, _n, cat, _t) in findings})
         record = {"time": time.strftime("%Y-%m-%dT%H:%M:%S"),
                   "session_id": event.get("session_id"),
                   "file": path,
-                  "tier": tier_of(findings),
+                  "tier": tier,
                   "categories": cats,
                   "count": len(findings)}
         try:

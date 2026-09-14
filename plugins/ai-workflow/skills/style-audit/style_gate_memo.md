@@ -148,7 +148,13 @@ paragraphs rather than lines. When the tool was Bash, it reads the command for
 paths with those endings, and it also searches the working directory for any
 file with those endings changed in the last minute, skipping hidden
 directories. The search is what catches a file the command named through a
-variable, as in `f=memo.md; cat > $f`. The note it injects names the
+variable, as in `f=memo.md; cat > $f`. A command that begins with `cd`
+names its files relative to where it went, so the gate follows each `cd` in
+the command, from the directory the session started in, and resolves names
+and runs the search from the result. An `.rtf` file is not scanned, because
+the scanner cannot read the format; instead the note says the writing rules
+were not checked on it and tells the assistant to say so in the reply, which
+is the warning you asked for. The note it injects names the
 file, the line, the category and the matched text, lists judgment candidates
 as well as the mechanical faults, leaves out the trailing-clause flag, and
 ends by saying to fix the file and then read it against the eight questions.

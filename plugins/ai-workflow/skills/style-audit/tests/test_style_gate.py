@@ -718,6 +718,141 @@ class TestDocx(GateCase):
         self.assertIn("vague-evaluative", self.context_of(out))
 
 
+class TestChangeDirectory(GateCase):
+    """A command that starts with `cd` names its files relative to the new
+    directory, and the harness reports only the directory the session
+    started in. Jake asked on 2026-09-14 that this case be covered. The gate
+    reads each `cd` out of the command, follows them in order, and resolves
+    relative names and the modification-time search against the result.
+    """
+
+    def run_bash(self, cwd, command):
+        event = json.loads(posttool_event("Bash", {"command": command}))
+        event["cwd"] = cwd
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], json.dumps(event), self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def dirty(self, directory, name):
+        os.makedirs(directory, exist_ok=True)
+        path = os.path.join(directory, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("a %s b\n" % EM_DASH)
+        return path
+
+    def test_relative_name_after_an_absolute_cd(self):
+        other = os.path.join(self._tmp.name, "elsewhere")
+        self.dirty(other, "memo.md")
+        _, out = self.run_bash(self._tmp.name, "cd %s && cat > memo.md" % other)
+        self.assertIsNotNone(out)
+        self.assertIn("memo.md", self.context_of(out))
+
+    def test_relative_cd_is_taken_from_the_reported_cwd(self):
+        self.dirty(os.path.join(self._tmp.name, "sub"), "memo.md")
+        _, out = self.run_bash(self._tmp.name, "cd sub && cat > memo.md")
+        self.assertIsNotNone(out)
+
+    def test_hidden_name_after_cd_is_found_by_the_search(self):
+        other = os.path.join(self._tmp.name, "elsewhere")
+        self.dirty(other, "memo.md")
+        _, out = self.run_bash(self._tmp.name,
+                               "cd %s && f=memo.md; cat > $f" % other)
+        self.assertIsNotNone(out)
+
+    def test_quoted_directory_with_a_space(self):
+        other = os.path.join(self._tmp.name, "dir with space")
+        self.dirty(other, "memo.md")
+        _, out = self.run_bash(self._tmp.name,
+                               'cd "%s" && cat > memo.md' % other)
+        self.assertIsNotNone(out)
+
+    def test_two_cds_are_followed_in_order(self):
+        deep = os.path.join(self._tmp.name, "a", "b")
+        self.dirty(deep, "memo.md")
+        _, out = self.run_bash(self._tmp.name, "cd a && cd b && cat > memo.md")
+        self.assertIsNotNone(out)
+
+    def test_cd_to_a_missing_directory_is_silent(self):
+        code, out = self.run_bash(self._tmp.name,
+                                  "cd /no/such/dir && cat > memo.md")
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_cd_with_no_argument_means_home(self):
+        """`cd` alone goes home. The gate follows it rather than staying put,
+        so a file written there is looked for in the right place; the test
+        only asks that nothing breaks, since it must not write to $HOME."""
+        code, _ = self.run_bash(self._tmp.name, "cd && ls")
+        self.assertEqual(code, 0)
+
+
+class TestUncheckedFormats(GateCase):
+    """Formats the scanner cannot read. Jake chose on 2026-09-14 to leave
+    .rtf out and asked instead for a warning, worded to him, that the
+    writing rules are not checked on such a file. The note goes to the
+    assistant, so it tells the assistant to pass that warning on in the
+    reply."""
+
+    def run_posttool(self, tool_name, tool_input, cwd=None):
+        event = json.loads(posttool_event(tool_name, tool_input))
+        if cwd:
+            event["cwd"] = cwd
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], json.dumps(event), self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def rtf(self, name="notes.rtf"):
+        path = os.path.join(self._tmp.name, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("{\\rtf1\\ansi The estimate %s not the estimand.}" % EM_DASH)
+        return path
+
+    def test_writing_an_rtf_file_warns_and_says_to_tell_jake(self):
+        path = self.rtf()
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        ctx = self.context_of(out)
+        self.assertIn("notes.rtf", ctx)
+        self.assertIn("not checked", ctx.lower())
+        self.assertIn("tell jake", ctx.lower())
+
+    def test_rtf_content_is_not_scanned(self):
+        """The em dash inside the file must not appear as a finding: the
+        warning is the whole note, since the scanner cannot read the
+        format."""
+        path = self.rtf()
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertNotIn("unicode", self.context_of(out))
+
+    def test_rtf_named_in_a_bash_command_warns(self):
+        path = self.rtf()
+        _, out = self.run_posttool("Bash", {"command": "pandoc memo.md -o %s" % path})
+        self.assertIn("notes.rtf", self.context_of(out))
+
+    def test_fresh_rtf_found_by_the_search_warns(self):
+        self.rtf()
+        _, out = self.run_posttool("Bash", {"command": "f=notes.rtf; cat > $f"},
+                                   cwd=self._tmp.name)
+        self.assertIsNotNone(out)
+
+    def test_rtf_warning_is_logged_as_unchecked(self):
+        path = self.rtf()
+        self.run_posttool("Write", {"file_path": path})
+        recs = self.records()
+        self.assertEqual(len(recs), 1)
+        self.assertEqual(recs[0]["tier"], "unchecked")
+        self.assertEqual(recs[0]["file"], path)
+
+    def test_the_warning_is_pure_ascii(self):
+        path = self.rtf()
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertTrue(all(ord(c) <= 126 for c in self.context_of(out)))
+
+
 class TestTierMembershipIsOneLine(unittest.TestCase):
     """If the judgment tier should ever be treated as mechanical, that is a
     one-line edit to a constant, not a change spread through the code."""
