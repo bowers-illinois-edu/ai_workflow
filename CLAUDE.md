@@ -174,7 +174,8 @@ understood.
   statement it names, never before it.
 - **Motivate before method**: Open with a tangible scenario --- a policy-maker
   facing a decision, a researcher confronting a puzzle --- before introducing
-  the technical apparatus. The reader should understand *why* before *how*.
+  the technical apparatus. The reader should understand *why* they are reading
+  this sentence, paragraph, or section before being told *how* something works.
 - **Pedagogical voice**: Use "we" as a genuine guide-the-reader move. Preview
   what is coming. Foreshadow results. Step outside the argument to address
   likely confusion.
