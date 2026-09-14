@@ -62,7 +62,7 @@ DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 # The files the posttool entry point scans, matched without regard to case.
 # These are the formats Jake writes prose in; code files stay out because
 # the scanner reads comments as prose and fires on ordinary identifiers.
-PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd")
+PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd", ".txt")
 
 # A Bash command names files it reads as well as files it writes. Only a
 # file whose modification time is this recent counts as one the command
@@ -73,8 +73,15 @@ FRESH_SECONDS = 60
 # A path-shaped token ending in a prose suffix, as it appears inside a shell
 # command: heredoc targets, sed -i arguments, python scripts that name the
 # file. Quotes and shell operators end a token.
-_PROSE_PATH = re.compile(r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd)\b",
+_PROSE_PATH = re.compile(r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd|txt)\b",
                          re.IGNORECASE)
+
+# After a Bash command the working directory is searched for prose files
+# changed in the last minute, because a command like `f=memo.md; cat > $f`
+# names no file in its text (Jake, 2026-09-14). The search skips hidden
+# directories, which is where .git and caches live, and gives up after this
+# many entries so a stray data tree cannot stall a turn.
+WALK_LIMIT = 20000
 
 # The most findings one note lists. A first draft of a long memo can carry
 # hundreds, and a note that long buries the next instruction.
@@ -222,15 +229,43 @@ def files_to_scan(event):
     """
     tool = event.get("tool_name") or ""
     tool_input = event.get("tool_input") or {}
+    cwd = event.get("cwd") or ""
     if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
         path = tool_input.get("file_path") or ""
         if path and is_prose_path(path) and os.path.isfile(path):
             return [path]
         return []
     if tool == "Bash":
-        return [p for p in paths_in_command(tool_input.get("command") or "")
-                if os.path.isfile(p) and changed_recently(p)]
+        found = []
+        named = paths_in_command(tool_input.get("command") or "")
+        for path in named + fresh_prose_files(cwd):
+            if cwd and not os.path.isabs(path):
+                path = os.path.join(cwd, path)
+            path = os.path.abspath(path)
+            if path in found:
+                continue
+            if os.path.isfile(path) and changed_recently(path):
+                found.append(path)
+        return found
     return []
+
+
+def fresh_prose_files(root, now=None):
+    """Prose files under root changed in the last minute, hidden dirs skipped."""
+    if not root or not os.path.isdir(root):
+        return []
+    found, seen = [], 0
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith("."))
+        for name in filenames:
+            seen += 1
+            if seen > WALK_LIMIT:
+                return found
+            if is_prose_path(name):
+                path = os.path.join(dirpath, name)
+                if changed_recently(path, now):
+                    found.append(path)
+    return found
 
 
 def build_file_note(path, findings):

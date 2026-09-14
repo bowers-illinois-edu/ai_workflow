@@ -141,10 +141,12 @@ to the test target's list, then add:
 You asked that documents get the scan without the skill being invoked by
 name. The same script now has a `posttool` entry point, run from the
 PostToolUse event, which fires after a tool finishes. When the tool was Write
-or Edit and the file ends in .md, .tex, .Rmd or .qmd, in any letter case, it
-scans that file. When the tool was Bash, it reads the command for paths with
-those endings and scans any that exist and changed in the last minute, which
-covers files written through heredocs and sed. The note it injects names the
+or Edit and the file ends in .md, .tex, .Rmd, .qmd or .txt, in any letter
+case, it scans that file. When the tool was Bash, it reads the command for
+paths with those endings, and it also searches the working directory for any
+file with those endings changed in the last minute, skipping hidden
+directories. The search is what catches a file the command named through a
+variable, as in `f=memo.md; cat > $f`. The note it injects names the
 file, the line, the category and the matched text, lists judgment candidates
 as well as the mechanical faults, leaves out the trailing-clause flag, and
 ends by saying to fix the file and then read it against the eight questions.
@@ -163,10 +165,10 @@ runs only after those tools:
       ]
     }
 
-What it does not do: a path assembled from a shell variable is invisible to
-it, and the scan is the mechanical half of the audit only. The eight questions
-still have to be read by whoever wrote the file, which is why the note ends
-by naming them.
+What it does not do: the scan is the mechanical half of the audit only. The
+eight questions still have to be read by whoever wrote the file, which is why
+the note ends by naming them. And a `.txt` file is scanned whether it holds
+prose or R output, so a log written to `.txt` produces a note about the log.
 
 ## Checking that it works
 

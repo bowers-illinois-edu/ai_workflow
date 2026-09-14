@@ -434,7 +434,7 @@ class TestPostTool(GateCase):
     other two entry points it never blocks and fails open.
     """
 
-    PROSE_EXTENSIONS = (".md", ".tex", ".Rmd", ".qmd")
+    PROSE_EXTENSIONS = (".md", ".tex", ".Rmd", ".qmd", ".txt")
 
     def prose_file(self, name, text):
         path = os.path.join(self._tmp.name, name)
@@ -526,6 +526,54 @@ class TestPostTool(GateCase):
         _, out = self.run_posttool("Bash", {"command": cmd})
         self.assertIsNotNone(out)
         self.assertIn("notes.qmd", self.context_of(out))
+
+    def run_posttool_in(self, cwd, tool_name, tool_input):
+        """As run_posttool, with the working directory the harness reports."""
+        event = json.loads(posttool_event(tool_name, tool_input))
+        event["cwd"] = cwd
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], json.dumps(event), self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def test_bash_route_finds_a_fresh_prose_file_the_command_hides(self):
+        """Jake raised this on 2026-09-14: `f=memo.md; cat > $f` names no
+        file in its text. So after a Bash command the gate also looks under
+        the working directory for any prose file changed in the last minute,
+        whatever the command said."""
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool_in(self._tmp.name, "Bash",
+                                      {"command": "f=memo.md; cat > $f"})
+        self.assertIsNotNone(out)
+        self.assertIn("memo.md", self.context_of(out))
+
+    def test_bash_route_walk_ignores_old_files(self):
+        path = self.prose_file("old.md", "a %s b\n" % EM_DASH)
+        old = time.time() - 600
+        os.utime(path, (old, old))
+        _, out = self.run_posttool_in(self._tmp.name, "Bash",
+                                      {"command": "ls"})
+        self.assertIsNone(out)
+
+    def test_bash_route_walk_skips_git_and_hidden_directories(self):
+        for sub in (".git", ".cache"):
+            os.makedirs(os.path.join(self._tmp.name, sub))
+            self.prose_file(os.path.join(sub, "x.md"), "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool_in(self._tmp.name, "Bash",
+                                      {"command": "ls"})
+        self.assertIsNone(out)
+
+    def test_bash_route_reports_a_file_once_when_both_routes_find_it(self):
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool_in(self._tmp.name, "Bash",
+                                      {"command": "cat > %s" % path})
+        self.assertEqual(self.context_of(out).count("memo.md"), 1)
+
+    def test_bash_route_without_a_cwd_still_reads_the_command(self):
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool("Bash", {"command": "cat > %s" % path})
+        self.assertIsNotNone(out)
 
     def test_bash_command_naming_a_stale_prose_file_is_ignored(self):
         """A command that only reads an old file must not trigger a scan of
