@@ -17,6 +17,13 @@ Two entry points, one per hook event:
               Blocking would show Jake the flawed message and then a rewrite,
               which is the one outcome he ruled out.
 
+  posttool    PostToolUse. After Write or Edit touches a prose file (.md,
+              .tex, .Rmd, .qmd), or after a Bash command names one that
+              changed in the last minute, scans that file and injects the
+              findings as context, so the next step is to fix the file
+              rather than report it done. Added 2026-09-14 so documents get
+              the scan without the skill being invoked by name.
+
 The split into tiers comes from measurement, not taste. Over 329 assistant
 prose messages in 12 recent transcripts, 40% carried a mechanical violation
 (212 unicode em dashes, 95 bold run-in openers, 14 em-dash + semicolon
@@ -32,6 +39,7 @@ Every path returns 0. A gate that wedges a session is worse than no gate.
 
 import json
 import os
+import re
 import sys
 import time
 
@@ -50,6 +58,27 @@ MECHANICAL = frozenset({"unicode", "bold-run-in-opener", "dash-semicolon"})
 ATTENTION = frozenset({"trailing-clause"})
 
 DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
+
+# The files the posttool entry point scans, matched without regard to case.
+# These are the formats Jake writes prose in; code files stay out because
+# the scanner reads comments as prose and fires on ordinary identifiers.
+PROSE_SUFFIXES = (".md", ".tex", ".rmd", ".qmd")
+
+# A Bash command names files it reads as well as files it writes. Only a
+# file whose modification time is this recent counts as one the command
+# wrote, so `cat old_notes.md` does not trigger a scan of a file nobody
+# touched.
+FRESH_SECONDS = 60
+
+# A path-shaped token ending in a prose suffix, as it appears inside a shell
+# command: heredoc targets, sed -i arguments, python scripts that name the
+# file. Quotes and shell operators end a token.
+_PROSE_PATH = re.compile(r"[^\s'\"<>|;&()`]+\.(?:md|tex|rmd|qmd)\b",
+                         re.IGNORECASE)
+
+# The most findings one note lists. A first draft of a long memo can carry
+# hundreds, and a note that long buries the next instruction.
+NOTE_LIMIT = 30
 
 # The reading check on a reply, copied from SKILL.md section 0. The gate
 # carries its own copy for the same reason style_scan carries RAW_PATTERNS:
@@ -159,6 +188,103 @@ def build_note(findings):
     return "\n".join(lines)
 
 
+def is_prose_path(path):
+    return path.lower().endswith(PROSE_SUFFIXES)
+
+
+def paths_in_command(command):
+    """Every distinct prose path a shell command mentions, in order."""
+    seen = []
+    for match in _PROSE_PATH.finditer(command):
+        path = match.group(0)
+        if path not in seen:
+            seen.append(path)
+    return seen
+
+
+def changed_recently(path, now=None):
+    try:
+        mtime = os.stat(path).st_mtime
+    except OSError:
+        return False
+    return (now if now is not None else time.time()) - mtime <= FRESH_SECONDS
+
+
+def files_to_scan(event):
+    """The prose files a finished tool call may have written.
+
+    Write and Edit name their file. Bash names nothing, so the command text
+    is read for prose paths and each one that exists and changed in the last
+    minute is taken as written by the command. This is a heuristic: a path
+    built from a shell variable is invisible to it, and it scans a file the
+    command merely read if something else changed that file a moment ago.
+    Both errors are cheap, since the worst case is a scan of a prose file.
+    """
+    tool = event.get("tool_name") or ""
+    tool_input = event.get("tool_input") or {}
+    if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+        path = tool_input.get("file_path") or ""
+        if path and is_prose_path(path) and os.path.isfile(path):
+            return [path]
+        return []
+    if tool == "Bash":
+        return [p for p in paths_in_command(tool_input.get("command") or "")
+                if os.path.isfile(p) and changed_recently(p)]
+    return []
+
+
+def build_file_note(path, findings):
+    """The context injected after a tool writes a dirty prose file.
+
+    Unlike build_note this lists judgment candidates as well as mechanical
+    faults, because the reader of this note is about to reread the file
+    anyway and a candidate costs one glance there. The attention categories
+    stay out for the reason given at ATTENTION. The closing instruction
+    names the eight questions so that a clean scan is not read as a clean
+    file: the scan is the mechanical half of the audit and no more.
+    """
+    shown = [(n, cat, matched) for (_p, n, cat, matched) in findings
+             if cat not in ATTENTION]
+    if not shown:
+        return None
+    lines = ["The file you just wrote, %s, breaks the writing rules here:"
+             % os.path.basename(path)]
+    for (n, cat, matched) in shown[:NOTE_LIMIT]:
+        lines.append("  line %d, %s: %s" % (n, cat, ascii_only(matched)))
+    if len(shown) > NOTE_LIMIT:
+        lines.append("  ... and %d more." % (len(shown) - NOTE_LIMIT))
+    lines.append("")
+    lines.append("Fix these in the file before reporting it done. Then read "
+                 "the file against the eight questions in section 0 of the "
+                 "style-audit skill, which the scan cannot answer.")
+    return "\n".join(lines)
+
+
+def run_posttool(stdin_text, log_path):
+    event = json.loads(stdin_text)
+    notes = []
+    for path in files_to_scan(event):
+        findings = style_scan.scan_file(path, True)
+        note = build_file_note(path, findings)
+        if note is None:
+            continue
+        cats = sorted({cat for (_p, _n, cat, _t) in findings})
+        record = {"time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                  "session_id": event.get("session_id"),
+                  "file": path,
+                  "tier": tier_of(findings),
+                  "categories": cats,
+                  "count": len(findings)}
+        try:
+            append_log(log_path or DEFAULT_LOG, record)
+        except OSError:
+            pass
+        notes.append(note)
+    if notes:
+        emit("PostToolUse", "\n\n".join(notes))
+    return 0
+
+
 def emit(event_name, context):
     """Write a hook envelope to stdout."""
     print(json.dumps({"hookSpecificOutput": {
@@ -216,6 +342,8 @@ def main(argv, stdin_text, log_path):
             return 0
         if argv[0] == "stop":
             return run_stop(stdin_text, log_path)
+        if argv[0] == "posttool":
+            return run_posttool(stdin_text, log_path)
         return 0
     except Exception:
         return 0

@@ -7,8 +7,8 @@ and the gap between those two things is large enough to measure.
 
 I scanned every message I have written to you in your last 12 transcripts,
 using the scanner your style-audit skill already has. That is 341 messages of
-prose, with fenced code excluded, since shell and R use words like "sandbox"
-and "costs" in their ordinary senses.
+prose, with fenced code excluded, since shell and R use words like `sandbox`
+and `costs` in their ordinary senses.
 
 Of those 341 messages:
 
@@ -18,7 +18,7 @@ Of those 341 messages:
     ---
     341
 
-The middle line is the one worth acting on, and it breaks down like this. The
+The middle line is the one to act on, and it breaks down like this. The
 counts are messages containing at least one instance, followed by total
 instances:
 
@@ -42,8 +42,8 @@ caught both.
 ## Why the gate does not stop a bad message from reaching you
 
 You asked to see only the corrected message, never the flawed one followed by
-its repair. I cannot build that, and the reason is worth stating because it
-constrains every version of this idea.
+its repair. I cannot build that, and the reason constrains every version of
+this idea.
 
 Claude Code runs a script at named moments. The moment after I finish a reply
 is called Stop. A script running there can read what I wrote and can force me
@@ -136,6 +136,38 @@ to the test target's list, then add:
     test-style-gate:
     	$(PYTHON) skills/style-audit/tests/test_style_gate.py
 
+## The third entry point, added 2026-09-14
+
+You asked that documents get the scan without the skill being invoked by
+name. The same script now has a `posttool` entry point, run from the
+PostToolUse event, which fires after a tool finishes. When the tool was Write
+or Edit and the file ends in .md, .tex, .Rmd or .qmd, in any letter case, it
+scans that file. When the tool was Bash, it reads the command for paths with
+those endings and scans any that exist and changed in the last minute, which
+covers files written through heredocs and sed. The note it injects names the
+file, the line, the category and the matched text, lists judgment candidates
+as well as the mechanical faults, leaves out the trailing-clause flag, and
+ends by saying to fix the file and then read it against the eight questions.
+It logs each dirty file with its path to the same log, under a "file" key,
+never blocks, and stays silent on a clean file, a code file, a missing file,
+or malformed input.
+
+The wiring is a second element in the PostToolUse array, with a matcher so it
+runs only after those tools:
+
+    {
+      "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+      "hooks": [
+        { "type": "command",
+          "command": "/usr/bin/python3 /Users/jwbowers/repos/ai_workflow/skills/style-audit/scripts/style_gate.py posttool" }
+      ]
+    }
+
+What it does not do: a path assembled from a shell variable is invisible to
+it, and the scan is the mechanical half of the audit only. The eight questions
+still have to be read by whoever wrote the file, which is why the note ends
+by naming them.
+
 ## Checking that it works
 
 Turn it on, then paste this into a session and watch what happens:
@@ -179,7 +211,7 @@ a finding was logged as a second finding. Either way the unicode hole is real,
 and the fix, if you want it, is a separate unicode-only scan that reads every
 region.
 
-And it settles only the three faults that need no judgment. Whether "costs" is
+And it settles only the three faults that need no judgment. Whether `costs` is
 a metaphor or a literal statement about three days of cluster time is a
 question the scanner cannot answer, which is why those candidates go into the
 log and never into the reminder. Putting them there would teach me to avoid

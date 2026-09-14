@@ -411,6 +411,172 @@ class TestFailsOpen(GateCase):
         self.assertEqual(buf.getvalue().strip(), "")
 
 
+def posttool_event(tool_name, tool_input):
+    """A PostToolUse event as the harness delivers it on stdin."""
+    return json.dumps({"hook_event_name": "PostToolUse",
+                       "session_id": "s1",
+                       "tool_name": tool_name,
+                       "tool_input": tool_input,
+                       "tool_response": {}})
+
+
+class TestPostTool(GateCase):
+    """The gate on files: after a tool writes prose, scan the file.
+
+    Jake asked on 2026-09-14 that documents get the audit without his
+    having to invoke the skill by name. The reply gate cannot see a file,
+    so this third entry point runs on PostToolUse. It scans the file a Write
+    or Edit named, and, because in some sessions the assistant writes files
+    through shell heredocs and sed rather than the Write tool, it also reads
+    a Bash command for prose paths and scans any it names that changed in
+    the last minute. It injects the findings as context, so the next thing
+    the assistant does is fix the file rather than report it done. Like the
+    other two entry points it never blocks and fails open.
+    """
+
+    PROSE_EXTENSIONS = (".md", ".tex", ".Rmd", ".qmd")
+
+    def prose_file(self, name, text):
+        path = os.path.join(self._tmp.name, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        return path
+
+    def run_posttool(self, tool_name, tool_input):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], posttool_event(tool_name, tool_input),
+                           self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def test_write_of_a_dirty_md_file_injects_a_note_naming_the_file(self):
+        path = self.prose_file("memo.md", "The estimand %s not the estimate.\n" % EM_DASH)
+        code, out = self.run_posttool("Write", {"file_path": path, "content": "x"})
+        self.assertEqual(code, 0)
+        self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "PostToolUse")
+        ctx = self.context_of(out)
+        self.assertIn("memo.md", ctx)
+        self.assertIn("unicode", ctx)
+
+    def test_each_prose_extension_is_scanned(self):
+        for ext in self.PROSE_EXTENSIONS:
+            path = self.prose_file("draft" + ext, "a %s b\n" % EM_DASH)
+            _, out = self.run_posttool("Edit", {"file_path": path})
+            self.assertIsNotNone(out, "not scanned: " + ext)
+
+    def test_extension_case_does_not_matter(self):
+        path = self.prose_file("draft.RMD", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIsNotNone(out)
+
+    def test_a_code_file_is_ignored(self):
+        path = self.prose_file("gate.py", "# a %s b\n" % EM_DASH)
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_a_clean_file_is_silent(self):
+        path = self.prose_file("memo.md", "The estimand is the average treatment effect.\n")
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_fenced_code_in_markdown_is_skipped(self):
+        path = self.prose_file("memo.md", "Run this:\n\n```r\nx <- 1  # costs\n```\n")
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIsNone(out)
+
+    def test_a_judgment_candidate_is_reported_too(self):
+        """A file is not a reply: the note can afford to name candidates,
+        since the assistant is about to reread the file anyway."""
+        path = self.prose_file("memo.md", "Clustering at the school level is appropriate.\n")
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIn("vague-evaluative", self.context_of(out))
+
+    def test_attention_categories_stay_out_of_the_note(self):
+        path = self.prose_file("memo.md", "We ran it, and the rest follows.\n")
+        _, out = self.run_posttool("Write", {"file_path": path})
+        if out is not None:
+            self.assertNotIn("trailing-clause", self.context_of(out))
+
+    def test_note_names_the_line_number(self):
+        path = self.prose_file("memo.md", "clean\nclean\na %s b\n" % EM_DASH)
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIn("3", self.context_of(out))
+
+    def test_note_says_to_fix_the_file_and_read_the_questions(self):
+        """The scan is the mechanical half. The note says so, and points at
+        the eight questions, so a clean scan is not mistaken for a clean
+        file."""
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool("Write", {"file_path": path})
+        ctx = self.context_of(out).lower()
+        self.assertIn("fix", ctx)
+        self.assertIn("eight questions", ctx)
+
+    def test_note_is_pure_ascii(self):
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertTrue(all(ord(c) <= 126 for c in self.context_of(out)))
+
+    def test_bash_command_naming_a_fresh_prose_file_is_scanned(self):
+        path = self.prose_file("notes.qmd", "a %s b\n" % EM_DASH)
+        cmd = "cat > %s <<'EOF'\nwhatever\nEOF" % path
+        _, out = self.run_posttool("Bash", {"command": cmd})
+        self.assertIsNotNone(out)
+        self.assertIn("notes.qmd", self.context_of(out))
+
+    def test_bash_command_naming_a_stale_prose_file_is_ignored(self):
+        """A command that only reads an old file must not trigger a scan of
+        it, so only files changed within the last minute count."""
+        path = self.prose_file("old.md", "a %s b\n" % EM_DASH)
+        old = time.time() - 600
+        os.utime(path, (old, old))
+        _, out = self.run_posttool("Bash", {"command": "cat %s" % path})
+        self.assertIsNone(out)
+
+    def test_bash_command_naming_a_missing_file_is_ignored(self):
+        cmd = "cat %s" % os.path.join(self._tmp.name, "nowhere.tex")
+        code, out = self.run_posttool("Bash", {"command": cmd})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_bash_command_with_no_prose_path_is_silent(self):
+        code, out = self.run_posttool("Bash", {"command": "ls -la && git status"})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+    def test_dirty_file_is_logged_with_its_path(self):
+        path = self.prose_file("memo.md", "a %s b\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path})
+        recs = self.records()
+        self.assertEqual(len(recs), 1)
+        self.assertEqual(recs[0]["file"], path)
+        self.assertEqual(recs[0]["tier"], "mechanical")
+
+    def test_missing_tool_input_exits_zero_and_silent(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], json.dumps({"hook_event_name": "PostToolUse",
+                                                     "tool_name": "Write"}), self.log)
+        self.assertEqual(code, 0)
+        self.assertEqual(buf.getvalue().strip(), "")
+
+    def test_malformed_json_exits_zero_and_silent(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], "{nope", self.log)
+        self.assertEqual(code, 0)
+        self.assertEqual(buf.getvalue().strip(), "")
+
+    def test_unreadable_file_exits_zero_and_silent(self):
+        path = os.path.join(self._tmp.name, "gone.md")
+        code, out = self.run_posttool("Write", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+
+
 class TestTierMembershipIsOneLine(unittest.TestCase):
     """If the judgment tier should ever be treated as mechanical, that is a
     one-line edit to a constant, not a change spread through the code."""
