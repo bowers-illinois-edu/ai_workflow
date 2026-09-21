@@ -37,9 +37,11 @@ they ask about the draft.
 Every path returns 0. A gate that wedges a session is worse than no gate.
 """
 
+import glob
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -126,23 +128,153 @@ QUESTIONS = (
     "from a file he has not read?",
 )
 
-# Rides on every single turn, so it stays under 1700 characters. Until
-# 2026-09-14 it named only the three mechanical faults. The gate's log then
-# showed 15 replies with a mechanical fault in two weeks against a pre-gate
-# rate of 40 percent, so the adjacent reminder does what it names, and what
-# Jake still stopped on was the part it left out: the reading.
+# Rides on every single turn. Until 2026-09-14 it named only the three
+# mechanical faults; from then until 2026-09-20 it also carried the eight
+# reading questions. Jake objected to 55 chat replies in those six days, all
+# written with the questions in front of the writer, and on 2026-09-20 he
+# traced three faults in one reply to the rules themselves: "pass mark" from
+# avoiding a listed word, "One decision is yours" from a rule about where
+# decisions go, and a clipped sentence from the length rules. So the
+# questions went to the second reader, and the note now says to run it.
 PREFLIGHT = "\n".join(
-    ["Before sending your reply, run the check CLAUDE.md requires. Reread",
-     "after drafting, never during. First the three faults a scan settles:",
-     "1. No unicode. Write --- for an em dash, -- for an en dash, -> for an",
-     "   arrow, and straight quotes.",
-     "2. No paragraph opening with a bold run-in sentence.",
-     "3. No line carrying an em dash and a semicolon together.",
-     "Then the reading, which no scan can do. Write the draft to a file in",
-     "your scratchpad, run skills/style-audit/scripts/style_scan.py on it,",
-     "and read the draft against these eight questions:"]
-    + ["%d. %s" % (i, q) for i, q in enumerate(QUESTIONS, 1)]
-    + ["Fix what you find, then send. Fenced code is exempt from the scan."])
+    ["Before sending your reply, write the draft to a file in your scratchpad",
+     "and run",
+     "  python3 %s check <that file>" % os.path.abspath(__file__),
+     "It runs the scanner and then a second reader, who has only what Jake",
+     "has seen and asks what each sentence means. Fix what it reports, then",
+     "send. Open with the answer to what Jake asked. Then say what you need",
+     "from him and why. Say nothing about your own process. Write --- for",
+     "an em dash and no other unicode, no bold sentence opening a paragraph,",
+     "and no em dash and semicolon on one line. Fenced code is exempt. The",
+     "check takes one to three minutes, so give the Bash call a timeout of",
+     "300000."])
+
+
+# Memory between hook calls, kept beside the log. It holds, per session and
+# file, the findings last reported, so that a rescan reports only what is
+# new; and the sentences of each draft that went through `check`, so that
+# the Stop hook can say whether the reply Jake saw was the checked one.
+# Measured 2026-09-20: of 2156 file notes sent since 2026-09-14, 1675 were
+# byte-identical to the note just sent for the same file.
+STATE_NAME = "style_gate_state.json"
+
+# A checked draft is remembered this long. A reply is written within minutes
+# of its check; anything older is a different reply.
+CHECKED_TTL_SECONDS = 2 * 60 * 60
+
+# The share of a reply's sentences that must appear in a checked draft for
+# the reply to count as checked. An assistant fixes a word or two after the
+# check, and that must still count; a reply rewritten from scratch must not.
+CHECKED_OVERLAP = 0.6
+
+# How much of the session the reader is shown: the last few things Jake
+# typed and the assistant's replies to them, capped in characters so that a
+# long session does not make every check slow.
+CONTEXT_TURNS = 4
+CONTEXT_CHARS = 24000
+
+# Which model reads. Measured 2026-09-20 on the 31 replies Jake stopped on
+# that week; see memo_reply_check_2026-09-20.md.
+READER_MODEL = "sonnet"
+READER_TIMEOUT = 240
+
+# What the reader is told. Two prompts were measured on 2026-09-20 against
+# the 31 replies Jake had stopped on that week (memo_reply_check_2026-09-20.md).
+# This one, the eight questions of SKILL.md section 0 plus three about the
+# reply as a whole, pointed at 13 of the 46 phrases he quoted, in 46 to 63
+# seconds a call. Jake's own specification, restating every sentence and
+# swapping its nouns, pointed at 11 in 94 seconds a call. The two counts are
+# not distinguishable on 46 phrases, so the faster one is installed. It
+# names no words, for the reason given at the top of SKILL.md section 6.
+READER_PROMPT = """TASK: An assistant is about to send Jake Bowers the reply below, in a terminal. You have exactly what Jake has seen: the earlier messages in this conversation, given first, and nothing else. You have not seen the assistant's files, scripts, or tool output, and neither has Jake.
+
+Read the reply as Jake, sentence by sentence. For each sentence ask: what does this sentence mean? Could I restate it in other words? If I replaced the nouns with other nouns, would the verbs still make sense, which would mean the verbs are decorative? Then ask these questions of the reply:
+%s
+9. Does the reply open by answering the question Jake asked?
+10. Is any sentence a fragment with no main verb?
+11. Does the reply say more than the answer needs?
+
+Output a JSON array only, no prose before or after. Each element: {"phrase": "<exact words copied from the reply, 1 to 12 words>", "why": "<one short sentence>"}. Flag a place only when Jake would stop there: he cannot say what the sentence means, a word is used without the sentence fixing what it means, a pronoun has two possible antecedents, a sentence has no main verb, or the passage never says what question it answers. If nothing, output [].
+
+EARLIER MESSAGES:
+%s
+
+REPLY START
+%s
+REPLY END
+""" % ("\n".join("%d. %s" % (k + 1, q) for k, q in enumerate(QUESTIONS)), "%s", "%s")
+
+# Text in a user record that the harness injected rather than Jake typed.
+# Copied from first-reader/scripts/mine_transcripts.py, which the gate cannot
+# import: a hook must not depend on a second skill being installed.
+MACHINERY_PREFIXES = (
+    "<local-command", "<command-name", "<command-message", "<command-args",
+    "<user-memory", "<system-reminder", "<bash-", "[Request interrupted",
+    "Caveat:", "Another Claude session")
+
+
+def state_path(log_path):
+    return os.path.join(os.path.dirname(log_path or DEFAULT_LOG), STATE_NAME)
+
+
+def load_state(path):
+    """The memory, or an empty one when it cannot be read. A missing or
+    corrupt file means the gate has forgotten, which only costs a repeated
+    note."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            state = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    return state if isinstance(state, dict) else {}
+
+
+def save_state(path, state):
+    """Raises OSError; the caller decides that losing the memory is fine."""
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(state, fh)
+
+
+def sentences_of(text):
+    """The sentences of a reply, normalized so that a change of spacing or
+    case between draft and reply does not make them different sentences.
+    Fenced code is dropped, since the scanner never reads it either."""
+    kept, in_fence = [], False
+    for line in text.split("\n"):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            kept.append(line)
+    flat = re.sub(r"\s+", " ", " ".join(kept)).strip().lower()
+    parts = re.split(r"(?<=[.!?])\s+", flat)
+    return [p for p in parts if len(p) > 3]
+
+
+def remember_checked(state, text, now=None):
+    now = now if now is not None else time.time()
+    drafts = [d for d in state.get("checked_drafts", [])
+              if now - d.get("time", 0) <= CHECKED_TTL_SECONDS]
+    drafts.append({"time": now, "sentences": sentences_of(text)})
+    state["checked_drafts"] = drafts
+
+
+def was_checked(state, text, now=None):
+    now = now if now is not None else time.time()
+    mine = sentences_of(text)
+    if not mine:
+        return False
+    for d in state.get("checked_drafts", []):
+        if now - d.get("time", 0) > CHECKED_TTL_SECONDS:
+            continue
+        theirs = set(d.get("sentences", []))
+        share = sum(1 for s in mine if s in theirs) / float(len(mine))
+        if share >= CHECKED_OVERLAP:
+            return True
+    return False
 
 
 def ascii_only(text):
@@ -381,14 +513,28 @@ def build_file_note(path, findings):
 
 def run_posttool(stdin_text, log_path):
     event = json.loads(stdin_text)
+    session = event.get("session_id") or ""
+    spath = state_path(log_path)
+    state = load_state(spath)
+    seen = state.setdefault("file_notes", {})
     notes = []
     for path in files_to_scan(event):
+        key = session + "|" + path
         if is_unchecked_path(path):
-            findings, note, tier = [], unchecked_note(path), "unchecked"
+            findings, tier = [], "unchecked"
+            current = [["unchecked", ""]]
+            note = None if seen.get(key) == current else unchecked_note(path)
         else:
             findings = scan_path(path)
-            note = build_file_note(path, findings)
             tier = tier_of(findings)
+            current = sorted({(cat, matched) for (_p, _n, cat, matched)
+                              in findings if cat not in ATTENTION})
+            current = [list(c) for c in current]
+            before = {tuple(c) for c in seen.get(key, [])}
+            # Only what this session has not been told about this file.
+            fresh = [f for f in findings if (f[2], f[3]) not in before]
+            note = build_file_note(path, fresh)
+        seen[key] = current
         if note is None:
             continue
         cats = sorted({cat for (_p, _n, cat, _t) in findings})
@@ -403,6 +549,10 @@ def run_posttool(stdin_text, log_path):
         except OSError:
             pass
         notes.append(note)
+    try:
+        save_state(spath, state)
+    except OSError:
+        pass  # the gate forgets, and repeats a note, which is the old behaviour
     if notes:
         emit("PostToolUse", "\n\n".join(notes))
     return 0
@@ -432,24 +582,202 @@ def run_stop(stdin_text, log_path):
         return 0
 
     findings = scan_message(message)
-    if not findings:
-        return 0
-
     cats = sorted({cat for (_p, _n, cat, _t) in findings})
+    state = load_state(state_path(log_path))
     record = {"time": time.strftime("%Y-%m-%dT%H:%M:%S"),
               "session_id": event.get("session_id"),
               "prompt_id": event.get("prompt_id"),
-              "tier": tier_of(findings),
+              "tier": tier_of(findings) if findings else "clean",
               "categories": cats,
-              "count": len(findings)}
+              "count": len(findings),
+              "checked": was_checked(state, message)}
     try:
         append_log(log_path or DEFAULT_LOG, record)
     except OSError:
         pass  # the note below is worth sending even with no log
 
+    if not findings:
+        return 0
     note = build_note(findings)
     if note is not None:
         emit("Stop", note)
+    return 0
+
+
+def visible_turns(transcript_path, turns=CONTEXT_TURNS, chars=CONTEXT_CHARS):
+    """What Jake has seen of the session: the turns he typed and the prose
+    the assistant wrote back, in order. Tool calls, tool results, thinking
+    and injected text are left out, because they never reached his screen.
+    Returns the last `turns` of them, trimmed to `chars` characters."""
+    if not transcript_path or not os.path.isfile(transcript_path):
+        return []
+    out = []
+    with open(transcript_path, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            kind = rec.get("type")
+            msg = rec.get("message") or {}
+            content = msg.get("content")
+            if kind == "user" and not rec.get("isMeta"):
+                origin = (rec.get("origin") or {}).get("kind")
+                if origin is not None and origin != "human":
+                    continue
+                text = content if isinstance(content, str) else ""
+                if text and not text.lstrip().startswith(MACHINERY_PREFIXES):
+                    out.append(("JAKE", text))
+            elif kind == "assistant" and isinstance(content, list):
+                text = "\n".join(b.get("text", "") for b in content
+                                 if isinstance(b, dict)
+                                 and b.get("type") == "text").strip()
+                if text:
+                    out.append(("ASSISTANT", text))
+    # Keep the last `turns` things Jake typed and everything the assistant
+    # said after the first of them. Counting assistant turns would let a run
+    # of short status lines push Jake's own words out of the window.
+    jake_at = [i for i, (role, _t) in enumerate(out) if role == "JAKE"]
+    if len(jake_at) > turns:
+        out = out[jake_at[-turns]:]
+    total = sum(len(t) for (_r, t) in out)
+    while len(out) > 1 and total > chars:
+        total -= len(out[0][1])
+        out.pop(0)
+    return out
+
+
+def newest_transcript(cwd=None, home=None, session_id=None):
+    """The transcript of the live session. Claude Code puts its session id
+    in the shell's environment as CLAUDE_CODE_SESSION_ID, and keeps one
+    JSONL per session under ~/.claude/projects/<flattened cwd>/. The id is
+    decisive when it is set, because two sessions can run in one directory
+    and the newer file is then the other session's (2026-09-20). Without
+    it, the newest file in the directory's folder is taken."""
+    cwd = cwd or os.getcwd()
+    home = home or os.path.expanduser("~")
+    session_id = session_id or os.environ.get("CLAUDE_CODE_SESSION_ID")
+    if session_id:
+        named = glob.glob(os.path.join(home, ".claude", "projects", "*",
+                                       session_id + ".jsonl"))
+        if named:
+            return max(named, key=os.path.getmtime)
+    # Claude Code flattens the path by turning every character that is not
+    # a letter or digit into a hyphen, so /repos/ai_workflow becomes
+    # -repos-ai-workflow.
+    flat = re.sub(r"[^A-Za-z0-9]", "-", cwd)
+    paths = glob.glob(os.path.join(home, ".claude", "projects", flat, "*.jsonl"))
+    if not paths:
+        return None
+    return max(paths, key=os.path.getmtime)
+
+
+def call_reader(prompt):
+    """The real second reader: one `claude -p` call with no tools and no
+    saved session. Raises on any failure; run_check reports it."""
+    # A new session so that a timeout can kill the whole process group:
+    # `claude` starts helpers that hold its pipes open, and killing only the
+    # parent leaves communicate() waiting for those pipes forever, which is
+    # what stalled the first live run on 2026-09-20.
+    proc = subprocess.Popen(
+        ["claude", "-p", "--model", READER_MODEL, "--no-session-persistence",
+         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}'],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, start_new_session=True)
+    try:
+        out, err = proc.communicate(prompt, timeout=READER_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, 9)
+        except OSError:
+            pass
+        raise OSError("the reader took longer than %d seconds" % READER_TIMEOUT)
+    if proc.returncode != 0:
+        raise OSError(err.strip()[-200:] or "claude -p failed")
+    return out
+
+
+def parse_reader(raw):
+    """The JSON array in the reader's output, or None. The reader sometimes
+    wraps it in a code fence or a sentence of its own."""
+    match = re.search(r"\[.*\]", raw or "", re.S)
+    if not match:
+        return None
+    try:
+        parsed = json.loads(match.group(0))
+    except ValueError:
+        return None
+    return parsed if isinstance(parsed, list) else None
+
+
+def run_check(draft_path, log_path, transcript_path=None, reader=call_reader):
+    """The check the assistant runs on a draft reply before sending it.
+
+    Prints the scanner's findings, then the second reader's, and remembers
+    the draft so the Stop hook can tell whether the reply that went out was
+    this one. Every failure is printed rather than swallowed, because the
+    assistant is reading this output and a silent failure would look like a
+    clean draft.
+    """
+    try:
+        with open(draft_path, encoding="utf-8", errors="replace") as fh:
+            draft = fh.read()
+    except OSError as e:
+        print("cannot read the draft: %s" % e)
+        return 0
+
+    findings = style_scan.scan_file(draft_path, True)
+    faults = [f for f in findings if f[2] not in ATTENTION]
+    looks = [f for f in findings if f[2] in ATTENTION]
+    printed = False
+    if faults:
+        print("Scanner: fix these.")
+        for (_p, n, cat, matched) in faults:
+            print("  line %d, %s: %s" % (n, cat, ascii_only(matched)))
+        printed = True
+    if looks:
+        print("Scanner: read each of these twice; split the sentence if the "
+              "clause carries a second point, cut it if it carries none.")
+        for (_p, n, cat, matched) in looks:
+            print("  line %d: %s" % (n, ascii_only(matched)))
+        printed = True
+
+    context = visible_turns(transcript_path)
+    shown = "\n\n".join("%s: %s" % (role, text) for (role, text) in context)
+    prompt = READER_PROMPT % (shown or "(this reply opens the session)", draft)
+    stops = None
+    reader_error = None
+    try:
+        stops = parse_reader(reader(prompt))
+    except Exception as e:  # noqa: BLE001 - any failure is reported, none hides
+        reader_error = ascii_only(str(e))[:200]
+    if stops is None:
+        print("Reader did not run: %s" % (reader_error or "no findings came back."))
+        printed = True
+    else:
+        # Two output shapes are accepted: a phrase per finding, which the
+        # installed prompt asks for, and a verdict per sentence, which the
+        # per-sentence prompt asked for.
+        flagged = [s for s in stops if isinstance(s, dict)
+                   and (s.get("phrase")
+                        or str(s.get("verdict", "")).lower() == "stop")]
+        if flagged:
+            print("Reader: Jake would stop here.")
+            for s in flagged:
+                words = ascii_only(str(s.get("phrase") or s.get("words")
+                                       or s.get("sentence") or ""))
+                print("  %s -- %s" % (words, ascii_only(str(s.get("why") or ""))))
+            printed = True
+    if not printed:
+        print("Nothing found by the scanner or the reader.")
+
+    spath = state_path(log_path)
+    state = load_state(spath)
+    remember_checked(state, draft)
+    try:
+        save_state(spath, state)
+    except OSError as e:
+        print("Could not record the check: %s" % e)
     return 0
 
 
@@ -467,10 +795,25 @@ def main(argv, stdin_text, log_path):
             return run_stop(stdin_text, log_path)
         if argv[0] == "posttool":
             return run_posttool(stdin_text, log_path)
+        if argv[0] == "check" and len(argv) > 1:
+            transcript = argv[argv.index("--transcript") + 1] \
+                if "--transcript" in argv[:-1] else newest_transcript()
+            return run_check(argv[1], log_path, transcript)
         return 0
-    except Exception:
+    except Exception as e:  # noqa: BLE001
+        if argv and argv[0] == "check":
+            print("check failed: %s" % e)
         return 0
+
+
+def reads_stdin(argv):
+    """Only the hook entry points get an event on stdin. `check` is run by
+    the assistant from a shell whose stdin may never close, and reading it
+    there blocked every live run on 2026-09-20 until the process was killed."""
+    return bool(argv) and argv[0] in ("stop", "posttool")
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:], sys.stdin.read(), DEFAULT_LOG))
+    sys.exit(main(sys.argv[1:],
+                  sys.stdin.read() if reads_stdin(sys.argv[1:]) else "",
+                  DEFAULT_LOG))

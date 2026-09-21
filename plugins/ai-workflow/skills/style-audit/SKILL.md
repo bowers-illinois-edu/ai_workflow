@@ -48,11 +48,28 @@ shuffling the labels within deciles of word count leaves 4.4 points with a
 randomization p-value of 0.271. Reply length does not separate them either,
 at a rank correlation of 0.042 and p = 0.154.
 
-So running the scanner over a reply is not a check on the reply. Run it,
-because it takes a second and it settles the three mechanical faults, and
-then do the reading below, which is the check. On 2026-09-09 an assistant ran
-the scanner on five consecutive replies, sent all five clean, and Jake stopped
-on every one.
+So running the scanner over a reply is not a check on the reply. On
+2026-09-09 an assistant ran the scanner on five consecutive replies, sent all
+five clean, and Jake stopped on every one. And the writer reading its own
+draft against the questions below is not a check either: between 2026-09-14
+and 2026-09-20 every reply went out with those questions in front of the
+writer, and Jake objected to 55 of them. The writer knows what "registry
+count" refers to and cannot see it as a fault.
+
+Since 2026-09-20 the check on a reply is
+
+```
+python3 skills/style-audit/scripts/style_gate.py check <draft file>
+```
+
+which runs the scanner and then a second model that is handed Jake's
+messages and the assistant's replies from the session, and nothing else,
+and asks of every sentence what it means. On the 31 replies Jake stopped on
+between 2026-09-14 and 2026-09-20 that reader pointed at 13 of the 46
+phrases he quoted, at 15 flags per 1000 words; the scanner pointed at 1 and
+a reader given no context pointed at the words Jake knew. The questions
+below are what the reader is asked, and what a person auditing a document
+by hand asks.
 
 Read the draft against these eight questions, in this order. The order is how
 often each failure accounts for what stopped him, counted twice: on 47 phrases
@@ -185,10 +202,31 @@ paragraph:
   decorative; the substitute is the sentence. Hard substitution: the word
   was hiding a missing thought; the finding is the missing thought, not the
   word.
-- **Sentence mechanics** (Gopen and Swan, as stated in the global file):
-  stress position holds the new claim; topic position holds familiar
-  context; old before new; subject near verb; action in the verb; one point
-  per sentence.
+- **Sentence mechanics**, following Gopen and Swan. These eight lived in the
+  global `CLAUDE.md` until 2026-09-20 and moved here because a writer given
+  "one point per sentence" and "stress position" as standing rules satisfied
+  them with fragments; they are rules for a reader checking a draft.
+  - **Stress position**: Put the most important new information at the end of the
+    sentence --- that is where readers pay attention.
+  - **Topic position**: Start sentences with familiar context --- whose story is
+    this sentence about?
+  - **Old before new**: Link sentences by placing known information first, then
+    the new claim. The stress of one sentence becomes the topic of the next.
+  - **Subject near verb**: Do not wedge long parentheticals between subject and
+    verb. Qualifying material goes before the subject or after the verb.
+  - **Action in the verb**: Avoid nominalizations. "We analyzed" not "an analysis
+    was performed." "The policy failed" not "a failure of the policy occurred."
+  - **One point per sentence**: If a sentence tries to do two things, split it.
+    This licenses splitting and never packing. It does not authorize compressing
+    two points into one clause to make the count come out right.
+  - **Punctuation density**: A semicolon joining two independent clauses should
+    usually be a period. Never put both an em-dash and a semicolon in the same
+    sentence. Reserve semicolons for lists whose items carry internal commas. Use
+    em-dashes sparingly.
+  - **Stress position, larger scale**: The end-weight rule applies to paragraphs
+    and sections too. Close on the most important point --- your own
+    contribution, result, or claim --- not on a caveat, a competing method, or a
+    citation.
 - **End-weight at paragraph and section scale**: no paragraph or section
   ends on a caveat, a competitor's method, or a bare citation when its point
   is Jake's own claim.

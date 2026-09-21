@@ -155,9 +155,15 @@ class TestLogging(GateCase):
         self.run_stop("It costs three days %s more than we have." % EM_DASH)
         self.assertEqual(self.records()[0]["tier"], "mechanical")
 
-    def test_clean_message_writes_no_record(self):
+    def test_clean_message_writes_one_record_with_no_categories(self):
+        """Until 2026-09-20 a clean reply wrote nothing, so the log counted
+        dirty replies only. It now records every reply, because the field
+        Jake asked for, whether the reply went through `check`, has to be
+        counted over all replies and not over the dirty ones."""
         self.run_stop("The estimand is the average treatment effect.")
-        self.assertEqual(self.records(), [])
+        recs = self.records()
+        self.assertEqual(len(recs), 1)
+        self.assertEqual(recs[0]["categories"], [])
 
     def test_records_append_rather_than_overwrite(self):
         self.run_stop("a %s b" % EM_DASH, prompt_id="p1")
@@ -212,7 +218,7 @@ class TestFencedCodeIsSkipped(GateCase):
         code, out = self.run_stop(msg)
         self.assertEqual(code, 0)
         self.assertIsNone(out)
-        self.assertEqual(self.records(), [])
+        self.assertEqual(self.records()[0]["categories"], [])
 
     def test_prose_offender_beside_a_fence_is_caught(self):
         msg = "The estimand %s below.\n\n```r\nx <- 1  # costs\n```\n" % EM_DASH
@@ -244,7 +250,10 @@ class TestInlineCodeIsSkipped(GateCase):
             "The scanner caught `lands` and `costs` in the last reply.")
         self.assertEqual(code, 0)
         self.assertIsNone(out)
-        self.assertEqual(self.records(), [])
+        # Every reply is logged since 2026-09-20; the point here is that the
+        # words between code marks are not counted as findings.
+        self.assertEqual(self.records()[0]["categories"], [])
+        self.assertEqual(self.records()[0]["tier"], "clean")
 
     def test_the_same_words_in_prose_still_log(self):
         self.run_stop("The argument lands and the delay costs us a week.")
@@ -297,51 +306,51 @@ class TestPreflight(unittest.TestCase):
         """It rides on every single turn, so length is not free.
 
         The cap was 600 characters while the injection named only the three
-        mechanical faults. It rose on 2026-09-14, when the injection took on
-        the reading check as well, and the reason is in the gate's own log:
-        from 2026-09-01 to 2026-09-14 the log holds 15 replies with a
-        mechanical fault against a pre-gate rate of 40 percent of all
-        replies, so the adjacent reminder works for what it names, and what
-        Jake still stops on is what it did not name. Eight questions and the
-        instruction to scan the draft fit in about 1500 characters, which is
-        roughly 350 tokens on every turn.
+        mechanical faults, and 1700 from 2026-09-14 to 2026-09-20 while it
+        also carried the eight reading questions. On 2026-09-20 the questions
+        left it: between 2026-09-14 and 2026-09-20 Jake objected to 55 chat
+        replies, every one written with the questions in front of the
+        writer, and he traced three faults in one reply to the rules
+        themselves, which the writer had satisfied by fragment, label and
+        substitute word. The questions now go to the second reader, which
+        `check` runs, and the injection says to run it.
         """
         _, out = self.run_preflight()
         ctx = out["hookSpecificOutput"]["additionalContext"]
-        self.assertLess(len(ctx), 1700)
+        self.assertLess(len(ctx), 900)
 
-    def test_tells_claude_to_write_the_draft_to_a_file_and_scan_it(self):
-        """CLAUDE.md already says to write the draft to a file and run the
-        scanner over it. The injection repeats that instruction because the
-        one 28KB away kept getting skipped and the adjacent one did not."""
+    def test_tells_claude_to_write_the_draft_to_a_file_and_check_it(self):
+        """The one instruction that has to survive: write the draft to a
+        file and run the check on it, with the command spelled out so that
+        nothing has to be looked up."""
         _, out = self.run_preflight()
         ctx = out["hookSpecificOutput"]["additionalContext"]
-        self.assertIn("style_scan.py", ctx)
+        self.assertIn("style_gate.py check", ctx)
+        self.assertIn(os.path.abspath(sg.__file__), ctx)
         self.assertIn("file", ctx.lower())
 
-    def test_names_every_reading_question(self):
-        """The eight questions of SKILL.md section 0 are the check on a reply,
-        since the scanner locates 1 of the 47 stops Jake quoted back. Each is
-        identified by a phrase from its heading, in the order the skill gives
-        them, so a question dropped or reworded out of recognition fails
-        here."""
+    def test_says_to_open_with_the_answer_and_what_is_needed(self):
+        """The two reply faults the reader cannot fix after the fact: not
+        answering the question asked, 4 of Jake's 55 objections, and burying
+        what he is being asked for, 12 of them."""
+        _, out = self.run_preflight()
+        ctx = " ".join(out["hookSpecificOutput"]["additionalContext"].lower().split())
+        self.assertIn("answer", ctx)
+        self.assertIn("need from him", ctx)
+
+    def test_names_no_reading_question(self):
+        """The questions belong to the reader now. A question in front of
+        the writer is a rule, and the writer satisfies rules by fragment."""
         _, out = self.run_preflight()
         ctx = out["hookSpecificOutput"]["additionalContext"].lower()
-        phrases = ("technical term", "what question it answers", "resolve",
-                   "person", "pronoun", "adds nothing", "therefore",
-                   "did not give")
-        positions = [ctx.find(ph) for ph in phrases]
-        for ph, pos in zip(phrases, positions):
-            self.assertNotEqual(pos, -1, "injection does not name: " + ph)
-        self.assertEqual(positions, sorted(positions),
-                         "questions are out of the order section 0 gives")
+        for ph in ("pronoun", "antecedent", "therefore", "adds nothing"):
+            self.assertNotIn(ph, ctx)
 
     def test_question_count_matches_skill_section_0(self):
-        """The gate carries its own copy of the questions, as it carries the
-        scanner's patterns through style_scan, and a copy drifts. This pins
-        the number of questions in the injection to the number of bold
-        numbered questions in section 0 of SKILL.md, so adding a question to
-        one file and not the other fails loudly."""
+        """The gate keeps a copy of the questions for the reader's prompt
+        and for the skill; a copy drifts. This pins the number of questions
+        to the number of bold numbered questions in section 0 of SKILL.md,
+        so adding a question to one file and not the other fails loudly."""
         skill = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "..", "SKILL.md")
         with open(skill, encoding="utf-8") as fh:
@@ -888,6 +897,389 @@ class AttentionCategoryTests(unittest.TestCase):
     def test_the_category_is_still_logged(self):
         """Dropping it from the note must not drop it from the measurement."""
         self.assertIn("trailing-clause", sg.ATTENTION)
+
+
+
+class TestFileNoteRepeats(GateCase):
+    """The file gate reports only what is new since it last scanned a file
+    in the same session.
+
+    Measured 2026-09-20 over the gate's own log: from 2026-09-14 the file
+    gate sent 2156 notes, and 1675 of them, 78 percent, were byte-identical
+    to the note it had just sent for the same file. Each note puts up to 30
+    matched phrases in front of the assistant while it drafts, which is the
+    ban-list-in-context mechanism Jake identified on 2026-08-15 as making
+    the prose worse. A file that was dirty before the edit and is equally
+    dirty after it has told the assistant nothing new.
+
+    Findings are compared by category and matched text, not line number,
+    because an edit above a finding moves its line without changing it.
+    """
+
+    def prose_file(self, name, text):
+        path = os.path.join(self._tmp.name, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        return path
+
+    def run_posttool(self, tool_name, tool_input, session="s1"):
+        event = json.loads(posttool_event(tool_name, tool_input))
+        event["session_id"] = session
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.main(["posttool"], json.dumps(event), self.log)
+        out = buf.getvalue().strip()
+        return code, (json.loads(out) if out else None)
+
+    def test_second_scan_with_the_same_findings_is_silent(self):
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        _, first = self.run_posttool("Write", {"file_path": path})
+        self.assertIsNotNone(first)
+        code, second = self.run_posttool("Edit", {"file_path": path})
+        self.assertEqual(code, 0)
+        self.assertIsNone(second)
+
+    def test_only_the_new_finding_is_reported_on_a_rescan(self):
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path})
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write("\nThe design is appropriate here.\n")
+        _, out = self.run_posttool("Edit", {"file_path": path})
+        ctx = self.context_of(out)
+        self.assertIn("appropriate", ctx)
+        self.assertNotIn("U+2014", ctx)
+
+    def test_a_finding_that_moved_lines_is_not_new(self):
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path})
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("A new clean first line.\n\nThe estimand %s the estimate.\n" % EM_DASH)
+        _, out = self.run_posttool("Edit", {"file_path": path})
+        self.assertIsNone(out)
+
+    def test_a_fixed_finding_produces_no_note(self):
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path})
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("The estimand --- the estimate.\n")
+        _, out = self.run_posttool("Edit", {"file_path": path})
+        self.assertIsNone(out)
+
+    def test_another_session_gets_the_full_note(self):
+        """A second session has not seen the first session's note."""
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path}, session="s1")
+        _, out = self.run_posttool("Write", {"file_path": path}, session="s2")
+        self.assertIn("U+2014", self.context_of(out))
+
+    def test_a_repeat_is_not_logged_as_a_dirty_file(self):
+        """The log counts notes sent, so Jake can watch the rate; a silent
+        repeat adds no line."""
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        self.run_posttool("Write", {"file_path": path})
+        self.run_posttool("Edit", {"file_path": path})
+        self.assertEqual(len(self.records()), 1)
+
+    def test_unwritable_state_still_reports_the_full_note(self):
+        """Fail open: if the memory of past notes cannot be kept, report
+        everything, as the gate did before it had a memory."""
+        path = self.prose_file("memo.md", "The estimand %s the estimate.\n" % EM_DASH)
+        state = sg.state_path(self.log)
+        os.makedirs(os.path.dirname(state), exist_ok=True)
+        os.makedirs(state)  # a directory where the file should be
+        _, out = self.run_posttool("Write", {"file_path": path})
+        self.assertIn("U+2014", self.context_of(out))
+        _, again = self.run_posttool("Edit", {"file_path": path})
+        self.assertIn("U+2014", self.context_of(again))
+
+
+def transcript_file(directory, turns):
+    """A session transcript as Claude Code writes it: one JSON record per
+    line. `turns` is a list of ("user", text), ("assistant", text) or
+    ("tool_result", text). Tool results are user records whose content is a
+    tool_result block, which is text Jake never saw on his screen."""
+    path = os.path.join(directory, "session.jsonl")
+    with open(path, "w", encoding="utf-8") as fh:
+        for kind, text in turns:
+            if kind == "user":
+                rec = {"type": "user", "origin": {"kind": "human"},
+                       "message": {"role": "user", "content": text}}
+            elif kind == "assistant":
+                rec = {"type": "assistant",
+                       "message": {"role": "assistant", "content": [
+                           {"type": "thinking", "thinking": "private"},
+                           {"type": "text", "text": text},
+                           {"type": "tool_use", "name": "Bash", "input": {}}]}}
+            else:
+                rec = {"type": "user",
+                       "message": {"role": "user", "content": [
+                           {"type": "tool_result", "content": text}]}}
+            fh.write(json.dumps(rec) + "\n")
+    return path
+
+
+class TestCheck(GateCase):
+    """The `check` entry point: the assistant runs it on a draft reply
+    before sending. It runs the scanner, then hands the draft and what Jake
+    has seen of the session to a second model that reads the draft one
+    sentence at a time, and prints both sets of findings.
+
+    Why a second model: the assistant that wrote "registry count" knows
+    which registry and cannot see the word as a fault; Jake, who never saw
+    the file, stops on it. Between 2026-09-14 and 2026-09-20 every one of
+    the 55 objections Jake raised to a chat reply came after a reminder to
+    self-check had been injected before the turn. Jake's own description of
+    the fix, 2026-09-20: one agent writes, a second asks what each sentence
+    means, and the reader needs the context Jake has, which is the
+    conversation and not the files.
+
+    The reader is injected so the tests stay offline. The real one calls
+    `claude -p`.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.calls = []
+
+    def fake_reader(self, prompt):
+        self.calls.append(prompt)
+        return json.dumps([{"sentence": "Two gaps.", "meaning": "CANNOT",
+                            "verdict": "stop", "words": "Two gaps.",
+                            "why": "No main verb."}])
+
+    def draft(self, text):
+        path = os.path.join(self._tmp.name, "draft.md")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        return path
+
+    def run_check(self, draft_path, transcript=None, reader=None):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.run_check(draft_path, self.log, transcript,
+                                reader or self.fake_reader)
+        return code, buf.getvalue()
+
+    def test_scanner_findings_are_printed(self):
+        path = self.draft("The estimand %s the estimate.\n" % EM_DASH)
+        code, out = self.run_check(path)
+        self.assertEqual(code, 0)
+        self.assertIn("U+2014", out)
+
+    def test_reader_findings_are_printed_with_the_offending_words(self):
+        path = self.draft("Two gaps. A path is invisible.\n")
+        _, out = self.run_check(path)
+        self.assertIn("Two gaps.", out)
+        self.assertIn("No main verb.", out)
+
+    def test_reader_receives_the_draft(self):
+        path = self.draft("Two gaps. A path is invisible.\n")
+        self.run_check(path)
+        self.assertEqual(len(self.calls), 1)
+        self.assertIn("A path is invisible.", self.calls[0])
+
+    def test_reader_receives_what_jake_saw_and_not_what_he_did_not(self):
+        transcript = transcript_file(self._tmp.name, [
+            ("user", "What is the registry count?"),
+            ("assistant", "The registry holds twenty entries."),
+            ("tool_result", "SECRET TOOL OUTPUT"),
+        ])
+        path = self.draft("Twenty, as before.\n")
+        self.run_check(path, transcript=transcript)
+        prompt = self.calls[0]
+        self.assertIn("What is the registry count?", prompt)
+        self.assertIn("The registry holds twenty entries.", prompt)
+        self.assertNotIn("SECRET TOOL OUTPUT", prompt)
+        self.assertNotIn("private", prompt)
+
+    def test_jakes_turns_survive_a_run_of_assistant_status_lines(self):
+        """The window is counted in Jake's turns, not in turns of either
+        kind: in a long session the assistant writes many one-line status
+        notes, and counting those pushed Jake's own words out (2026-09-20)."""
+        turns = [("user", "What is the registry count?")]
+        turns += [("assistant", "Still working, status %d." % i) for i in range(12)]
+        transcript = transcript_file(self._tmp.name, turns)
+        path = self.draft("Twenty.\n")
+        self.run_check(path, transcript=transcript)
+        self.assertIn("What is the registry count?", self.calls[0])
+
+    def test_reader_is_asked_what_each_sentence_means(self):
+        """Jake's specification of the second agent, 2026-09-20: for every
+        sentence, what does it mean, and would the verbs still make sense if
+        the nouns were swapped."""
+        path = self.draft("A sentence.\n")
+        self.run_check(path)
+        prompt = self.calls[0].lower()
+        self.assertIn("sentence by sentence", prompt)
+        self.assertIn("what does this sentence mean", prompt)
+        self.assertIn("nouns", prompt)
+
+    def test_reader_prompt_names_no_banned_words(self):
+        """The reader gets questions, not a word list; the list would make
+        it flag the words and miss the habit, and the scanner already has
+        the list."""
+        path = self.draft("A sentence.\n")
+        self.run_check(path)
+        for word in ("load-bearing", "appropriate", "costs"):
+            self.assertNotIn(word, self.calls[0])
+
+    def test_reader_failure_leaves_the_scanner_findings_and_says_so(self):
+        def broken(prompt):
+            raise OSError("no network")
+        path = self.draft("The estimand %s the estimate.\n" % EM_DASH)
+        code, out = self.run_check(path, reader=broken)
+        self.assertEqual(code, 0)
+        self.assertIn("U+2014", out)
+        self.assertIn("reader did not run", out.lower())
+
+    def test_reader_returning_prose_instead_of_json_is_reported_as_not_run(self):
+        path = self.draft("A sentence.\n")
+        code, out = self.run_check(path, reader=lambda p: "Ready for the next question.")
+        self.assertEqual(code, 0)
+        self.assertIn("reader did not run", out.lower())
+
+    def test_a_clean_draft_says_so_in_one_line(self):
+        path = self.draft("The estimand differs from the estimate.\n")
+        _, out = self.run_check(path, reader=lambda p: "[]")
+        self.assertIn("nothing", out.lower())
+
+    def test_check_records_the_draft_for_the_stop_hook(self):
+        path = self.draft("The estimand differs from the estimate.\n")
+        self.run_check(path, reader=lambda p: "[]")
+        _, _ = self.run_stop("The estimand differs from the estimate.")
+        rec = self.records()[-1]
+        self.assertTrue(rec["checked"])
+
+
+class TestNewestTranscript(unittest.TestCase):
+    """`check` finds the live session's transcript on its own, so the
+    assistant has nothing to look up. Claude Code keeps one JSONL per
+    session under ~/.claude/projects/<flattened cwd>/, where the flattening
+    turns every character that is not a letter or a digit into a hyphen:
+    /Users/jwbowers/repos/ai_workflow is -Users-jwbowers-repos-ai-workflow.
+    The first version replaced only the slashes and found nothing for a
+    directory with an underscore in its name (2026-09-20)."""
+
+    def test_underscore_in_cwd_is_flattened_to_a_hyphen(self):
+        with tempfile.TemporaryDirectory() as home:
+            proj = os.path.join(home, ".claude", "projects",
+                                "-Users-j-repos-ai-workflow")
+            os.makedirs(proj)
+            older = os.path.join(proj, "a.jsonl")
+            newer = os.path.join(proj, "b.jsonl")
+            for path in (older, newer):
+                with open(path, "w") as fh:
+                    fh.write("{}\n")
+            os.utime(older, (1, 1))
+            found = sg.newest_transcript("/Users/j/repos/ai_workflow", home)
+            self.assertEqual(found, newer)
+
+    def test_session_id_wins_over_the_newer_file(self):
+        """Two sessions in one directory: the other session's file is newer,
+        but the id names ours."""
+        with tempfile.TemporaryDirectory() as home:
+            proj = os.path.join(home, ".claude", "projects", "-Users-j-repos-x")
+            os.makedirs(proj)
+            mine = os.path.join(proj, "abc.jsonl")
+            theirs = os.path.join(proj, "def.jsonl")
+            for path in (mine, theirs):
+                with open(path, "w") as fh:
+                    fh.write("{}\n")
+            os.utime(mine, (1, 1))
+            self.assertEqual(sg.newest_transcript("/Users/j/repos/x", home, "abc"), mine)
+            self.assertEqual(sg.newest_transcript("/Users/j/repos/x", home, None), theirs)
+
+    def test_no_transcript_gives_none(self):
+        with tempfile.TemporaryDirectory() as home:
+            self.assertIsNone(sg.newest_transcript("/nowhere/at/all", home))
+
+
+class TestStdinIsReadOnlyByHooks(unittest.TestCase):
+    """The script reads its stdin for the hook events, which arrive there as
+    JSON. `check` and `preflight` take nothing on stdin, and reading it
+    anyway blocks forever when the assistant's shell keeps stdin open,
+    which is what every live run of `check` did on 2026-09-20."""
+
+    def test_hook_entry_points_read_stdin(self):
+        self.assertTrue(sg.reads_stdin(["stop"]))
+        self.assertTrue(sg.reads_stdin(["posttool"]))
+
+    def test_check_and_preflight_do_not(self):
+        self.assertFalse(sg.reads_stdin(["check", "draft.md"]))
+        self.assertFalse(sg.reads_stdin(["preflight"]))
+        self.assertFalse(sg.reads_stdin([]))
+
+    def test_check_returns_when_stdin_never_closes(self):
+        """Run the script as a process with a pipe on stdin that nothing
+        writes to or closes. The reader is pointed at a transcript that does
+        not exist and given no way to reach a model, so the only way this
+        takes longer than a few seconds is the stdin read."""
+        script = os.path.abspath(sg.__file__)
+        with tempfile.TemporaryDirectory() as d:
+            draft = os.path.join(d, "draft.md")
+            with open(draft, "w") as fh:
+                fh.write("A sentence.\n")
+            env = dict(os.environ, PATH=d)  # no `claude` on the path
+            import subprocess
+            proc = subprocess.Popen(
+                [sys.executable, script, "check", draft, "--transcript",
+                 os.path.join(d, "none.jsonl")],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, env=env)
+            try:
+                out, _ = proc.communicate(timeout=20)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                self.fail("check blocked on stdin")
+            self.assertIn("Reader did not run", out)
+
+
+class TestStopRecordsWhetherTheReplyWasChecked(GateCase):
+    """Every reply with prose now gets one log record carrying `checked`:
+    whether the reply the terminal showed is the draft that went through
+    `check`. Jake asked on 2026-09-20 to stop having to ask whether the
+    audit ran; the log answers instead. A reply edited after the check
+    still counts when most of its sentences were in the checked draft.
+    """
+
+    def check_draft(self, text):
+        path = os.path.join(self._tmp.name, "draft.md")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.run_check(path, self.log, None, lambda p: "[]")
+
+    def test_unchecked_reply_is_recorded_as_unchecked(self):
+        self.run_stop("A clean reply that nobody checked.")
+        recs = self.records()
+        self.assertEqual(len(recs), 1)
+        self.assertFalse(recs[0]["checked"])
+
+    def test_checked_reply_is_recorded_as_checked(self):
+        self.check_draft("The estimand differs from the estimate. So does the rest.\n")
+        self.run_stop("The estimand differs from the estimate. So does the rest.")
+        self.assertTrue(self.records()[-1]["checked"])
+
+    def test_a_lightly_edited_reply_still_counts_as_checked(self):
+        self.check_draft("One sentence here. A second sentence here. A third one here. A fourth one here. A fifth one here.\n")
+        self.run_stop("One sentence here. A second sentence here. A third one here. A fourth one here. A different fifth.")
+        self.assertTrue(self.records()[-1]["checked"])
+
+    def test_a_mostly_new_reply_does_not_count_as_checked(self):
+        self.check_draft("One sentence here. A second sentence here.\n")
+        self.run_stop("Something else entirely. And more of it. And a third thing. And a fourth.")
+        self.assertFalse(self.records()[-1]["checked"])
+
+    def test_a_clean_unchecked_reply_gets_no_note(self):
+        """The record is for Jake's log; the assistant gets no nag, because
+        a note after the fact cannot change the reply he already read."""
+        _, out = self.run_stop("A clean reply that nobody checked.")
+        self.assertIsNone(out)
+
+    def test_clean_reply_record_carries_a_clean_tier(self):
+        self.run_stop("A clean reply.")
+        self.assertEqual(self.records()[0]["tier"], "clean")
 
 
 if __name__ == "__main__":

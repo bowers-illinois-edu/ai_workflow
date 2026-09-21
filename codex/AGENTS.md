@@ -176,23 +176,22 @@ you write to me in conversation, in code comments, and in commit messages.
 Every reply, status note, and explanation counts. Do not use a looser style
 with me; I am a reader there too, and chat is where the writing has gone worst.
 
-Check what you wrote before you send it. These rules say how to write, and
-nothing in them inspects the result, so loading them is not enough: draft under
-them, then reread the draft --- a chat reply and a commit message as much as a
-paragraph of a paper --- against the catalog of named offenders in
-`skills/style-audit/SKILL.md` and the substitution and deletion tests, and fix
-what you find before I see it. The reread is a command rather than a memory
-exercise: write the draft to a file and run
-`skills/style-audit/scripts/style_scan.py` over it, then read the draft against
-the eight questions in section 0 of `skills/style-audit/SKILL.md`. The scanner
-settles the mechanical faults, and those eight questions are the check on
-everything else. Do both for a reply to me in this session exactly as you would
-for a paragraph of a paper, because the reply is the text I read most and is
-where this check keeps getting skipped. Do the
-check after drafting and never during it, because a list of banned words helps
-an auditor and hurts a drafter, which is why the catalog lives in that skill
-rather than here. Length is one of the things to check: a reply I skip has
-failed however its sentences read.
+Check what you wrote before you send it, and have someone else read it. The
+rules here say how to write and nothing in them inspects the result, so
+loading them is not enough. The writer of a sentence cannot see its faults: the
+assistant that wrote "registry count" knew which registry and what was counted,
+and I, who never saw the file, stopped on the words. So the check is done by a
+second reader who has only what I have seen. Write the draft to a file and run
+
+    python3 ~/repos/ai_workflow/skills/style-audit/scripts/style_gate.py check <file>
+
+It runs the scanner, which settles the mechanical faults, and then a second
+model, which is given my messages and your replies from this session and
+nothing else, and which asks of every sentence what it means. Fix what it
+reports, then send. Do this for a reply to me exactly as for a paragraph of a
+paper, because the reply is the text I read most. Length is one of the things
+to check: a reply I skip has failed however its sentences read. Open a reply
+with the answer to what I asked, then what you need from me and why.
 
 ### Clarity beats compression
 
@@ -238,30 +237,6 @@ comprehension matters more than your self-presentation. Howard Becker's
 *Writing for Social Scientists* is the standing model: academic writing goes
 wrong when the writer tries to sound like a scholar instead of trying to be
 understood.
-
-### Sentence-level craft (Gopen & Swan)
-
-- **Stress position**: Put the most important new information at the end of the
-  sentence --- that is where readers pay attention.
-- **Topic position**: Start sentences with familiar context --- whose story is
-  this sentence about?
-- **Old before new**: Link sentences by placing known information first, then
-  the new claim. The stress of one sentence becomes the topic of the next.
-- **Subject near verb**: Do not wedge long parentheticals between subject and
-  verb. Qualifying material goes before the subject or after the verb.
-- **Action in the verb**: Avoid nominalizations. "We analyzed" not "an analysis
-  was performed." "The policy failed" not "a failure of the policy occurred."
-- **One point per sentence**: If a sentence tries to do two things, split it.
-  This licenses splitting and never packing. It does not authorize compressing
-  two points into one clause to make the count come out right.
-- **Punctuation density**: A semicolon joining two independent clauses should
-  usually be a period. Never put both an em-dash and a semicolon in the same
-  sentence. Reserve semicolons for lists whose items carry internal commas. Use
-  em-dashes sparingly.
-- **Stress position, larger scale**: The end-weight rule applies to paragraphs
-  and sections too. Close on the most important point --- your own
-  contribution, result, or claim --- not on a caveat, a competing method, or a
-  citation.
 
 ### Technical exposition
 
