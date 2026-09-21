@@ -27,10 +27,13 @@ Stdlib only, offline.
 
 import os
 import re
+import sys
 import unittest
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SKILLS = os.path.join(REPO_ROOT, "skills")
+sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
+from install_links import PLUGIN_ONLY_SKILLS  # noqa: E402
 CLAUDE_MD = os.path.join(REPO_ROOT, "CLAUDE.md")
 README = os.path.join(REPO_ROOT, "README.md")
 
@@ -48,6 +51,16 @@ def skill_names():
     """Directory names under skills/, which is what the Skill tool matches on."""
     return sorted(name for name in os.listdir(SKILLS)
                   if os.path.isfile(os.path.join(SKILLS, name, "SKILL.md")))
+
+
+def skills_jake_installs():
+    """The skills that belong in CLAUDE.md and in the README install loop.
+
+    A plugin-only skill exists for a collaborator who installs the plugin and
+    has no CLAUDE.md. On Jake's machine its content is already in context
+    through CLAUDE.md, so the installer skips it and neither list names it.
+    """
+    return [name for name in skill_names() if name not in PLUGIN_ONLY_SKILLS]
 
 
 def read(path):
@@ -91,7 +104,7 @@ class DiscoveryTest(unittest.TestCase):
         """The startup list. A skill missing here loads only when named by hand."""
         text = read(CLAUDE_MD)
         listed = set(re.findall(r"^- `([a-z0-9-]+)`", text, re.MULTILINE))
-        for name in skill_names():
+        for name in skills_jake_installs():
             with self.subTest(skill=name):
                 self.assertIn(name, listed,
                               "add a `- `%s` --- ...` line to the Skills list" % name)
@@ -102,9 +115,21 @@ class DiscoveryTest(unittest.TestCase):
         loops = re.findall(r"^for s in ([a-z0-9 -]+); do", text, re.MULTILINE)
         self.assertEqual(len(loops), 1, "expected exactly one skill install loop")
         in_loop = set(loops[0].split())
-        for name in skill_names():
+        for name in skills_jake_installs():
             with self.subTest(skill=name):
                 self.assertIn(name, in_loop)
+
+
+class PluginOnlyTest(unittest.TestCase):
+    def test_every_plugin_only_skill_exists_and_stays_out_of_claude_md(self):
+        """The exemption names real skills, and CLAUDE.md does not list them,
+        because a listing there is a promise that `make install` links them."""
+        text = read(CLAUDE_MD)
+        listed = set(re.findall(r"^- `([a-z0-9-]+)`", text, re.MULTILINE))
+        for name in sorted(PLUGIN_ONLY_SKILLS):
+            with self.subTest(skill=name):
+                self.assertIn(name, skill_names())
+                self.assertNotIn(name, listed)
 
 
 class CrossReferenceTest(unittest.TestCase):

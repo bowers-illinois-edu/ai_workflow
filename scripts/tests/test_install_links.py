@@ -75,6 +75,15 @@ class InstallLinksTest(unittest.TestCase):
         self.assertEqual(self.link_target("skills", "decks"),
                          os.path.join(self.repo, "skills", "decks"))
 
+    def test_skips_a_plugin_only_skill(self):
+        """bowers-prose exists for a collaborator who installs the plugin and
+        has no CLAUDE.md. Jake has CLAUDE.md, so a link would put the same
+        rules in his context twice."""
+        os.makedirs(os.path.join(self.repo, "skills", "bowers-prose"))
+        self.run_install()
+        self.assertFalse(os.path.lexists(os.path.join(self.home, ".claude", "skills", "bowers-prose")))
+        self.assertTrue(os.path.islink(os.path.join(self.home, ".claude", "skills", "math")))
+
     def test_skips_zipped_skills(self):
         self.run_install()
         self.assertFalse(

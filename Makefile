@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-codex-hooks
+test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -58,6 +58,11 @@ test-plugins:
 test-codex-hooks:
 	$(PYTHON) scripts/tests/test_codex_hooks.py
 
+# The Claude Code plugin's SessionStart hook prints a copy of CLAUDE_CODING.md,
+# and the plugin's bowers-prose skill copies the app skill's body.
+test-plugin-rules-hook:
+	$(PYTHON) scripts/tests/test_plugin_rules_hook.py
+
 check-claude-app:
 	$(PYTHON) scripts/check_claude_app.py
 
@@ -71,8 +76,11 @@ agents-md:
 # plugin directory without following symlinks. Two directories have to exist
 # in both plugins, the math references and the style-audit scripts. The Claude
 # Code plugin holds the originals and the app plugin holds copies; this target
-# refreshes the copies, and test-plugins fails when they differ.
+# refreshes the copies, and test-plugins fails when they differ. The Claude
+# Code plugin also carries a copy of CLAUDE_CODING.md for its SessionStart
+# hook, refreshed by build_plugin_rules.py and checked by test-plugin-rules-hook.
 plugins:
+	$(PYTHON) scripts/build_plugin_rules.py
 	rsync -a --delete --exclude __pycache__ --exclude .DS_Store \
 	    plugins/ai-workflow/skills/math/references/ \
 	    plugins/ai-workflow-app/skills/math/references/

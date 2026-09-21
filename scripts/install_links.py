@@ -47,6 +47,13 @@ HOOKS_TEMPLATE = os.path.join("codex", "hooks.json")
 # to the same end; either way it is ours to rewrite. One that does not is not.
 HOOKS_MARKER = "style_gate.py"
 
+# Skills that exist for a collaborator who installs the plugin and has no
+# CLAUDE.md. On this machine their content is already in context through
+# CLAUDE.md's imports, so linking them would load the same rules twice.
+# test_skill_registry.py reads this set to keep them out of CLAUDE.md's
+# skills list and the README install loop.
+PLUGIN_ONLY_SKILLS = frozenset({"bowers-prose"})
+
 
 def skill_dirs(repo):
     """(absolute source, name) for each skill directory.
@@ -62,7 +69,8 @@ def skill_dirs(repo):
     # built by `make app-skills`; Claude Code and Codex want the directory
     return [(os.path.join(skills, name), name)
             for name in sorted(os.listdir(skills))
-            if os.path.isdir(os.path.join(skills, name))]
+            if os.path.isdir(os.path.join(skills, name))
+            and name not in PLUGIN_ONLY_SKILLS]
 
 
 def plan(repo):

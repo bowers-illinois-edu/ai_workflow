@@ -325,7 +325,7 @@ a hooks file that does not already run the gate; merge the template into such a
 file by hand.
 
 The plugin route below reaches Codex too. With the links in place, disable the
-two plugins in `config.toml`, or every skill loads twice.
+plugin in `config.toml`, or every skill loads twice.
 
 ### As a plugin, in Claude Code, the Claude app, Codex, or ChatGPT
 
@@ -337,9 +337,33 @@ version of the style audit tells the auditor to reread the writing rules in
 Instructions for Claude, which do not exist in Claude Code; the Claude Code
 version names `CLAUDE.md`, which does not exist in the app.
 
-- **`plugins/ai-workflow`** --- the nine Claude Code skills and `/handoff`.
+- **`plugins/ai-workflow`** --- the nine Claude Code skills, `/handoff`, a
+  `SessionStart` hook that prints the coding rules, and the writing rules as
+  a `bowers-prose` skill. The next paragraph says why the last two are there.
 - **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, `handoff`,
   and the app versions of `style-audit` and `math`.
+
+A collaborator who installs `ai-workflow` has no `CLAUDE.md`, so nothing in
+the rules above reaches them unless the plugin carries it. A plugin cannot
+ship a `CLAUDE.md`. It can ship a hook. In Claude Code, a `SessionStart`
+hook's output enters context once per session and again after a compaction, up
+to 10,000 characters. `CLAUDE_CODING.md` is about 4,000 characters, so
+`plugins/ai-workflow/hooks/hooks.json` prints a copy of it,
+`plugins/ai-workflow/rules/coding.md`. `make plugins` refreshes that copy and
+a test holds it identical to the original. The writing rules are about 18,000
+characters and do not fit, so they travel as a skill instead: the
+`bowers-prose` skill inside this plugin is the app skill's body under a
+description that triggers on papers, memos, referee reports, and long emails
+rather than on every reply, because a collaborator can have Claude talk to
+them however they like. That skill sits in `skills/` here too, since
+`skills/` is a symlink into the plugin, but `make install` does not link it
+and `CLAUDE.md` does not list it: its content already reaches this machine
+through the `@` imports. `PLUGIN_ONLY_SKILLS` in `scripts/install_links.py`
+names it. The skill registry test reads that set. After a push, a
+collaborator gets the new version with `/plugin update`, because auto-update
+is off by default for a marketplace that is not Anthropic's. Codex reads its
+own hooks file rather than the plugin's, so a Codex collaborator gets the
+`bowers-prose` skill and not the coding rules.
 
 The plugin directories hold the real files. `skills/` at the top level is a
 symlink to `plugins/ai-workflow/skills/`, `claude_app/skills/` to
@@ -362,13 +386,27 @@ claude plugin install ai-workflow@ai-workflow
 
 In the app: `Customize > Plugins`, the "Add" button, then the GitHub repository.
 
-In Codex, which reads the same marketplace file:
+In Codex, which reads the same marketplace file, install `ai-workflow` alone.
+Until 2026-09-20 this block also installed `ai-workflow-app`, because that was
+the plugin carrying the writing rules. `ai-workflow` carries them now. Its
+`style-audit` and `math` are the versions written for a screen and a shell,
+where the app's assume a phone, so installing both would load three skills
+twice.
 
 ```bash
 codex plugin marketplace add bowers-illinois-edu/ai_workflow
 codex plugin add ai-workflow@ai-workflow
-codex plugin add ai-workflow-app@ai-workflow
 codex plugin marketplace upgrade   # after a push, to refresh the snapshot
+```
+
+That gives Codex the nine skills and the writing rules and not the coding
+rules, because the hook that prints them is a Claude Code hook. Codex reads
+`~/.codex/AGENTS.md` at startup instead, so a Codex collaborator gets the
+coding rules by appending `CLAUDE_CODING.md` to that file. The plugin carries
+a copy at `rules/coding.md`, or the file is at the top of this repository:
+
+```bash
+cat CLAUDE_CODING.md >> ~/.codex/AGENTS.md
 ```
 
 In ChatGPT the plugin installs from the same marketplace once the account has
