@@ -1194,6 +1194,39 @@ class TestNewestTranscript(unittest.TestCase):
             self.assertIsNone(sg.newest_transcript("/nowhere/at/all", home))
 
 
+class TestHooksStaySilentInsideTheReader(GateCase):
+    """The reader is a `claude -p` session on the same machine, with the
+    same hooks. Its Stop hook wrote 40 "unchecked reply" lines to the log
+    in one evening (2026-09-20), which would make the rate Jake watches
+    meaningless. The reader is started with STYLE_GATE_READER set, and every
+    hook entry point returns at once when it sees that."""
+
+    def setUp(self):
+        super().setUp()
+        os.environ[sg.READER_MARK] = "1"
+
+    def tearDown(self):
+        os.environ.pop(sg.READER_MARK, None)
+        super().tearDown()
+
+    def test_stop_writes_nothing_inside_the_reader(self):
+        code, out = self.run_stop("a %s b" % EM_DASH)
+        self.assertEqual(code, 0)
+        self.assertIsNone(out)
+        self.assertEqual(self.records(), [])
+
+    def test_preflight_injects_nothing_inside_the_reader(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.main(["preflight"], "", self.log)
+        self.assertEqual(buf.getvalue().strip(), "")
+
+    def test_the_reader_process_gets_the_mark(self):
+        """call_reader is not run here (it needs the network); the mark it
+        sets is the one the entry points look for."""
+        self.assertEqual(sg.READER_MARK, "STYLE_GATE_READER")
+
+
 class TestStdinIsReadOnlyByHooks(unittest.TestCase):
     """The script reads its stdin for the hook events, which arrive there as
     JSON. `check` and `preflight` take nothing on stdin, and reading it

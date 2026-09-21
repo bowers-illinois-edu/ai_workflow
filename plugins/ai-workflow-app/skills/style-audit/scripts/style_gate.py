@@ -176,6 +176,10 @@ CONTEXT_CHARS = 24000
 # Which model reads. Measured 2026-09-20 on the 31 replies Jake stopped on
 # that week; see memo_reply_check_2026-09-20.md.
 READER_MODEL = "sonnet"
+
+# Set in the reader's environment so that the hooks inside its session know
+# they are running under the reader and stay silent.
+READER_MARK = "STYLE_GATE_READER"
 READER_TIMEOUT = 240
 
 # What the reader is told. Two prompts were measured on 2026-09-20 against
@@ -679,11 +683,15 @@ def call_reader(prompt):
     # `claude` starts helpers that hold its pipes open, and killing only the
     # parent leaves communicate() waiting for those pipes forever, which is
     # what stalled the first live run on 2026-09-20.
+    # The reader is itself a Claude session with Jake's hooks, so without
+    # this mark its own Stop hook would log its output as one more unchecked
+    # reply. Measured 2026-09-20: 40 such lines in one evening.
+    env = dict(os.environ, **{READER_MARK: "1"})
     proc = subprocess.Popen(
         ["claude", "-p", "--model", READER_MODEL, "--no-session-persistence",
          "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}'],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, start_new_session=True)
+        text=True, start_new_session=True, env=env)
     try:
         out, err = proc.communicate(prompt, timeout=READER_TIMEOUT)
     except subprocess.TimeoutExpired:
@@ -788,6 +796,8 @@ def main(argv, stdin_text, log_path):
     try:
         if not argv:
             return 0
+        if os.environ.get(READER_MARK) and argv[0] != "check":
+            return 0  # inside the reader's own session: no log, no notes
         if argv[0] == "preflight":
             emit("UserPromptSubmit", PREFLIGHT)
             return 0
