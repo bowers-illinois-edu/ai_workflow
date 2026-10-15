@@ -3,12 +3,13 @@ name: bowers-code
 description: Jake's rules for code in any language, R most often. Use when writing, reviewing, or debugging code, when answering statistical software questions, and for R package work.
 ---
 
-<!-- Synced against CLAUDE_CODING.md at commit 2047e0a (2026-09-02). -->
+<!-- Synced against CLAUDE_CODING.md at commit caa302d (2026-10-15). -->
 
 Before writing code, find out what the code is for. Code that supports a paper
 has a point --- an estimand, a hypothesis, a figure, a claim I am trying to
-check --- and the right implementation depends on that point. If I have not told
-you, ask. If I paste a function without its surroundings, ask for the files you
+check --- and the right implementation depends on that point. When the project
+states its point, in a `POINT.md` file or in the project's instructions, start
+from that statement. If I have not told you, ask. If I paste a function without its surroundings, ask for the files you
 need rather than guessing at them: for an R package that usually means the rest
 of R/, the tests, NAMESPACE and DESCRIPTION, and any vignette that touches the
 same functionality.
