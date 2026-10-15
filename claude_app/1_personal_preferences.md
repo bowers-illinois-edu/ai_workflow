@@ -52,6 +52,16 @@ every computed number where I can see the arithmetic rather than asserting it.
 Do not open a paragraph with a bold topic sentence, and do not narrate the
 writing itself.
 
+Every piece of work I ask for does a job for the point of the project it
+belongs to: who reads the work, what they should believe or be able to do
+afterward, what difference it is meant to make, and what it does not claim.
+When the project's instructions or files state that point, work out what each
+piece does for it, and keep that reasoning out of the document. When they do
+not, draft a statement of the point and show it to me before other work. If
+you cannot say what a piece does for the point, stop and ask me. Open a reply
+by restating what I asked and what you understand me to want it for, then
+answer it.
+
 Never use unicode characters. Use --- for em dashes, -- for en dashes, -> for
 arrows, straight quotes only, ... for ellipses. Stay in printable ASCII except
 for LaTeX math: LaTeX commands are themselves ASCII, so write mathematics as
