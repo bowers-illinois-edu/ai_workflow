@@ -165,6 +165,31 @@ Symlinking (rather than copying) keeps the repo the single source of truth: edit
 
 Skills also work outside Claude Code: any assistant that can read files can be told "read `/path/to/this/repo/skills/verify-citations/SKILL.md` and follow it."
 
+### The writing hooks
+
+Telling the model in its rules to check its writing did not make it check, so
+four hooks in `~/.claude/settings.json` run the checks instead. A hook is a
+command Claude Code runs when a named event happens. `make install` does not
+write these four, so on a new machine add them by hand, with this repository's
+path in each command:
+
+- `UserPromptSubmit`, the event that fires when a message is sent, runs
+  `python3 /path/to/this/repo/skills/style-audit/scripts/style_gate.py preflight`.
+  It tells the model to draft its reply in a file and run
+  `style_gate.py check` on the draft before sending it.
+- `PostToolUse`, with the matcher `Write|Edit|MultiEdit|NotebookEdit|Bash`,
+  runs `style_gate.py posttool` after each of those tools. It scans each prose
+  file the model saves and reports what the scanner flags.
+- `Stop`, the event that fires when the model is about to end its turn, runs
+  `style_gate.py stop`. It logs each reply and records whether the model ran
+  `style_gate.py check` on it.
+- `Stop` also runs `audit_guard.py`, from the same directory. When a document
+  saved since the person's last message has not been through the style-audit
+  skill, it refuses to let the model end its turn and tells it to run the
+  audit first. It refuses at most once in a row, so it cannot loop. It was
+  added on 2026-10-15, because Jake was tired of asking whether the full audit
+  had run.
+
 ### Per-project supplements
 
 A project repo carries its own `CLAUDE.md` (auto-loaded by Claude Code when working in that repo) holding project facts only --- build commands, layout, ground truth --- plus, for math-heavy projects, a `CLAUDE_MATH.md` supplement that overlays the math skill with the project's notation, key theorems, and subfield-specific checks. The supplement template is in `skills/math/references/supplements.md`. Live examples are in `~/repos/fastperm-paper/` (saddlepoint/tilting/orbit checks) and `~/repos/manytests-paper/` (FWER regimes, weak/strong control discipline). Project repos should not copy the global writing or coding rules --- those load globally, and a local copy goes stale and silently competes with the ground truth.

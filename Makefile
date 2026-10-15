@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks
+test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -20,6 +20,11 @@ test-style-audit:
 
 test-style-gate:
 	$(PYTHON) skills/style-audit/tests/test_style_gate.py
+
+# The Stop hook that keeps a turn from ending until the style audit has run
+# on every document saved in it.
+test-audit-guard:
+	$(PYTHON) skills/style-audit/tests/test_audit_guard.py
 
 test-first-reader:
 	$(PYTHON) skills/first-reader/tests/test_mine_transcripts.py
