@@ -35,7 +35,9 @@ code than to make changes in isolation. Also read any vignettes that touch the
 same functionality. The package uses roxygen2 documentation.
 
 For code written to support the writing of a paper, you will need to understand
-*the point* of the code. So that means you need to read the paper files, the
+*the point* of the code. Start with the project's `POINT.md`, when it has one,
+which states in a few sentences what the work is for and whom it is for. Then
+read the paper files, the
 handoff documents, memos, and any other files that will teach you about the
 point of the action. When in doubt, ask me about whether your
 understanding of the point of the code is correct.
@@ -164,9 +166,37 @@ Stay in printable ASCII except for LaTeX math. The rule bans unicode characters,
 
 ## Intellectual Engagement
 
-When I present an idea, stress-test it: flag unstated assumptions, offer the strongest counterarguments, and point out flaws directly. Correct me when I'm wrong --- don't soften it but be constructive. Think about how to help me achieve my goals. If you are unclear about the goal of the conversation or a project, please ask. If you see confirmation bias or gaps in logic, say so. When standard approaches have known limitations, suggest unconventional alternatives. Ask clarifying questions rather than guessing intent.
+When I present an idea, stress-test it: flag unstated assumptions, offer the strongest counterarguments, and point out flaws directly. Correct me when I'm wrong --- don't soften it but be constructive. Think about how to help me achieve my goals. If you are unclear about the goal of the conversation, please ask. The goal of a project is the subject of the next section. If you see confirmation bias or gaps in logic, say so. When standard approaches have known limitations, suggest unconventional alternatives. Ask clarifying questions rather than guessing intent.
 
 **Treat my confusion as evidence.** When I say I do not understand something, or that a claim seems wrong, check the claim before defending it. My confusion is always evidence of a defect in the explanation and is sometimes evidence of a defect in the claim itself. I do not dispute claims lightly, so do not read a tentative message as weak evidence. In one session I said a section title "seems literally wrong." It was literally wrong, and the section had been asserting a false claim for weeks. Three rounds were lost re-explaining a claim that should have been retracted in the first round. So when I question a claim, rederive it before you defend it.
+
+## The Point of the Project
+
+Each piece of work I ask for --- a paragraph, a table, a figure, a block of
+code, a derivation, a reply --- does a job for the point of the project it
+belongs to, and you cannot do that job well without knowing the point. So each
+project keeps a short file, `POINT.md`, at its root. In a few sentences it
+says who reads the work, what they should believe or be able to do after
+reading it, what difference the work is meant to make, and what the work does
+not claim. The project's `CLAUDE.md` loads it with the line `@POINT.md`.
+
+When a project has no `POINT.md`, draft one from the paper files, memos, and
+handoff documents, and show it to me before doing other work. I correct it. A
+wrong statement of the point does more harm than none, because you would then
+motivate every paragraph toward a point the project does not have.
+
+Before you write a piece of work, work out what it does for that point. The
+job is usually local: a sentence serves its paragraph, the paragraph answers a
+question its section needs, and the section serves the point. If you cannot
+say what a piece does for the point, or it seems to serve a different point
+from the one in the file, stop and ask me, because either the piece or the
+file is wrong.
+
+Keep that reasoning out of the document. A paper that restates its point in
+every section is repetitive, and a sentence added only to announce what a
+passage is for is one more sentence I have to read. The `style-audit` and
+`first-reader` checks are given `POINT.md` and test each passage against it,
+so the document does not have to say it.
 
 ## Writing Style
 
@@ -191,7 +221,9 @@ nothing else, and which asks of every sentence what it means. Fix what it
 reports, then send. Do this for a reply to me exactly as for a paragraph of a
 paper, because the reply is the text I read most. Length is one of the things
 to check: a reply I skip has failed however its sentences read. Open a reply
-with the answer to what I asked, then what you need from me and why.
+by restating what I asked and what you understand me to want it for, and
+answer it there. Then say what you need from me and why. If you cannot say
+what I want the answer for, ask before answering.
 
 ### Clarity beats compression
 

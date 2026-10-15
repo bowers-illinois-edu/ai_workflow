@@ -118,7 +118,8 @@ NOTE_LIMIT = 30
 # word teaches avoidance of that word rather than of the habit behind it.
 QUESTIONS = (
     "Is every technical term spelled out where it first appears?",
-    "Does each passage say what question it answers, before it answers it?",
+    "Does each passage say what question it answers, before it answers it? "
+    "Can you name what answering it does for the stated point of the project?",
     "Is every other term one Jake can resolve from what is on the page?",
     "Does every sentence give its action to a person?",
     "Does every pronoun have exactly one antecedent?",
@@ -142,7 +143,8 @@ PREFLIGHT = "\n".join(
      "  python3 %s check <that file>" % os.path.abspath(__file__),
      "It runs the scanner and then a second reader, who has only what Jake",
      "has seen and asks what each sentence means. Fix what it reports, then",
-     "send. Open with the answer to what Jake asked. Then say what you need",
+     "send. Open by restating what Jake asked and what he wants it for, then",
+     "answer it. Then say what you need",
      "from him and why. Say nothing about your own process. Write --- for",
      "an em dash and no other unicode, no bold sentence opening a paragraph,",
      "and no em dash and semicolon on one line. Fenced code is exempt. The",
@@ -182,6 +184,17 @@ READER_MODEL = "sonnet"
 READER_MARK = "STYLE_GATE_READER"
 READER_TIMEOUT = 240
 
+# What the project is for, in the project's own file. Jake confirms it, so
+# the reader may see it although it is not part of the conversation. On
+# 2026-10-15 he asked that every passage be traceable to the point of the
+# project; before then the reader could ask only whether a passage states
+# its own question, and a passage answering a question the project does not
+# need passed. A statement of the point is a few sentences, so the cap only
+# stops a wrong file from crowding out the conversation.
+POINT_NAME = "POINT.md"
+POINT_CHARS = 6000
+NO_POINT = "(no statement of the point is on file for this project)"
+
 # What the reader is told. Two prompts were measured on 2026-09-20 against
 # the 31 replies Jake had stopped on that week (memo_reply_check_2026-09-20.md).
 # This one, the eight questions of SKILL.md section 0 plus three about the
@@ -190,15 +203,18 @@ READER_TIMEOUT = 240
 # swapping its nouns, pointed at 11 in 94 seconds a call. The two counts are
 # not distinguishable on 46 phrases, so the faster one is installed. It
 # names no words, for the reason given at the top of SKILL.md section 6.
-READER_PROMPT = """TASK: An assistant is about to send Jake Bowers the reply below, in a terminal. You have exactly what Jake has seen: the earlier messages in this conversation, given first, and nothing else. You have not seen the assistant's files, scripts, or tool output, and neither has Jake.
+READER_PROMPT = """TASK: An assistant is about to send Jake Bowers the reply below, in a terminal. You have what Jake has seen: the statement of what this project is for, which Jake has confirmed, then the earlier messages in this conversation, and nothing else. You have not seen the assistant's files, scripts, or tool output, and neither has Jake.
 
 Read the reply as Jake, sentence by sentence. For each sentence ask: what does this sentence mean? Could I restate it in other words? If I replaced the nouns with other nouns, would the verbs still make sense, which would mean the verbs are decorative? Then ask these questions of the reply:
 %s
-9. Does the reply open by answering the question Jake asked?
+9. Does the reply open by restating the question Jake asked, with what he wants it for, and answering it?
 10. Is any sentence a fragment with no main verb?
 11. Does the reply say more than the answer needs?
 
-Output a JSON array only, no prose before or after. Each element: {"phrase": "<exact words copied from the reply, 1 to 12 words>", "why": "<one short sentence>"}. Flag a place only when Jake would stop there: he cannot say what the sentence means, a word is used without the sentence fixing what it means, a pronoun has two possible antecedents, a sentence has no main verb, or the passage never says what question it answers. If nothing, output [].
+Output a JSON array only, no prose before or after. Each element: {"phrase": "<exact words copied from the reply, 1 to 12 words>", "why": "<one short sentence>"}. Flag a place only when Jake would stop there: he cannot say what the sentence means, a word is used without the sentence fixing what it means, a pronoun has two possible antecedents, a sentence has no main verb, the passage never says what question it answers, or you cannot name what the passage does for the stated point. If nothing, output [].
+
+THE POINT OF THE PROJECT:
+%s
 
 EARLIER MESSAGES:
 %s
@@ -206,7 +222,7 @@ EARLIER MESSAGES:
 REPLY START
 %s
 REPLY END
-""" % ("\n".join("%d. %s" % (k + 1, q) for k, q in enumerate(QUESTIONS)), "%s", "%s")
+""" % ("\n".join("%d. %s" % (k + 1, q) for k, q in enumerate(QUESTIONS)), "%s", "%s", "%s")
 
 # Text in a user record that the harness injected rather than Jake typed.
 # Copied from first-reader/scripts/mine_transcripts.py, which the gate cannot
@@ -718,7 +734,48 @@ def parse_reader(raw):
     return parsed if isinstance(parsed, list) else None
 
 
-def run_check(draft_path, log_path, transcript_path=None, reader=call_reader):
+
+def find_point_file(start=None, stop=None):
+    """The project's POINT.md, found by walking up from the working directory.
+
+    `check` is run from the assistant's shell, whose working directory is the
+    project the reply is about. The walk stops at the first directory holding
+    .git, the project root, so that a POINT.md belonging to something above
+    the project is never read as this project's, and it stops at the home
+    directory when there is no repository at all.
+    """
+    d = os.path.abspath(start or os.getcwd())
+    stop = os.path.abspath(stop or os.path.expanduser("~"))
+    while True:
+        candidate = os.path.join(d, POINT_NAME)
+        if os.path.isfile(candidate):
+            return candidate
+        parent = os.path.dirname(d)
+        if os.path.exists(os.path.join(d, ".git")) or d == stop or parent == d:
+            return None
+        d = parent
+
+
+def read_point(path):
+    """The text of a statement of the point, cut at POINT_CHARS; None when
+    the file cannot be read, so the reader is told none is on file."""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read(POINT_CHARS).strip() or None
+    except OSError:
+        return None
+
+
+def parse_check_args(argv):
+    """`check <draft> [--transcript <path>] [--point <path>]`. A flag with no
+    value after it is ignored, and the caller fills in what is missing."""
+    def flag(name):
+        return argv[argv.index(name) + 1] if name in argv[:-1] else None
+    return argv[1], flag("--transcript"), flag("--point")
+
+
+def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
+              point_path=None):
     """The check the assistant runs on a draft reply before sending it.
 
     Prints the scanner's findings, then the second reader's, and remembers
@@ -752,7 +809,9 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader):
 
     context = visible_turns(transcript_path)
     shown = "\n\n".join("%s: %s" % (role, text) for (role, text) in context)
-    prompt = READER_PROMPT % (shown or "(this reply opens the session)", draft)
+    point = read_point(point_path) if point_path else None
+    prompt = READER_PROMPT % (point or NO_POINT,
+                              shown or "(this reply opens the session)", draft)
     stops = None
     reader_error = None
     try:
@@ -778,6 +837,13 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader):
             printed = True
     if not printed:
         print("Nothing found by the scanner or the reader.")
+    # Said every time, because a reader that found nothing and a reader never
+    # shown the point print the same findings, and the search for POINT.md
+    # starts from the shell's working directory, which a `cd` can move.
+    if point:
+        print("Point: %s" % point_path)
+    else:
+        print("Point: none on file (searched upward from %s)" % os.getcwd())
 
     spath = state_path(log_path)
     state = load_state(spath)
@@ -806,9 +872,10 @@ def main(argv, stdin_text, log_path):
         if argv[0] == "posttool":
             return run_posttool(stdin_text, log_path)
         if argv[0] == "check" and len(argv) > 1:
-            transcript = argv[argv.index("--transcript") + 1] \
-                if "--transcript" in argv[:-1] else newest_transcript()
-            return run_check(argv[1], log_path, transcript)
+            draft, transcript, point = parse_check_args(argv)
+            return run_check(draft, log_path,
+                             transcript or newest_transcript(),
+                             point_path=point or find_point_file())
         return 0
     except Exception as e:  # noqa: BLE001
         if argv and argv[0] == "check":

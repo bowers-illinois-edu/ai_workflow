@@ -14,7 +14,9 @@ code than to make changes in isolation. Also read any vignettes that touch the
 same functionality. The package uses roxygen2 documentation.
 
 For code written to support the writing of a paper, you will need to understand
-*the point* of the code. So that means you need to read the paper files, the
+*the point* of the code. Start with the project's `POINT.md`, when it has one,
+which states in a few sentences what the work is for and whom it is for. Then
+read the paper files, the
 handoff documents, memos, and any other files that will teach you about the
 point of the action. When in doubt, ask me about whether your
 understanding of the point of the code is correct.

@@ -44,7 +44,12 @@ When `style-audit` runs on the same draft, `both-passes` gives the order to
 run the two passes in. What follows is for this pass on its own.
 
 Spawn a **fresh subagent**, not a fork of the current session, and give it
-exactly two things: the persona and the draft.
+the persona, the draft, and the project's `POINT.md` when the project has one.
+`POINT.md` is a few sentences at the project root, confirmed by Jake, on who
+reads the work, what they should believe or be able to do afterward, what
+difference it is meant to make, and what it does not claim. Without it the
+agent can tell whether a paragraph asks its question, but not whether the
+project needs that question answered.
 
 ```
 Agent(subagent_type: "general-purpose", prompt: """
@@ -54,7 +59,12 @@ Agent(subagent_type: "general-purpose", prompt: """
    Read it as Jake Bowers, who has not read it yet. If the document is for
    somebody else --- students, a referee, a program officer --- name them
    here as well, and say in the report that this pass does not model them.
-3. Produce the report the persona specifies in its section 4.
+3. If this file exists, read it before the draft: <project root>/POINT.md
+   It is Jake's confirmed statement of what the project is for. A passage
+   whose job toward that point you cannot name is a stop under mechanism
+   4.2. Propose cutting or moving it, never a sentence announcing its job.
+   If the file does not exist, say so at the top of the report.
+4. Produce the report the persona specifies in its section 4.
 Do not edit the draft. Write the report to <scratchpad path>, and also return
 it as your final message.
 """)

@@ -338,6 +338,16 @@ class TestPreflight(unittest.TestCase):
         self.assertIn("answer", ctx)
         self.assertIn("need from him", ctx)
 
+    def test_says_to_open_with_what_the_question_is_for(self):
+        """Jake, 2026-10-15: a reply can begin with a sentence or two on how
+        the assistant understands the point of the task and how the reply
+        serves it, and when that is hard to say it is time to stop and ask.
+        The opening restates his question with its purpose, not just the
+        question."""
+        _, out = self.run_preflight()
+        ctx = " ".join(out["hookSpecificOutput"]["additionalContext"].lower().split())
+        self.assertIn("wants it for", ctx)
+
     def test_names_no_reading_question(self):
         """The questions belong to the reader now. A question in front of
         the writer is a rule, and the writer satisfies rules by fragment."""
@@ -1149,6 +1159,117 @@ class TestCheck(GateCase):
         _, _ = self.run_stop("The estimand differs from the estimate.")
         rec = self.records()[-1]
         self.assertTrue(rec["checked"])
+
+
+class TestPointOfTheProject(GateCase):
+    """The reader is told what the project is for.
+
+    Before 2026-10-15 the reader could ask only whether a passage states the
+    question it answers. A passage that clearly answers a question the
+    project does not need answered passed, because nothing the reader had
+    said what the project needs. Each project now keeps POINT.md at its
+    root: who reads the work, what they should believe or be able to do
+    afterward, what difference it is meant to make, and what it does not
+    claim. Jake confirms that file, which is why the reader may see it
+    although it is not part of the conversation.
+
+    The walk up from the working directory stops at the project root, the
+    first directory holding .git, so that a POINT.md belonging to some other
+    project above it is never read as this project's.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.calls = []
+        self.proj = os.path.join(self._tmp.name, "proj")
+        self.deep = os.path.join(self.proj, "Paper", "sections")
+        os.makedirs(self.deep)
+        os.makedirs(os.path.join(self.proj, ".git"))
+
+    def capture(self, prompt):
+        self.calls.append(prompt)
+        return "[]"
+
+    def write(self, path, text):
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        return path
+
+    def draft(self, text="The estimand differs from the estimate.\n"):
+        return self.write(os.path.join(self._tmp.name, "draft.md"), text)
+
+    def check(self, point_path):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.run_check(self.draft(), self.log, None, self.capture,
+                         point_path=point_path)
+        return self.calls[-1]
+
+    def test_point_file_is_found_from_a_subdirectory_of_the_project(self):
+        point = self.write(os.path.join(self.proj, "POINT.md"), "x\n")
+        self.assertEqual(sg.find_point_file(self.deep), point)
+
+    def test_walk_stops_at_the_project_root(self):
+        """A POINT.md above the directory holding .git belongs to something
+        else."""
+        self.write(os.path.join(self._tmp.name, "POINT.md"), "x\n")
+        self.assertIsNone(sg.find_point_file(self.deep))
+
+    def test_no_point_file_gives_none(self):
+        self.assertIsNone(sg.find_point_file(self.deep))
+
+    def test_point_text_reaches_the_reader(self):
+        point = self.write(os.path.join(self.proj, "POINT.md"),
+                           "Readers: methodologists choosing a test.\n")
+        prompt = self.check(point)
+        self.assertIn("Readers: methodologists choosing a test.", prompt)
+
+    def test_without_a_point_the_reader_is_told_none_is_on_file(self):
+        """The reader must not guess a point when Jake has confirmed none."""
+        prompt = self.check(None)
+        self.assertIn("no statement of the point", prompt.lower())
+
+    def test_a_long_point_file_is_cut(self):
+        """A statement of the point is a few sentences. A file far longer
+        than that is cut so it cannot crowd out the conversation."""
+        point = self.write(os.path.join(self.proj, "POINT.md"),
+                           "word " * 10000)
+        self.assertLessEqual(len(sg.read_point(point)), sg.POINT_CHARS)
+
+    def test_check_takes_the_point_and_transcript_from_flags(self):
+        """--point names a file directly, for a session whose working
+        directory is outside the project."""
+        draft, transcript, point = sg.parse_check_args(
+            ["check", "d.md", "--transcript", "t.jsonl", "--point", "p.md"])
+        self.assertEqual((draft, transcript, point),
+                         ("d.md", "t.jsonl", "p.md"))
+        self.assertEqual(sg.parse_check_args(["check", "d.md"]),
+                         ("d.md", None, None))
+
+    def test_check_says_which_point_file_the_reader_got(self):
+        """A reader that found nothing and a reader never shown the point
+        look the same from outside. The walk starts from the shell's working
+        directory, so a check run after `cd` into the scratchpad finds no
+        POINT.md. The output names the file, or says none was found and
+        where the search started."""
+        point = self.write(os.path.join(self.proj, "POINT.md"), "x\n")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.run_check(self.draft(), self.log, None, self.capture,
+                         point_path=point)
+        self.assertIn("Point: " + point, buf.getvalue())
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sg.run_check(self.draft(), self.log, None, self.capture)
+        self.assertIn("none on file", buf.getvalue())
+        self.assertIn(os.getcwd(), buf.getvalue())
+
+    def test_question_2_asks_what_the_passage_does_for_the_point(self):
+        """The question measured on 2026-09-20 survives, and the reader is
+        also asked to name the passage's job toward the stated point."""
+        q = sg.QUESTIONS[1].lower()
+        self.assertIn("what question it answers", q)
+        self.assertIn("point", q)
 
 
 class TestNewestTranscript(unittest.TestCase):

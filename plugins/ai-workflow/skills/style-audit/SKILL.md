@@ -85,7 +85,8 @@ typed while reading one paper straight through on 2026-09-09.
    he would stop marking it. Unlike the words in question 3, these are terms
    of art and a field has a finite supply of them, so this question can be
    answered by going through the draft and listing them.
-2. **Does the passage say what question it answers, before it answers it?**
+2. **Does the passage say what question it answers, before it answers it,
+   and can you name what the answer does for the point of the project?**
    On 2026-09-14 Jake named what is at stake: he goes on reading because he is
    working out whether he agrees with the writer, or because he expects the
    next part to teach him something. That stake is what makes him do the work
@@ -98,6 +99,20 @@ typed while reading one paper straight through on 2026-09-09.
    wrote for that purpose. When the draft never asks the question, the finding
    is the missing question and the rewrite supplies it. When the draft asks it
    only after answering it, the finding is the order.
+   The second half asks what answering the question does for the project.
+   Since 2026-10-15 each project keeps a `POINT.md` at its root: a few
+   sentences, confirmed by Jake, on who reads the work, what they should
+   believe or be able to do afterward, what difference it is meant to make,
+   and what it does not claim. Read it before the draft. A paragraph can ask
+   its question clearly and still answer a question the project does not
+   need answered. For each paragraph, name in one sentence what its answer
+   does for that point, through its section when not directly. When you
+   cannot, the finding is a passage with no job in this project, and the
+   rewrite cuts it, moves it, or asks Jake whether `POINT.md` is wrong. Never
+   propose a sentence announcing the passage's job. The document should not
+   restate its point, and such a sentence is one more pointer. When the
+   project has no `POINT.md`, say so in the report and ask only the first
+   half of the question.
 3. **Is every other term one he can resolve?** 23 of the 47. Not exotic words:
    he stopped on "collection," "boundary," "holder," "the count," "residuals,"
    "registry," "robust." Each is ordinary English doing technical duty the
