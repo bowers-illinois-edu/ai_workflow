@@ -174,6 +174,30 @@ comprehension matters more than your self-presentation. Howard Becker's
 wrong when the writer tries to sound like a scholar instead of trying to be
 understood.
 
+### Sentence-level craft (Gopen & Swan)
+
+- **Stress position**: Put the most important new information at the end of the
+  sentence --- that is where readers pay attention.
+- **Topic position**: Start sentences with familiar context --- whose story is
+  this sentence about?
+- **Old before new**: Link sentences by placing known information first, then
+  the new claim. The stress of one sentence becomes the topic of the next.
+- **Subject near verb**: Do not wedge long parentheticals between subject and
+  verb. Qualifying material goes before the subject or after the verb.
+- **Action in the verb**: Avoid nominalizations. "We analyzed" not "an analysis
+  was performed." "The policy failed" not "a failure of the policy occurred."
+- **One point per sentence**: If a sentence tries to do two things, split it.
+  This licenses splitting and never packing. It does not authorize compressing
+  two points into one clause to make the count come out right.
+- **Punctuation density**: A semicolon joining two independent clauses should
+  usually be a period. Never put both an em-dash and a semicolon in the same
+  sentence. Reserve semicolons for lists whose items carry internal commas. Use
+  em-dashes sparingly.
+- **Stress position, larger scale**: The end-weight rule applies to paragraphs
+  and sections too. Close on the most important point --- your own
+  contribution, result, or claim --- not on a caveat, a competing method, or a
+  citation.
+
 ### Technical exposition
 
 - **Graduated formalization**: Explain an idea first in plain English, then

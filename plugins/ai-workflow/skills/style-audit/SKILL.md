@@ -217,10 +217,12 @@ paragraph:
   decorative; the substitute is the sentence. Hard substitution: the word
   was hiding a missing thought; the finding is the missing thought, not the
   word.
-- **Sentence mechanics**, following Gopen and Swan. These eight lived in the
-  global `CLAUDE.md` until 2026-09-20 and moved here because a writer given
-  "one point per sentence" and "stress position" as standing rules satisfied
-  them with fragments; they are rules for a reader checking a draft.
+- **Sentence mechanics**, following Gopen and Swan. The global `CLAUDE.md`
+  gives these eight to the writer as well. They were taken out of it on
+  2026-09-20 because a writer given "one point per sentence" and "stress
+  position" was judged to write fragments. Nobody measured that. Jake put
+  them back on 2026-10-15 because he wants to write this way. In an audit,
+  check each sentence against them.
   - **Stress position**: Put the most important new information at the end of the
     sentence --- that is where readers pay attention.
   - **Topic position**: Start sentences with familiar context --- whose story is
