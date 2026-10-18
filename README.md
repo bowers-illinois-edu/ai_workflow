@@ -87,7 +87,7 @@ A third group, `claude_app/`, ports the always-on rules to the Claude app, which
 
 A fourth group, `chat_stats_config/`, sets up a chat --- in ChatGPT or in Claude --- for learning statistics and stress-testing research ideas. See "Statistics chats in the Claude app and ChatGPT" under Installing.
 
-A fifth group, `opencode/`, holds `LUMEN.md`, which says how to set up the opencode command-line client to use Lumen, the University of Illinois service that runs language models on campus hardware. It gives the URL, a check that a Lumen key works, and a Python script that writes the opencode configuration from Lumen's current model list.
+A fifth group, `opencode/`, holds `LUMEN.md`. Lumen is the University of Illinois service that runs language models on campus hardware, and `LUMEN.md` says how to set up the opencode command-line client to use it. The guide gives the URL that opencode sends Lumen requests to, a `curl` command that checks whether a Lumen key works, and a Python script that writes the opencode configuration from Lumen's current model list.
 
 The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER2.md`, `CLAUDE_REVIEW-RESPONSE.md`, the response templates) survive as symlinks into `skills/`, so older projects and habits that say "read CLAUDE_BIB.md" still land on the current content.
 
