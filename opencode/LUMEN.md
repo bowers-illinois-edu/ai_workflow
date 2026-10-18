@@ -1,0 +1,178 @@
+# Using Illinois Lumen from opencode
+
+Lumen is a University of Illinois service, run by NCSA, that hosts language
+models on campus hardware. The models are ones whose makers published the
+trained parameters (Qwen, GLM, DeepSeek, Gemma, and others). Programs send
+Lumen requests in the same format they would send to OpenAI. So any client
+written for OpenAI can use Lumen once it is given Lumen's URL and a Lumen key.
+The steps below set up the opencode command-line client to use Lumen on a new
+machine. The later sections record problems we found when we first set it up
+on koelsch on 2026-10-18.
+
+Sources: the connection page at
+<https://lumen.computes.illinois.edu/help/connect> and the server code and
+login script at <https://github.com/ncsa/lumen>.
+
+## What the client needs
+
+opencode needs three things to use Lumen.
+
+1. The URL that every request starts with,
+   `https://lumen.computes.illinois.edu/v1`. The hostname
+   `lumen.ncsa.illinois.edu`, which `lumen.sh` (described below) uses by
+   default, also answers. On 2026-10-18 it returned the same model list for
+   the same key, so the two names appear to reach one server. The connection
+   page uses the `computes` name, and so does everything here.
+2. An API key, a string that begins `sk_`. A person creates one on the Profile
+   page of the Lumen website, which shows the key once only. opencode reads the
+   key from the environment variable `LUMEN_API_KEY`. On koelsch it is set by a line in
+   `~/.zshrc`:
+
+       export LUMEN_API_KEY="sk_..."
+
+3. A section of `~/.config/opencode/opencode.json` that describes Lumen to
+   opencode. opencode calls each such section a provider. The Lumen provider
+   gives the URL above, tells opencode to read the key from the environment,
+   and lists the models.
+
+A key can use a model only after its owner has clicked "acknowledge" for that
+model on the Lumen website. Until then the API hides the model or answers
+with HTTP status 403.
+
+## Checking the key before touching opencode
+
+This command asks Lumen which models the key can use. If the key works, it
+prints one model id per line. If the key is wrong, Lumen sends back an error
+message instead of a list, and Python stops with `KeyError: 'data'`.
+
+```sh
+curl -sS -H "Authorization: Bearer $LUMEN_API_KEY" \
+  https://lumen.computes.illinois.edu/v1/models |
+  python3 -c 'import json,sys; [print(m["id"]) for m in json.load(sys.stdin)["data"]]'
+```
+
+## Writing the opencode configuration
+
+The script below asks Lumen for the model list and writes a complete
+`opencode.json` to standard output. Run it whenever Lumen adds or drops
+models. It overwrites the whole file, so merge by hand if the file holds
+settings for other providers.
+
+```sh
+curl -sS -H "Authorization: Bearer $LUMEN_API_KEY" \
+  https://lumen.computes.illinois.edu/v1/models > /tmp/lumen_models.json
+python3 - /tmp/lumen_models.json > ~/.config/opencode/opencode.json <<'EOF'
+import json, sys
+d = json.load(open(sys.argv[1]))
+models = {}
+for m in d["data"]:
+    # opencode works in text; the speech model takes audio only.
+    if "text" not in (m.get("input_modalities") or []):
+        continue
+    name = m["id"] + " via Lumen" + (f" (alias of {m['parent']})" if m.get("parent") else "")
+    entry = {
+        "name": name,
+        # Some models report an output limit larger than their context
+        # window. 32768 is the output limit in Lumen's own template.
+        "limit": {"context": m["max_model_len"],
+                  "output": min(m.get("max_output_tokens") or 32768, 32768)},
+        "cost": {"input": m["input_cost_per_million"],
+                 "output": m["output_cost_per_million"]},
+        "modalities": {"input": m["input_modalities"],
+                       "output": m["output_modalities"]},
+        # Lumen does not report tool support (see below), so state it.
+        "tool_call": True,
+    }
+    if "image" in m["input_modalities"]:
+        entry["attachment"] = True
+    if m.get("supports_reasoning"):
+        entry["reasoning"] = True
+    models[m["id"]] = entry
+cfg = {
+    "$schema": "https://opencode.ai/config.json",
+    "model": "lumen/qwen3-coder-next",
+    "enabled_providers": ["lumen"],
+    "provider": {"lumen": {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "Lumen",
+        "options": {"baseURL": "https://lumen.computes.illinois.edu/v1",
+                    "apiKey": "{env:LUMEN_API_KEY}"},
+        "models": models}},
+}
+json.dump(cfg, sys.stdout, indent=2)
+print()
+EOF
+```
+
+Two settings in that file are choices, not requirements.
+
+- `"model": "lumen/qwen3-coder-next"` makes Lumen's coding model the default
+  when opencode starts. Pick another in the session with `/models`, or on the
+  command line with `-m lumen/<id>`.
+- `"enabled_providers": ["lumen"]` hides every provider but Lumen, including
+  the free models opencode ships with, which send prompts to servers outside
+  the university. Delete the line to get those models back.
+
+## Testing it
+
+```sh
+opencode models                  # should list lumen/<id> for each model
+mkdir -p /tmp/octest && cd /tmp/octest && echo "hello" > note.txt
+opencode run -m lumen/qwen3-coder-next "Read note.txt and reply with its contents."
+```
+
+opencode works by having the model ask it to do things, such as read a file or
+run a command. These requests are called tool calls. The last command succeeds
+only if the model can make a tool call that reads `note.txt`, so it tests tool
+calls as well as the connection. On koelsch it
+printed the file's contents.
+
+## Problems with the two official routes
+
+The connection page offers two other ways to configure opencode. We used
+neither on koelsch.
+
+The "Download config.json" button on the connection page needs you to be
+logged in to the Lumen website in a browser. The file it gives lists the
+models available on the day you download it, so it goes out of date when
+Lumen adds a model. We did not download it and so did not check its
+contents.
+
+The `lumen.sh` script in the GitHub repository logs in through the browser,
+stores a key, and rewrites the Lumen block of `opencode.json`. We did not
+run it, for three reasons.
+
+1. It needs `jq`, which koelsch does not have (`sudo apt install jq`).
+2. It writes `"tool_call": false` for every model unless the server reports
+   `supports_function_calling: true`. On 2026-10-18 the server reported no
+   value for that field for any model, yet `qwen3-coder-next`, `glm-5.3`,
+   and `deepseek-v4-flash` each returned a correct tool call when asked
+   directly. opencode reads files, runs commands, and edits code only by having
+   the model make tool calls, so with `lumen.sh`'s settings opencode could do
+   none of those things.
+3. It appends its own `LUMEN_API_KEY` block to `~/.zshrc`, which would
+   duplicate the line already there.
+
+## Models on 2026-10-18
+
+The key on koelsch could reach these models. The context column is the
+largest prompt plus reply, in tokens, that each accepts.
+
+| id | context | notes |
+|---|---|---|
+| qwen3-coder-next | 131066 | coding model; the default above |
+| glm-5.3 | 524282 | `glm` is an alias for it |
+| deepseek-v4-flash | 511994 | |
+| qwen3.6-35b-a3b | 262138 | |
+| qwen3.8-27b | 250542 | |
+| qwen3.8-flash | 262138 | accepts images |
+| nemotron-3-super-120b-a12b | 262144 | |
+| ornith-1.0-35b | 262138 | |
+| muse-glimmer-30b | 131066 | |
+| gemma-4-31b-it | 46790 | |
+| granite-speech-4.1-2b-plus | 4096 | audio input; left out of the opencode config |
+
+## Note on the key in `~/.zshrc`
+
+On koelsch `~/.zshrc` has mode 644, which lets every account on the machine
+read it and so read the key. `chmod 600 ~/.zshrc` restricts it to its owner.
