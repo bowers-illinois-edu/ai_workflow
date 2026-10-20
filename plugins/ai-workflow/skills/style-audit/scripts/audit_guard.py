@@ -254,11 +254,18 @@ def build_reason(paths):
     lines += ["  " + style_gate.ascii_only(p) for p in shown]
     if len(paths) > len(shown):
         lines.append("  and %d more." % (len(paths) - len(shown)))
+    # The closing instruction once asked for two or three sentences on what
+    # the audit changed. Jake, 2026-10-20, of those sentences: "I don't need
+    # to know how it improved its message to me or the writing it is
+    # working on." He has read the reply that came before the block.
     lines.append("Load the style-audit skill and run both of its passes on "
                  "the text you wrote or changed in each one. Apply the "
-                 "fixes, then tell Jake in two or three sentences what the "
-                 "audit changed. Do not run both-passes or first-reader for "
-                 "this. Jake runs those when he asks for them.")
+                 "fixes and end the turn without writing anything more to "
+                 "Jake. He has already read the reply you wrote before this "
+                 "hook stopped you, and he does not want to hear that the "
+                 "audit ran or what it changed. Do not run both-passes or "
+                 "first-reader for this. Jake runs those when he asks for "
+                 "them.")
     return "\n".join(lines)
 
 

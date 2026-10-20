@@ -288,6 +288,17 @@ class TestTheHook(GuardCase):
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
         self.assertTrue(all(ord(c) <= 126 for c in out["reason"]))
 
+    def test_the_reason_asks_for_no_report_of_the_audit(self):
+        """Jake, 2026-10-20: "I don't need to know how it improved its
+        message to me or the writing it is working on." The reason used to
+        end by asking for two or three sentences on what the audit changed,
+        and those sentences were the messages he meant. The reply he got
+        before the block stands, so the turn ends with nothing added."""
+        _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
+        reason = out["reason"].lower()
+        self.assertNotIn("tell jake", reason)
+        self.assertIn("end the turn without writing anything more", reason)
+
     def test_says_nothing_when_every_document_was_audited(self):
         code, out = self.run_hook([jake("go", T0), write(self.memo, T1),
                                    skill("style-audit", T2)])

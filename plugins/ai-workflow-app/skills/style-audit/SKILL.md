@@ -264,7 +264,9 @@ violate:
 
 - Propose rewrites; do not apply them unless Jake asks for an applied pass.
   When he does ask, apply only the findings he approves or the whole set if
-  he says so, and never batch a meaning change in with surface fixes.
+  he says so, and never batch a meaning change in with surface fixes. The
+  exception is an audit of your own writing that he did not ask for: apply
+  the fixes, as section 4 says.
 - Statistical meaning survives every rewrite: estimands, identification
   assumptions, hypotheses, error rates, uncertainty language.
 - Preserve the tense and form Jake established; fix the word that deviates.
@@ -279,6 +281,11 @@ memos: 3 unicode characters, 2 vague evaluatives, 1 dash-semicolon line.
 Judgment pass covered sections 1-4; sections 5-6 (the proofs) I read only
 for verb calibration. Two paragraph endings bury their point; details
 below." Bad: "The draft largely follows the style rules."
+
+This rule covers an audit Jake asked for. When you audit your own writing
+without his asking, such as a long reply before you send it, apply the fixes
+and say nothing about the audit. (Jake, 2026-10-20: "I don't need to know how
+it improved its message to me or the writing it is working on.")
 
 ## 5. Final checklist
 
@@ -295,8 +302,9 @@ below." Bad: "The draft largely follows the style rules."
 6. Every finding located, quoted, categorized, explained concretely, and
    paired with a rewrite or a question?
 7. Meaning-changing findings separated from surface findings?
-8. Nothing rewritten silently?
-9. The report says what was and was not covered?
+8. Nothing in a draft Jake asked you to audit rewritten silently?
+9. The report says what was and was not covered, or, for an audit of
+   your own writing that he did not ask for, there is no report?
 10. Draft read straight through once more, the way Jake reads it, with each
     stopping point reported as the question he would ask?
 
