@@ -187,10 +187,14 @@ path in each command:
   `style_gate.py check` on it.
 - `Stop` also runs `audit_guard.py`, from the same directory. When a document
   saved since the person's last message has not been through the style-audit
-  skill, it refuses to let the model end its turn and tells it to run the
-  audit first. It refuses at most once in a row, so it cannot loop. It was
-  added on 2026-10-15, because Jake was tired of asking whether the full audit
-  had run.
+  skill, it keeps the model's turn going and tells it to run the audit
+  first. It asks at most once in a row, so it cannot loop. It was added on
+  2026-10-15, because Jake was tired of asking whether the full audit had
+  run. Until 2026-10-21 it answered Claude Code with a block decision, and
+  Claude Code prints the reason for a block in the terminal as a hook
+  error, in full. Jake did not want to scroll past that, so it now answers
+  with the hook's `additionalContext` field, which Claude Code treats as
+  feedback for the model and not as an error.
 
 ### Per-project supplements
 

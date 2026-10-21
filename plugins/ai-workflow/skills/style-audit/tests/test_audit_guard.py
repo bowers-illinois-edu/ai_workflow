@@ -110,6 +110,7 @@ class GuardCase(unittest.TestCase):
             os.makedirs(d)
         self.memo = os.path.join(self.proj, "memo.md")
         self.log = os.path.join(self.root, "logs", "audit_guard.jsonl")
+        self.lists = os.path.join(self.root, "lists")
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -133,9 +134,15 @@ class GuardCase(unittest.TestCase):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             code = ag.run(json.dumps(payload), self.log, home=self.home,
-                          scratch_roots=(self.scratch,))
+                          scratch_roots=(self.scratch,),
+                          list_dir=self.lists)
         out = buf.getvalue().strip()
         return code, (json.loads(out) if out else None)
+
+    @staticmethod
+    def feedback(out):
+        """The text the guard hands the model."""
+        return out["hookSpecificOutput"]["additionalContext"]
 
 
 class TestWhatCountsAsUnaudited(GuardCase):
@@ -277,27 +284,60 @@ class TestBashSaves(GuardCase):
 
 class TestTheHook(GuardCase):
 
-    def test_blocks_with_a_reason_naming_the_file_and_the_skill(self):
+    def test_continues_with_feedback_naming_the_skill(self):
+        """Jake, 2026-10-21, of the guard's text in his terminal: "I'd prefer
+        not to have to scroll past such clutter." A decision of "block" is
+        drawn as a Stop hook error, in full, in the normal view. The hooks
+        reference says additionalContext on Stop continues the turn through
+        the same loop protections and draws no hook error notice, so the
+        guard asks for the audit that way."""
         code, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
         self.assertEqual(code, 0)
-        self.assertEqual(out["decision"], "block")
-        self.assertIn(self.memo, out["reason"])
-        self.assertIn("style-audit", out["reason"])
+        self.assertNotIn("decision", out)
+        self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "Stop")
+        self.assertIn("style-audit", self.feedback(out))
 
-    def test_the_reason_is_plain_ascii(self):
+    def test_the_feedback_is_plain_ascii(self):
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
-        self.assertTrue(all(ord(c) <= 126 for c in out["reason"]))
+        self.assertTrue(all(ord(c) <= 126 for c in self.feedback(out)))
 
-    def test_the_reason_asks_for_no_report_of_the_audit(self):
+    def test_the_feedback_asks_for_no_report_of_the_audit(self):
         """Jake, 2026-10-20: "I don't need to know how it improved its
-        message to me or the writing it is working on." The reason used to
+        message to me or the writing it is working on." The text used to
         end by asking for two or three sentences on what the audit changed,
         and those sentences were the messages he meant. The reply he got
-        before the block stands, so the turn ends with nothing added."""
+        before the guard spoke stands, so the turn ends with nothing added."""
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
-        reason = out["reason"].lower()
-        self.assertNotIn("tell jake", reason)
-        self.assertIn("end the turn without writing anything more", reason)
+        text = self.feedback(out).lower()
+        self.assertNotIn("tell jake", text)
+        self.assertIn("end the turn without writing anything more", text)
+
+    def test_the_feedback_is_two_lines_however_many_files(self):
+        """Claude Code draws Stop feedback in the normal view, as Jake saw
+        on 2026-10-21 when a turn had saved five documents: the heading,
+        five paths, and two lines of instruction. The paths now go to a
+        file and the feedback names it, so the count of saved documents
+        no longer sets the number of lines he scrolls past."""
+        other = os.path.join(self.proj, "other.md")
+        _, out = self.run_hook([jake("go", T0), write(self.memo, T1),
+                                write(other, T1)])
+        lines = self.feedback(out).splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertIn("2 documents", lines[0])
+
+    def test_the_list_file_holds_each_path_on_its_own_line(self):
+        """The model reads the list from the file the feedback names, so
+        the file has to exist when the feedback is printed and to hold the
+        paths in the order they were saved, one per line, with nothing
+        else to parse. The file is named for the session, because two
+        sessions can end turns at the same time."""
+        other = os.path.join(self.proj, "other.md")
+        _, out = self.run_hook([jake("go", T0), write(self.memo, T1),
+                                write(other, T1)])
+        path = ag.list_path(self.lists, "s1")
+        self.assertIn(path, self.feedback(out))
+        with open(path, encoding="utf-8") as fh:
+            self.assertEqual(fh.read().splitlines(), [self.memo, other])
 
     def test_says_nothing_when_every_document_was_audited(self):
         code, out = self.run_hook([jake("go", T0), write(self.memo, T1),

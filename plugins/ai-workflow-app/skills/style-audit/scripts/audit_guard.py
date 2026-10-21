@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Stop hook: keep a turn from ending while a document saved in it has not
-been through the style audit.
+"""Stop hook: keep a turn going until every document saved in it has been
+through the style audit.
 
 Jake, 2026-10-15: "I kind of hate having to constantly say 'did you do a full
 style-audit' and being told 'Oh no! I need to do it. Please wait...'" The
@@ -49,9 +49,17 @@ _AUDIT_COMMAND = re.compile(
 # Tools that save a file named in their input.
 SAVE_TOOLS = ("Write", "Edit", "MultiEdit")
 
-# The most files one reason lists. The assistant needs the names, and a turn
-# that saved more than this many documents gets the first ones and a count.
-LIST_LIMIT = 10
+# Where the list of unaudited documents is written, one path per line, in
+# a file named for the session. Claude Code draws Stop feedback in the
+# terminal, in full, so the feedback names this file instead of listing the
+# paths. It goes under the system's temporary directory and not under
+# ~/.claude, which auto mode has refused to let the model read.
+DEFAULT_LIST_DIR = tempfile.gettempdir()
+
+
+def list_path(list_dir, session_id):
+    safe = re.sub(r"[^\w.-]", "_", str(session_id or "unknown"))
+    return os.path.join(list_dir, "audit_guard-%s.txt" % safe)
 
 
 def default_scratch_roots():
@@ -246,27 +254,28 @@ def unaudited_documents(transcript_path, home=None, scratch_roots=None):
             if not covered(at, path)]
 
 
-def build_reason(paths):
-    shown = paths[:LIST_LIMIT]
-    lines = ["Before you hand the session back to Jake: you saved these "
-             "documents after his last message and have not run the "
-             "style audit on them since."]
-    lines += ["  " + style_gate.ascii_only(p) for p in shown]
-    if len(paths) > len(shown):
-        lines.append("  and %d more." % (len(paths) - len(shown)))
-    # The closing instruction once asked for two or three sentences on what
-    # the audit changed. Jake, 2026-10-20, of those sentences: "I don't need
-    # to know how it improved its message to me or the writing it is
-    # working on." He has read the reply that came before the block.
-    lines.append("Load the style-audit skill and run both of its passes on "
-                 "the text you wrote or changed in each one. Apply the "
-                 "fixes and end the turn without writing anything more to "
-                 "Jake. He has already read the reply you wrote before this "
-                 "hook stopped you, and he does not want to hear that the "
-                 "audit ran or what it changed. Do not run both-passes or "
-                 "first-reader for this. Jake runs those when he asks for "
-                 "them.")
-    return "\n".join(lines)
+def build_feedback(paths, listing):
+    """The text handed to the model: two lines, however many documents the
+    turn saved. Jake sees it in full at the end of the turn. On 2026-10-21
+    the feedback listed five paths and he pasted all nine lines back, so
+    the paths now go to the file `listing` and the feedback names it. The
+    text carries no explanation of the ask, which the model has in
+    SKILL.md. It once ended by asking for two or three sentences on what
+    the audit changed. Jake, 2026-10-20: "I don't need to know how it
+    improved its message to me or the writing it is working on." He has
+    read the reply that came before this text."""
+    n = len(paths)
+    return "\n".join([
+        "Not yet style-audited this turn: %d document%s, listed in %s"
+        % (n, "" if n == 1 else "s", style_gate.ascii_only(listing)),
+        "Load the style-audit skill, run its two passes on what you wrote "
+        "or changed in each, apply the fixes, and end the turn without "
+        "writing anything more to Jake. Not both-passes, not first-reader."])
+
+
+def _write_list(listing, paths):
+    with open(listing, "w", encoding="utf-8") as fh:
+        fh.write("".join(p + "\n" for p in paths))
 
 
 def _log(log_path, session_id, paths):
@@ -277,20 +286,21 @@ def _log(log_path, session_id, paths):
                                  "session_id": session_id,
                                  "files": paths}) + "\n")
     except OSError:
-        pass  # the block matters more than the record of it
+        pass  # the ask matters more than the record of it
 
 
-def run(stdin_text, log_path=DEFAULT_LOG, home=None, scratch_roots=None):
-    """Always returns 0. Prints a block decision when a document is
-    unaudited and nothing otherwise. Any failure lets the turn end, because
+def run(stdin_text, log_path=DEFAULT_LOG, home=None, scratch_roots=None,
+        list_dir=DEFAULT_LIST_DIR):
+    """Always returns 0. Prints feedback that continues the turn when a
+    document is unaudited and nothing otherwise. Any failure lets the turn end, because
     a broken guard must not wedge a session."""
     try:
         if os.environ.get(READER_MARK):
             return 0
         event = json.loads(stdin_text)
         # Claude Code sets this when the assistant is already continuing
-        # because a Stop hook blocked. Letting that turn end means the guard
-        # blocks at most once in a row and cannot loop.
+        # because a Stop hook spoke. Letting that turn end means the guard
+        # speaks at most once in a row and cannot loop.
         if event.get("stop_hook_active"):
             return 0
         path = event.get("transcript_path")
@@ -300,8 +310,17 @@ def run(stdin_text, log_path=DEFAULT_LOG, home=None, scratch_roots=None):
         if not pending:
             return 0
         _log(log_path, event.get("session_id"), pending)
-        print(json.dumps({"decision": "block",
-                          "reason": build_reason(pending)}))
+        os.makedirs(list_dir, exist_ok=True)
+        listing = list_path(list_dir, event.get("session_id"))
+        _write_list(listing, pending)
+        # additionalContext continues the turn exactly as a block does,
+        # through stop_hook_active and the eight-continuation cap, but the
+        # harness draws it as hook feedback and not as a hook error. Jake,
+        # 2026-10-21, of the error it drew in his terminal: "I'd prefer not
+        # to have to scroll past such clutter."
+        print(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "Stop",
+            "additionalContext": build_feedback(pending, listing)}}))
         return 0
     except Exception:  # noqa: BLE001 - fail open on anything at all
         return 0
