@@ -50,8 +50,12 @@ tools.
    that repository. Mention rows showing `?` only to say the project has no
    header yet. Offer to write one at the end of the next session there.
 
-6. Stop after the options. Do not list or count the remaining projects, and
-   do not add advice.
+6. Begin with the options and stop after them. Do not explain the rule of
+   working on what is closest to completion, the 14-day deadline rule, or
+   what the HANDOFF.md header is: Jake wrote all three and does not need them
+   read back to him. The restatement his CLAUDE.md asks a reply to open with
+   is one short line here, such as "You asked what to work on today." Do not
+   list or count the remaining projects, and do not add advice.
 
 ## The columns
 
