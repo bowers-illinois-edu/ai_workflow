@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks
+test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -62,6 +62,17 @@ test-plugins:
 
 test-codex-hooks:
 	$(PYTHON) scripts/tests/test_codex_hooks.py
+
+# today.py: active projects under ~/repos, closest to completion first, read
+# from the header of each HANDOFF.md. The suite pins the order, the deadline
+# column that never shows an overdue count, and errors that are not empty tables.
+test-today:
+	$(PYTHON) scripts/tests/test_today.py
+
+# review.py: one next action for work owed to others, earliest due date first,
+# and a `done` that refuses to close a step nobody was shown.
+test-review:
+	$(PYTHON) scripts/tests/test_review.py
 
 # The Claude Code plugin's SessionStart hook prints a copy of CLAUDE_CODING.md,
 # and the plugin's bowers-prose skill copies the app skill's body.

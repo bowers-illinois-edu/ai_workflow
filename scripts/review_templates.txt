@@ -1,0 +1,25 @@
+journal:
+  10 | accept in the journal system and download the PDF into this folder
+  45 | read the paper once, away from the desk, marking the PDF
+  45 | write the summary paragraph and the major concerns
+  45 | write the minor concerns and finish the report
+  10 | submit the report and move the marked PDF to this folder
+student-paper:
+  45 | read the paper once, marking the PDF
+  30 | write the comments
+  10 | send the comments and the marked PDF
+letter:
+  10 | put the candidate's file and the request in this folder
+  45 | read the statements and the main papers
+  45 | read the remaining papers
+  45 | draft the letter
+  30 | revise and put it on letterhead
+  10 | upload or send the letter
+reimbursement:
+  10 | put the receipts in this folder
+  30 | enter the expense report
+  10 | submit it and note the report number in this file
+training:
+  10 | find the course link and put it in this file
+  45 | do the training
+  10 | save the certificate in this folder
