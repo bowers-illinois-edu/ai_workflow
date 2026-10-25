@@ -1,4 +1,4 @@
-"""Tests for scripts/today.py.
+"""Tests for skills/today/scripts/today.py.
 
 today.py answers one question at the start of a research morning: which
 active project is closest to completion, and what is its next step. It reads
@@ -51,8 +51,9 @@ time.tzset()
 assert time.strftime("%z", time.localtime(time.mktime((2024, 2, 27, 12, 0, 0, 0, 0, -1)))) == "-0600", \
     "America/Chicago time zone data is missing on this machine"
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SCRIPT = os.path.join(REPO, "scripts", "today.py")
+# The script is bundled with the `today` skill: skills/today/scripts/today.py.
+SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPT = os.path.join(SKILL_DIR, "scripts", "today.py")
 TODAY = datetime.date(2024, 2, 27)
 HEADER_ROW = "repo\tsessions_left\tdays_since_commit\tdeadline_in_days\tkind\tstale\tnext\tblocked_on"
 

@@ -63,11 +63,12 @@ test-plugins:
 test-codex-hooks:
 	$(PYTHON) scripts/tests/test_codex_hooks.py
 
-# today.py: active projects under ~/repos, closest to completion first, read
-# from the header of each HANDOFF.md. The suite pins the order, the deadline
-# column that never shows an overdue count, and errors that are not empty tables.
+# The `today` skill's script: active projects under ~/repos, closest to
+# completion first, read from the header of each HANDOFF.md. The suite pins the
+# order, the deadline column that never shows an overdue count, and errors that
+# are not empty tables.
 test-today:
-	$(PYTHON) scripts/tests/test_today.py
+	$(PYTHON) skills/today/tests/test_today.py
 
 # review.py: one next action for work owed to others, earliest due date first,
 # and a `done` that refuses to close a step nobody was shown.

@@ -47,6 +47,23 @@ this order:
 - What the coding agent should do first: one concrete next action for the repository session.
 - Notation and definitions: every symbol the rest of the file uses.
 
+Above the `# Handoff` heading, put the header that my `today` tool reads
+across all my repositories to tell me which project is closest to
+completion:
+
+    ---
+    next: the same one concrete action as "what the coding agent should do first"
+    kind: one of code, math, prose, teaching, data
+    milestone: the next point at which something leaves my desk
+    sessions_to_milestone: your estimate from this conversation, a whole number
+    blocked_on: what or whom the work is waiting for; empty if nothing
+    deadline: YYYY-MM-DD, only when I have given one
+    ---
+
+If the conversation gives you no basis for the estimate, leave
+`sessions_to_milestone` empty rather than guess. Say in the block that you
+left it empty.
+
 ## Restoring what voice mode dropped
 
 A spoken conversation carries mathematics in words and drops subscripts.

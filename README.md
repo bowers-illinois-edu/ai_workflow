@@ -77,6 +77,12 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
   the named offenders, non-ASCII characters, and dash-semicolon collisions)
   followed by a judgment pass built on the substitution test. Findings come
   located, quoted, categorized, and paired with a proposed rewrite.
+- **`skills/today/`** --- answers "what should I work on today, and why?" by
+  running `scripts/today.py` (stdlib-only python3) over `~/repos`. The script
+  reads a short header at the top of each project's `HANDOFF.md` and prints one
+  row per active project, fewest sessions to the next milestone first; the
+  skill offers at most three. `CLAUDE.md` tells every session how to write the
+  header.
 - **`skills/simulation-study/`** --- design, implementation, and reporting of
   Monte Carlo operating-characteristics studies: a design ledger before code,
   replications derived from a stated Monte Carlo error target, seed and
@@ -86,6 +92,8 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
 A third group, `claude_app/`, ports the always-on rules to the Claude app, which has no output styles and reaches the same rules through different slots. See "The Claude app" under Installing.
 
 A fourth group, `chat_stats_config/`, sets up a chat --- in ChatGPT or in Claude --- for learning statistics and stress-testing research ideas. See "Statistics chats in the Claude app and ChatGPT" under Installing.
+
+`scripts/review.py` keeps work owed to other people --- reviews, students' papers, letters, reimbursements, trainings --- apart from research. Each request is a folder in a queue in Dropbox, and the script prints one next action at a time, earliest due date first. It is not a skill, because Jake runs it himself. Its opening docstring gives the commands and the reason for each rule. `scripts/review_templates.txt` holds the steps for each kind of request.
 
 A fifth group, `opencode/`, holds `LUMEN.md`. Lumen is the University of Illinois service that runs language models on campus hardware, and `LUMEN.md` says how to set up the opencode command-line client to use it. The guide gives the URL that opencode sends Lumen requests to, a `curl` command that checks whether a Lumen key works, and a Python script that writes the opencode configuration from Lumen's current model list.
 
@@ -137,7 +145,7 @@ to notice rather than easier.
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader both-passes; do
+for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader both-passes today; do
   ln -sfn /path/to/this/repo/skills/$s ~/.claude/skills/$s
 done
 ```
@@ -467,6 +475,8 @@ Now, in any session, typing `/handoff` makes Claude write a thorough `HANDOFF.md
 3. current blockers or open questions,
 4. important context to preserve,
 5. what is done vs. what remains.
+
+It also starts the file with the header that the `today` skill reads (next step, kind of work, milestone, sessions to the milestone, what the work is blocked on, and any deadline), as `CLAUDE.md` describes under "The header at the top of HANDOFF.md."
 
 I treat `HANDOFF.md` as session-local working memory: untracked by git (the repo's `.gitignore` excludes it), overwritten on each `/handoff` call. The point is that a fresh Claude instance reading it should be able to continue the work without back-and-forth.
 

@@ -121,6 +121,7 @@ The task-specific protocols live as skills in `skills/` in the ai_workflow repos
 - `first-reader` --- read a draft the way I read it, linearly and stopping where comprehension breaks, and report each stop as the question I would ask. Runs beside `style-audit`, not instead of it: the scanner owns rare but nameable faults, this pass owns the frequent ones no list can name --- the referent I cannot resolve, the passage with no reason to be there, the sentence that is simply wrong. Cues: any memo, plan, or paper section I am about to read and decide from; a document the scanner called clean that still reads badly.
 - `both-passes` --- run `style-audit` and `first-reader` on one draft in the order that lets both reports be used: freeze a copy, start the reader on it, audit while it reads, wait for both, edit once. Cues: "run both passes," "the full review," any draft that gets both audits. Without it the audit comes back first and the editing starts while the reader is still reading, which leaves the reader's report pointing at sentences that are already gone.
 - `simulation-study` --- design, run, and report Monte Carlo studies of operating characteristics. Cues: "simulation study," "operating characteristics," "size," "power," "coverage," "Monte Carlo."
+- `today` --- answer "what should I work on today, and why?" by running its bundled `today.py` over `~/repos` and offering at most three projects, closest to completion first, from the header at the top of each project's `HANDOFF.md`. Cues: "what should I work on," "which project," "where do my projects stand," the start of a research morning.
 
 When a session mixes modes --- code that does causal inference for a paper, for instance, or a draft whose bibliography needs auditing --- load every skill that applies. An extra skill in context is cheap; working without the rules that apply is not.
 
@@ -197,6 +198,27 @@ every section is repetitive, and a sentence added only to announce what a
 passage is for is one more sentence I have to read. The `style-audit` and
 `first-reader` checks are given `POINT.md` and test each passage against it,
 so the document does not have to say it.
+
+## The header at the top of HANDOFF.md
+
+When a session in a project ends, or when I ask for a handoff, write or
+update a short header at the top of that project's `HANDOFF.md`, above the
+prose:
+
+    ---
+    next: the one concrete action the next session should take first
+    kind: one of code, math, prose, teaching, data
+    milestone: the next point at which something leaves my desk
+    sessions_to_milestone: your estimate, a whole number
+    blocked_on: what or whom the work is waiting for; empty if nothing
+    deadline: YYYY-MM-DD, only when I have given one
+    ---
+
+The `today` skill reads these headers across `~/repos` to tell me which
+project is closest to completion, so a session that changes the work and
+leaves the header alone makes that answer wrong. Keep any `active:` line
+already in the header. Only I add `active: no`, which takes a project off the
+list.
 
 ## Writing Style
 
