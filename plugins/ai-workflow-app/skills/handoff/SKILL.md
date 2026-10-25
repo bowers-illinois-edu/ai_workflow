@@ -3,7 +3,7 @@ name: handoff
 description: "Turn this conversation into a paste-ready HANDOFF.md for a coding agent in Jake's repository: decisions, what was checked and what was only asserted, open questions, next step."
 ---
 
-<!-- Synced against handoff_command.md at commit 2047e0a (2026-09-02). -->
+<!-- Synced against handoff_command.md at commit d11af1f (2026-10-25). -->
 
 # Handoff to a repository coding agent
 
