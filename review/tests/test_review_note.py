@@ -41,7 +41,7 @@ import tempfile
 import unittest
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SCRIPT = os.path.join(REPO, "scripts", "review.py")
+SCRIPT = os.path.join(REPO, "review", "review.py")
 TODAY = "2024-02-27"
 EMPTY = "nothing in the review queue"
 
