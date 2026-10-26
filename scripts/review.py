@@ -43,6 +43,14 @@ Decisions behind the rules below (2026-10-25):
 - Loose files and folders without REQUEST.md are ignored, because the real
   queue sits in Dropbox among years of PDFs. A REQUEST.md that cannot be read
   is an error naming the file, never the empty-queue message.
+
+Added the same day: Jake reads Obsidian on his phone, tablet, and laptop,
+and the Dropbox app is no good for reading anything but PDFs. He asked to
+see the whole queue at a glance, next request on top and clearly marked, in
+one note rather than one per request. So every command rewrites one note in
+his vault, which Obsidian Sync copies to his devices: the request `review`
+would print under "Next", the rest in order under "After that". The note is
+the only place the whole list appears; `review` still prints one line.
 """
 
 import argparse
@@ -56,6 +64,8 @@ DEFAULT_DIR = "~/Library/CloudStorage/Dropbox/ReviewsInbox/REVIEWS/QUEUE"
 DEFAULT_TEMPLATES = os.path.join(os.path.dirname(os.path.realpath(__file__)), "review_templates.txt")
 STATE = ".review_last_shown"
 EMPTY = "nothing in the review queue"
+# No spaces in the note's own name, at Jake's request; the vault folder is his.
+DEFAULT_NOTE = "~/Documents/Obsidian Vault/review_queue.md"
 SHORT_MINUTES = 15
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 STEP_RE = re.compile(r"^\s*(\d+)\s*\|\s*(\S.*?)\s*$")
@@ -214,8 +224,45 @@ def clear_state(queue):
         os.remove(state_path(queue))
 
 
+def note_text(requests, today):
+    """The note: the request `review` would print under "Next", then the
+    others in the order `review` would reach them."""
+    lines = ["# Review queue", "",
+             f"Written by review.py on {today.isoformat()}. "
+             "Steps are marked done on the Mac with `review done`.", ""]
+    if not requests:
+        return "\n".join(lines + [EMPTY]) + "\n"
+    lines += ["## Next", "", requests[0].line(), ""]
+    if len(requests) > 1:
+        lines += ["## After that", ""]
+        lines += [f"{i}. {r.line()}" for i, r in enumerate(requests[1:], 1)]
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+def write_note(args, requests):
+    # The vault folder is Jake's; on a machine without it, review.py still
+    # does its work and says once that the note was not written, rather
+    # than create a vault nobody syncs.
+    folder = os.path.dirname(os.path.abspath(args.note))
+    if not os.path.isdir(folder):
+        print(f"review: did not write the note: no folder at {folder}", file=sys.stderr)
+        return
+    write_atomically(args.note, note_text(requests, args.today))
+
+
+def refresh_note(args):
+    """After add or done, which have already done their work: a queue that
+    cannot be read leaves the note as it was and says so, but does not turn
+    a finished add or done into a failure."""
+    try:
+        write_note(args, load_queue(args.dir))
+    except QueueError as err:
+        print(f"review: did not update the note: {err}", file=sys.stderr)
+
+
 def show(args):
     requests = load_queue(args.dir)
+    write_note(args, requests)
     if not requests:
         clear_state(args.dir)
         print(EMPTY)
@@ -250,6 +297,7 @@ def add(args):
               f"added: {args.today.isoformat()}", "step: 1", "---"]
     steps = [f"{minutes} | {text}" for minutes, text in templates[args.kind]]
     write_atomically(os.path.join(folder, "REQUEST.md"), "\n".join(header + steps) + "\n")
+    refresh_note(args)
     print(f"added: {title} | due {due.isoformat()}")
     return 0
 
@@ -278,6 +326,7 @@ def done(args):
         shutil.move(front.folder, unused_path(archive, front.name))
         note = " (last step; moved to Archive)"
     clear_state(args.dir)
+    refresh_note(args)
     print(f"closed: {front.title} | {closed}{note}")
     return 0
 
@@ -287,6 +336,8 @@ def main(argv=None):
     parser.add_argument("--dir", default=DEFAULT_DIR, help="queue folder (default: %(default)s)")
     parser.add_argument("--templates", default=DEFAULT_TEMPLATES, help="step templates file")
     parser.add_argument("--today", default=None, help="date to use as today, YYYY-MM-DD")
+    parser.add_argument("--note", default=DEFAULT_NOTE,
+                        help="Obsidian note listing the queue (default: %(default)s)")
     sub = parser.add_subparsers(dest="command")
     p_add = sub.add_parser("add", help="add a request")
     p_add.add_argument("title")
@@ -297,6 +348,7 @@ def main(argv=None):
 
     args.dir = os.path.expanduser(args.dir)
     args.templates = os.path.expanduser(args.templates)
+    args.note = os.path.expanduser(args.note)
     if args.today is None:
         args.today = datetime.date.today()
     else:

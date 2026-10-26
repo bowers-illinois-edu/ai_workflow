@@ -85,8 +85,11 @@ class ReviewTest(unittest.TestCase):
     # --- helpers
 
     def review(self, *args, ok=True):
+        # --note points at a temporary file, so that no test writes the
+        # Obsidian note in Jake's real vault (test_review_note.py tests it).
         out = subprocess.run([sys.executable, SCRIPT, "--dir", self.dir, "--today", TODAY,
-                              "--templates", self.templates, *args],
+                              "--templates", self.templates,
+                              "--note", os.path.join(self.tmp, "review_queue.md"), *args],
                              capture_output=True, text=True)
         if ok:
             self.assertEqual(out.returncode, 0, out.stderr)

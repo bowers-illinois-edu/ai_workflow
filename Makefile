@@ -75,6 +75,7 @@ test-today:
 # and a `done` that refuses to close a step nobody was shown.
 test-review:
 	$(PYTHON) scripts/tests/test_review.py
+	$(PYTHON) scripts/tests/test_review_note.py
 
 # The Claude Code plugin's SessionStart hook prints a copy of CLAUDE_CODING.md,
 # and the plugin's bowers-prose skill copies the app skill's body.
