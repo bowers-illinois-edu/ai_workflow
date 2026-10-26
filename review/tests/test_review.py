@@ -1,4 +1,4 @@
-"""Tests for scripts/review.py.
+"""Tests for review/review.py.
 
 review.py holds the work Jake does for other people and for the institution
 --- reviews, students' papers, letters, reimbursements, required trainings ---
@@ -43,8 +43,8 @@ import tempfile
 import unittest
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SCRIPT = os.path.join(REPO, "scripts", "review.py")
-REAL_TEMPLATES = os.path.join(REPO, "scripts", "review_templates.txt")
+SCRIPT = os.path.join(REPO, "review", "review.py")
+REAL_TEMPLATES = os.path.join(REPO, "review", "review_templates.txt")
 TODAY = "2024-02-27"
 EMPTY = "nothing in the review queue"
 

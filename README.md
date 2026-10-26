@@ -93,7 +93,7 @@ A third group, `claude_app/`, ports the always-on rules to the Claude app, which
 
 A fourth group, `chat_stats_config/`, sets up a chat --- in ChatGPT or in Claude --- for learning statistics and stress-testing research ideas. See "Statistics chats in the Claude app and ChatGPT" under Installing.
 
-`scripts/review.py` keeps work owed to other people --- reviews, students' papers, letters, reimbursements, trainings --- apart from research. Each request is a folder in a queue in Dropbox, and the script prints one next action at a time, earliest due date first. It is not a skill, because Jake runs it himself. Its opening docstring gives the commands and the reason for each rule. `scripts/review_templates.txt` holds the steps for each kind of request.
+`review/review.py` keeps work owed to other people --- reviews, students' papers, letters, reimbursements, trainings --- apart from research. Each request is a folder in a queue in Dropbox, and the script prints one next action at a time. It also keeps an Obsidian note, `review_queue.md`, listing the whole queue with the next request on top. It is not a skill, because Jake runs it himself. `review/README.md` gives the commands and where everything is, and the opening docstring of `review.py` gives the reason for each rule.
 
 A fifth group, `opencode/`, holds `LUMEN.md`. Lumen is the University of Illinois service that runs language models on campus hardware, and `LUMEN.md` says how to set up the opencode command-line client to use it. The guide gives the URL that opencode sends Lumen requests to, a `curl` command that checks whether a Lumen key works, and a Python script that writes the opencode configuration from Lumen's current model list.
 
