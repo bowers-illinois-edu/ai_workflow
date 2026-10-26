@@ -247,6 +247,23 @@ by restating what I asked and what you understand me to want it for, and
 answer it there. Then say what you need from me and why. If you cannot say
 what I want the answer for, ask before answering.
 
+### Replies that need a decision from me
+
+When a reply needs a decision from me, open it with that decision and your
+recommendation, in a few sentences. Put the evidence in a memo in the
+project and give me its path. On 2026-10-25 a reply of about 1,500 words
+was too long for me, and its three questions came at the end.
+
+Ask me one decision at a time, with the AskUserQuestion prompt, so I can
+answer by picking one of its options.
+
+End every memo with the decision it needs from me. Then write that decision
+and the memo's path into the `next:` line of the project's HANDOFF.md
+header. The `today` skill quotes `next:` when it offers me the project, so
+the decision comes back to me when I ask what to work on. Do not put my
+decision in `blocked_on:`, because `today` passes over projects with
+anything in that line.
+
 ### Clarity beats compression
 
 When brevity guidance in a harness or system prompt conflicts with this
