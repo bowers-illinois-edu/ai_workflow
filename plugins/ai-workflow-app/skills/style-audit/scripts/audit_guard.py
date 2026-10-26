@@ -62,33 +62,12 @@ def list_path(list_dir, session_id):
     return os.path.join(list_dir, "audit_guard-%s.txt" % safe)
 
 
-def default_scratch_roots():
-    """Directories whose files are drafts, not documents. The assistant
-    drafts every reply in its scratchpad under the system's temporary
-    directory and checks it with `style_gate.py check`."""
-    roots = {"/tmp", "/private/tmp", tempfile.gettempdir()}
-    if os.environ.get("TMPDIR"):
-        roots.add(os.environ["TMPDIR"])
-    return tuple(sorted(roots))
-
-
-def _under(path, root):
-    """True when `path` is `root` or inside it, compared both as written and
-    with links resolved, because /tmp on a Mac is a link to /private/tmp."""
-    for p, r in ((os.path.abspath(path), os.path.abspath(root)),
-                 (os.path.realpath(path), os.path.realpath(root))):
-        r = r.rstrip(os.sep)
-        if p == r or p.startswith(r + os.sep):
-            return True
-    return False
-
-
-def is_document(path, home, scratch_roots):
-    if not path or not style_gate.is_prose_path(path):
-        return False
-    if any(_under(path, root) for root in scratch_roots):
-        return False
-    return not _under(path, os.path.join(home, ".claude"))
+# What counts as a document lives in style_gate.py, because the note it
+# adds after a save asks for the audit on the same files this guard checks.
+# A file one of them counted and the other did not would bring the guard
+# out after a reply the note had tried to make safe.
+default_scratch_roots = style_gate.default_scratch_roots
+is_document = style_gate.is_document
 
 
 def _epoch(ts):
@@ -255,27 +234,40 @@ def unaudited_documents(transcript_path, home=None, scratch_roots=None):
 
 
 def build_feedback(paths, listing):
-    """The text handed to the model: two lines, however many documents the
-    turn saved. Jake sees it in full at the end of the turn. On 2026-10-21
-    the feedback listed five paths and he pasted all nine lines back, so
-    the paths now go to the file `listing` and the feedback names it. The
-    text carries no explanation of the ask, which the model has in
-    SKILL.md. It once ended by asking for two or three sentences on what
-    the audit changed. Jake, 2026-10-20: "I don't need to know how it
-    improved its message to me or the writing it is working on." He has
-    read the reply that came before this text."""
+    """The text handed to the model: one line, however many documents the
+    turn saved. Claude Code draws it on Jake's screen in every view, focus
+    view included, and no field of a Stop hook's output hides it. On
+    2026-10-21 the feedback listed five paths and he pasted all nine lines
+    back, so the paths went to the file `listing`. On 2026-10-26 the
+    instructions followed them there (INSTRUCTIONS)."""
     n = len(paths)
-    return "\n".join([
-        "Not yet style-audited this turn: %d document%s, listed in %s"
-        % (n, "" if n == 1 else "s", style_gate.ascii_only(listing)),
-        "Load the style-audit skill, run its two passes on what you wrote "
-        "or changed in each, apply the fixes, and end the turn without "
-        "writing anything more to Jake. Not both-passes, not first-reader."])
+    return ("Not yet style-audited: %d document%s. Read %s and do what it "
+            "says." % (n, "" if n == 1 else "s",
+                       style_gate.ascii_only(listing)))
+
+
+# What the model reads in the list file, after the paths. Jake chose on
+# 2026-10-26 (memo_audit_guard_in_focus_view_2026-10-26.md) to have the
+# reply sent again after the audit. Focus view shows only the last message
+# of a turn, and the guard speaks after the reply. From 2026-10-21 the text
+# told the model to write nothing more, and in 64 of 65 firings it wrote a
+# message anyway, often just "Done.", which in focus view was all Jake saw.
+# Nothing about the audit goes in the message. Jake, 2026-10-20: "I don't
+# need to know how it improved its message to me or the writing it is
+# working on."
+INSTRUCTIONS = "\n".join([
+    "Run the style-audit skill on what you wrote or changed in each file "
+    "above, and apply the fixes. Not both-passes, not first-reader.",
+    "Then send Jake your last reply again, in full, as your final message. "
+    "His screen shows only the last message of a turn, so the reply has to "
+    "come last. Change it only where the audit changed something the reply "
+    "quotes or describes. Say nothing about the audit."])
 
 
 def _write_list(listing, paths):
+    """The paths, one per line, then a blank line, then INSTRUCTIONS."""
     with open(listing, "w", encoding="utf-8") as fh:
-        fh.write("".join(p + "\n" for p in paths))
+        fh.write("".join(p + "\n" for p in paths) + "\n" + INSTRUCTIONS + "\n")
 
 
 def _log(log_path, session_id, paths):

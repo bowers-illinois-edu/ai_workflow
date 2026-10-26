@@ -1436,5 +1436,130 @@ class TestStopRecordsWhetherTheReplyWasChecked(GateCase):
         self.assertEqual(self.records()[0]["tier"], "clean")
 
 
+class TestAuditBeforeAnswering(GateCase):
+    """The note after a document is saved asks for the style audit before
+    the reply, so the audit guard has nothing to ask for at the end.
+
+    Jake chose this on 2026-10-26 (memo_audit_guard_in_focus_view_2026-10-26.md).
+    When the guard asks for the audit after the reply, the model has to send
+    the reply a second time, because focus view shows only the last message
+    of a turn. An audit run before the reply means the reply goes out once.
+
+    A document here is what audit_guard.py counts as one: a prose file
+    outside the scratch area and outside ~/.claude. A reply draft in the
+    scratch area has its own check, `style_gate.py check`, and a memory file
+    under ~/.claude is not prose that leaves the desk, so neither is asked
+    for the audit.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.home = os.path.join(self._tmp.name, "home")
+        self.proj = os.path.join(self._tmp.name, "proj")
+        self.scratch = os.path.join(self._tmp.name, "scratch")
+        for d in (self.home, self.proj, self.scratch):
+            os.makedirs(d)
+
+    def save(self, folder, name, text):
+        path = os.path.join(folder, name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        return path
+
+    def run_posttool(self, path, session="s1"):
+        event = json.loads(posttool_event("Write", {"file_path": path}))
+        event["session_id"] = session
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sg.run_posttool(json.dumps(event), self.log,
+                                   home=self.home,
+                                   scratch_roots=(self.scratch,))
+        self.assertEqual(code, 0)
+        out = buf.getvalue().strip()
+        return self.context_of(json.loads(out)) if out else None
+
+    def asks_for_the_audit(self, note):
+        text = (note or "").lower()
+        return "style-audit" in text and "before you write to jake" in text
+
+    def test_a_clean_document_is_asked_for_the_audit(self):
+        """A clean scan says nothing about the eight questions the scan
+        cannot answer, so a clean document needs the request most."""
+        memo = self.save(self.proj, "memo.md", "The estimand is the average.\n")
+        note = self.run_posttool(memo)
+        self.assertTrue(self.asks_for_the_audit(note))
+        self.assertIn("memo.md", note)
+
+    def test_a_dirty_document_is_asked_for_the_audit_after_its_findings(self):
+        memo = self.save(self.proj, "memo.md", "a %s b\n" % EM_DASH)
+        note = self.run_posttool(memo)
+        self.assertIn("unicode", note)
+        self.assertTrue(self.asks_for_the_audit(note))
+
+    def test_the_audit_is_asked_for_once_per_document_and_session(self):
+        """The audit's own fixes are saves of the same file. Asking again
+        after each one would send the model back into the audit it is
+        finishing."""
+        memo = self.save(self.proj, "memo.md", "a %s b\n" % EM_DASH)
+        self.run_posttool(memo)
+        self.assertIsNone(self.run_posttool(memo))
+        with open(memo, "a", encoding="utf-8") as fh:
+            fh.write("\nThe design is appropriate here.\n")
+        later = self.run_posttool(memo)
+        self.assertIn("appropriate", later)
+        self.assertFalse(self.asks_for_the_audit(later))
+
+    def test_a_document_reached_through_a_link_is_asked_once(self):
+        """In this repository skills/ is a link to plugins/ai-workflow/skills,
+        so one file has two names. On 2026-10-26 the note asked for the
+        audit of style-audit's SKILL.md under each name in one session."""
+        real = os.path.join(self.proj, "plugins", "skills")
+        os.makedirs(real)
+        os.symlink(real, os.path.join(self.proj, "skills"))
+        self.save(real, "SKILL.md", "A clean skill.\n")
+        self.assertTrue(self.asks_for_the_audit(
+            self.run_posttool(os.path.join(real, "SKILL.md"))))
+        self.assertIsNone(self.run_posttool(
+            os.path.join(self.proj, "skills", "SKILL.md")))
+
+    def test_another_session_is_asked_again(self):
+        memo = self.save(self.proj, "memo.md", "The estimand is the average.\n")
+        self.run_posttool(memo, session="s1")
+        self.assertTrue(self.asks_for_the_audit(
+            self.run_posttool(memo, session="s2")))
+
+    def test_a_reply_draft_in_the_scratch_area_is_not_asked(self):
+        clean = self.save(self.scratch, "reply.md", "A clean draft.\n")
+        self.assertIsNone(self.run_posttool(clean))
+        dirty = self.save(self.scratch, "reply2.md", "a %s b\n" % EM_DASH)
+        note = self.run_posttool(dirty)
+        self.assertIn("unicode", note)
+        self.assertFalse(self.asks_for_the_audit(note))
+
+    def test_a_file_under_dot_claude_is_not_asked(self):
+        mem = self.save(os.path.join(self.home, ".claude", "memory"),
+                        "fact.md", "A clean memory.\n")
+        self.assertIsNone(self.run_posttool(mem))
+
+    def test_the_gate_and_the_guard_agree_on_what_a_document_is(self):
+        """If the note asked for the audit on a file the guard ignores, or
+        the reverse, the guard would fire after a reply the note had tried
+        to make safe."""
+        import audit_guard as ag
+        paths = [os.path.join(self.proj, "memo.md"),
+                 os.path.join(self.scratch, "reply.md"),
+                 os.path.join(self.home, ".claude", "memory", "fact.md"),
+                 os.path.join(self.proj, "gate.py")]
+        for p in paths:
+            self.assertEqual(
+                sg.is_document(p, self.home, (self.scratch,)),
+                ag.is_document(p, self.home, (self.scratch,)), p)
+
+    def test_the_request_is_plain_ascii(self):
+        memo = self.save(self.proj, "memo.md", "The estimand is the average.\n")
+        self.assertTrue(all(ord(c) <= 126 for c in self.run_posttool(memo)))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

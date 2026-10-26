@@ -322,6 +322,13 @@ holds whether the end-of-turn hook in `scripts/audit_guard.py` stopped
 you or you audited a document before reporting it. (Jake, 2026-10-20: "I don't need to know how it improved
 its message to me or the writing it is working on.")
 
+When the hook stopped you after your reply, send that reply again, in full,
+as your last message. Change it only where the audit changed something the
+reply quotes or describes. Jake reads in Claude Code's focus view, which
+shows only the last message of a turn, so a reply followed by anything else
+is a reply he does not see (2026-10-26). Audit a document before you reply,
+and the hook has nothing to ask for.
+
 ## 5. Final checklist
 
 1. Scanner run on every file in scope, hits triaged (candidate -> finding

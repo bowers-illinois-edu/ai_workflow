@@ -189,7 +189,10 @@ path in each command:
   `style_gate.py check` on the draft before sending it.
 - `PostToolUse`, with the matcher `Write|Edit|MultiEdit|NotebookEdit|Bash`,
   runs `style_gate.py posttool` after each of those tools. It scans each prose
-  file the model saves and reports what the scanner flags.
+  file the model saves and tells the model what the scanner flags. The first
+  time in a session that the model saves a document, rather than a reply
+  draft or a file under `~/.claude`, it also tells the model to run the
+  style-audit skill on the document before replying.
 - `Stop`, the event that fires when the model is about to end its turn, runs
   `style_gate.py stop`. It logs each reply and records whether the model ran
   `style_gate.py check` on it.
@@ -202,7 +205,12 @@ path in each command:
   Claude Code prints the reason for a block in the terminal as a hook
   error, in full. Jake did not want to scroll past that, so it now answers
   with the hook's `additionalContext` field, which Claude Code treats as
-  feedback for the model and not as an error.
+  feedback for the model and not as an error. Claude Code still prints that
+  feedback in every view, including focus view. Since 2026-10-26 the
+  feedback is one line, which names a file holding the list of documents and
+  the instructions. The instructions tell the model to send its last reply
+  again after the audit, because focus view shows only the last message of a
+  turn.
 
 ### Per-project supplements
 

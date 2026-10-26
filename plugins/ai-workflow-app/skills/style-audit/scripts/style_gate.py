@@ -22,7 +22,10 @@ Two entry points, one per hook event:
               changed in the last minute, scans that file and injects the
               findings as context, so the next step is to fix the file
               rather than report it done. Added 2026-09-14 so documents get
-              the scan without the skill being invoked by name.
+              the scan without the skill being invoked by name. Since
+              2026-10-26 the first save of a document in a session also
+              asks for the style-audit skill before the reply, clean scan
+              or not, so that audit_guard.py rarely has to ask after it.
 
 The split into tiers comes from measurement, not taste. Over 329 assistant
 prose messages in 12 recent transcripts, 40% carried a mechanical violation
@@ -43,6 +46,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import xml.etree.ElementTree as ET
 import zipfile
@@ -425,6 +429,38 @@ def is_unchecked_path(path):
     return path.lower().endswith(UNCHECKED_SUFFIXES)
 
 
+def default_scratch_roots():
+    """Directories whose files are drafts, not documents. The assistant
+    drafts every reply in its scratchpad under the system's temporary
+    directory and checks it with `style_gate.py check`."""
+    roots = {"/tmp", "/private/tmp", tempfile.gettempdir()}
+    if os.environ.get("TMPDIR"):
+        roots.add(os.environ["TMPDIR"])
+    return tuple(sorted(roots))
+
+
+def _under(path, root):
+    """True when `path` is `root` or inside it, compared both as written and
+    with links resolved, because /tmp on a Mac is a link to /private/tmp."""
+    for p, r in ((os.path.abspath(path), os.path.abspath(root)),
+                 (os.path.realpath(path), os.path.realpath(root))):
+        r = r.rstrip(os.sep)
+        if p == r or p.startswith(r + os.sep):
+            return True
+    return False
+
+
+def is_document(path, home, scratch_roots):
+    """A prose file that leaves the desk: not a reply draft in the scratch
+    area, which `check` covers, and not memory or settings under ~/.claude.
+    audit_guard.py uses this same test."""
+    if not path or not is_prose_path(path):
+        return False
+    if any(_under(path, root) for root in scratch_roots):
+        return False
+    return not _under(path, os.path.join(home, ".claude"))
+
+
 def effective_cwd(command, cwd):
     """The directory a command's relative names refer to after its `cd`s.
 
@@ -582,15 +618,38 @@ def build_file_note(path, findings):
     return "\n".join(lines)
 
 
-def run_posttool(stdin_text, log_path):
+# Added to the note the first time in a session that a document is saved.
+# Jake chose on 2026-10-26 (memo_audit_guard_in_focus_view_2026-10-26.md)
+# that when audit_guard.py has to ask for the audit after a reply, the reply
+# goes out a second time, because focus view shows only the last message of
+# a turn. Asking here, before the reply, is what keeps that rare. Once per
+# document and session, because the audit's own fixes are saves of the same
+# file and a second request would start the audit over.
+AUDIT_REQUEST = ("Before you write to Jake, run the style-audit skill on %s, "
+                 "which asks the eight questions the scan cannot answer. "
+                 "Not both-passes, not first-reader.")
+
+
+def run_posttool(stdin_text, log_path, home=None, scratch_roots=None):
     event = json.loads(stdin_text)
     session = event.get("session_id") or ""
+    home = home or os.path.expanduser("~")
+    if scratch_roots is None:
+        scratch_roots = default_scratch_roots()
     spath = state_path(log_path)
     state = load_state(spath)
     seen = state.setdefault("file_notes", {})
+    asked = state.setdefault("audit_asked", {})
     notes = []
     for path in files_to_scan(event):
         key = session + "|" + path
+        request = None
+        # Keyed by the resolved path, because a file reached through a
+        # linked directory has two names; audit_guard.py does the same.
+        asked_key = session + "|" + os.path.realpath(path)
+        if is_document(path, home, scratch_roots) and not asked.get(asked_key):
+            asked[asked_key] = True
+            request = AUDIT_REQUEST % os.path.basename(path)
         if is_unchecked_path(path):
             findings, tier = [], "unchecked"
             current = [["unchecked", ""]]
@@ -606,20 +665,22 @@ def run_posttool(stdin_text, log_path):
             fresh = [f for f in findings if (f[2], f[3]) not in before]
             note = build_file_note(path, fresh)
         seen[key] = current
-        if note is None:
-            continue
-        cats = sorted({cat for (_p, _n, cat, _t) in findings})
-        record = {"time": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                  "session_id": event.get("session_id"),
-                  "file": path,
-                  "tier": tier,
-                  "categories": cats,
-                  "count": len(findings)}
-        try:
-            append_log(log_path or DEFAULT_LOG, record)
-        except OSError:
-            pass
-        notes.append(note)
+        if note is not None:
+            cats = sorted({cat for (_p, _n, cat, _t) in findings})
+            record = {"time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                      "session_id": event.get("session_id"),
+                      "file": path,
+                      "tier": tier,
+                      "categories": cats,
+                      "count": len(findings)}
+            try:
+                append_log(log_path or DEFAULT_LOG, record)
+            except OSError:
+                pass
+            notes.append(note)
+        # After the findings, so the model reads what to fix first.
+        if request is not None:
+            notes.append(request)
     try:
         save_state(spath, state)
     except OSError:

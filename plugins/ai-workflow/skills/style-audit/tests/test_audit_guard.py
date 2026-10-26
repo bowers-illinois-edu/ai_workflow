@@ -301,43 +301,78 @@ class TestTheHook(GuardCase):
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
         self.assertTrue(all(ord(c) <= 126 for c in self.feedback(out)))
 
-    def test_the_feedback_asks_for_no_report_of_the_audit(self):
-        """Jake, 2026-10-20: "I don't need to know how it improved its
-        message to me or the writing it is working on." The text used to
-        end by asking for two or three sentences on what the audit changed,
-        and those sentences were the messages he meant. The reply he got
-        before the guard spoke stands, so the turn ends with nothing added."""
-        _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
-        text = self.feedback(out).lower()
-        self.assertNotIn("tell jake", text)
-        self.assertIn("end the turn without writing anything more", text)
+    def instructions(self):
+        """What the list file says after its paths: the steps the model
+        follows once the feedback has sent it there."""
+        with open(ag.list_path(self.lists, "s1"), encoding="utf-8") as fh:
+            return fh.read().split("\n\n", 1)[1]
 
-    def test_the_feedback_is_two_lines_however_many_files(self):
-        """Claude Code draws Stop feedback in the normal view, as Jake saw
-        on 2026-10-21 when a turn had saved five documents: the heading,
-        five paths, and two lines of instruction. The paths now go to a
-        file and the feedback names it, so the count of saved documents
-        no longer sets the number of lines he scrolls past."""
+    def test_the_feedback_is_one_line_however_many_files(self):
+        """Claude Code draws Stop feedback on the screen in every view,
+        focus view included, and no field of a Stop hook's output hides it
+        (memo_audit_guard_in_focus_view_2026-10-26.md). On 2026-10-21 the
+        paths moved to a file so the count of documents stopped setting the
+        number of lines Jake scrolls past. On 2026-10-26 the instructions
+        moved there too, leaving one line on his screen."""
         other = os.path.join(self.proj, "other.md")
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1),
                                 write(other, T1)])
         lines = self.feedback(out).splitlines()
-        self.assertEqual(len(lines), 2)
+        self.assertEqual(len(lines), 1)
         self.assertIn("2 documents", lines[0])
 
     def test_the_list_file_holds_each_path_on_its_own_line(self):
         """The model reads the list from the file the feedback names, so
         the file has to exist when the feedback is printed and to hold the
-        paths in the order they were saved, one per line, with nothing
-        else to parse. The file is named for the session, because two
-        sessions can end turns at the same time."""
+        paths in the order they were saved, one per line. The paths end at
+        the first blank line, where the instructions begin. The file is
+        named for the session, because two sessions can end turns at the
+        same time."""
         other = os.path.join(self.proj, "other.md")
         _, out = self.run_hook([jake("go", T0), write(self.memo, T1),
                                 write(other, T1)])
         path = ag.list_path(self.lists, "s1")
         self.assertIn(path, self.feedback(out))
         with open(path, encoding="utf-8") as fh:
-            self.assertEqual(fh.read().splitlines(), [self.memo, other])
+            paths = fh.read().split("\n\n", 1)[0].splitlines()
+        self.assertEqual(paths, [self.memo, other])
+
+    def test_the_instructions_name_the_audit_and_only_the_audit(self):
+        """Jake does not want both-passes run routinely, because the
+        first-reader agent it starts takes about ten minutes."""
+        self.run_hook([jake("go", T0), write(self.memo, T1)])
+        text = self.instructions().lower()
+        self.assertIn("style-audit", text)
+        self.assertIn("not both-passes", text)
+
+    def test_the_instructions_ask_for_the_last_reply_again_in_full(self):
+        """Jake chose this on 2026-10-26. Focus view shows only the last
+        message of a turn, and the guard speaks after the reply. Since
+        2026-10-21 the guard had told the model to write nothing more, and
+        in 64 of 65 firings the model wrote a message anyway, often just
+        "Done." In focus view that message was all Jake saw. Sending the
+        reply again makes the reply the last message."""
+        _, out = self.run_hook([jake("go", T0), write(self.memo, T1)])
+        text = self.instructions().lower()
+        self.assertIn("last reply", text)
+        self.assertIn("again", text)
+        self.assertIn("in full", text)
+        for said in (text, self.feedback(out).lower()):
+            self.assertNotIn("without writing anything more", said)
+
+    def test_the_instructions_ask_for_no_report_of_the_audit(self):
+        """Jake, 2026-10-20: "I don't need to know how it improved its
+        message to me or the writing it is working on." The reply goes out
+        again as it was, changed only where the audit changed something it
+        quotes or describes, and with nothing added about the audit."""
+        self.run_hook([jake("go", T0), write(self.memo, T1)])
+        text = self.instructions().lower()
+        self.assertIn("say nothing about the audit", text)
+        self.assertNotIn("tell jake", text)
+
+    def test_the_instructions_are_plain_ascii(self):
+        self.run_hook([jake("go", T0), write(self.memo, T1)])
+        self.assertTrue(all(ord(c) <= 126 for c in self.instructions()))
 
     def test_says_nothing_when_every_document_was_audited(self):
         code, out = self.run_hook([jake("go", T0), write(self.memo, T1),
