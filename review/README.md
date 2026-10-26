@@ -15,7 +15,9 @@ research, and shows it to you one step at a time.
 - The list of everything in the queue is the Obsidian note `review_queue.md`,
   at the top of `~/Documents/Obsidian Vault`. Obsidian Sync copies it to your
   iPhone and iPad.
-- The alias `review` in `~/.zshrc` runs `review.py` from this folder.
+- The alias `review` in `~/.zshrc` runs `review.py` from this folder. The
+  alias `reviews`, added on 2026-10-26, prints the Obsidian note, so the whole
+  queue can be read in the terminal too.
 
 ## The three commands
 
