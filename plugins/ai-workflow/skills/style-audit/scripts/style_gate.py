@@ -63,6 +63,17 @@ ATTENTION = frozenset({"trailing-clause"})
 
 DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
 
+# Folders whose files never reach the reader or a note. Since 2026-10-25
+# sessions started in ~/repos/mail-extract run inside Claude Code's sandbox,
+# which keeps them out of Thunderbird's copy of Jake's mail and out of the
+# extractor's output. `check` cannot run inside the sandbox, because
+# `claude -p` writes under ~/.claude, so it runs outside it, where it could
+# open any file. It sends the file it is given to the reader and prints the
+# scanner's matches, which quote the file, so without this list a session
+# could pass it a mail file and read the mail through it.
+PRIVATE_DIRS = (os.path.expanduser("~/Library/Thunderbird"),
+                os.path.expanduser("~/mail-extract-output"))
+
 # The files the posttool entry point scans, matched without regard to case.
 # These are the formats Jake writes prose in; code files stay out because
 # the scanner reads comments as prose and fires on ordinary identifiers.
@@ -368,6 +379,44 @@ def build_note(findings):
     return "\n".join(lines)
 
 
+def is_private_path(path):
+    """True when `path` lies in or under one of PRIVATE_DIRS.
+
+    The path is resolved first, so a symlink elsewhere that points into a
+    private folder, or a name that climbs into one through "..", counts as
+    inside it. Spelling alone is not enough after that: a Mac disk ignores
+    letter case, so ~/library/THUNDERBIRD is the same folder as
+    ~/Library/Thunderbird, and os.path.realpath keeps whatever case it was
+    given. So each folder on the way up from the resolved path is also
+    compared with each private folder by device and inode. Both comparisons
+    go by whole folders, so mail-extract-output-old is not private.
+    """
+    real = os.path.realpath(path)
+    identities = set()
+    for d in PRIVATE_DIRS:
+        root = os.path.realpath(d).rstrip(os.sep)
+        if real.lower() == root.lower() or real.lower().startswith(root.lower() + os.sep):
+            return True
+        try:
+            st = os.stat(root)
+        except OSError:
+            continue  # a private folder that is missing or unreadable holds nothing to compare
+        identities.add((st.st_dev, st.st_ino))
+    current = real
+    while identities:
+        try:
+            st = os.stat(current)
+            if (st.st_dev, st.st_ino) in identities:
+                return True
+        except OSError:
+            pass  # a name that does not exist; the folders above it still count
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return False
+
+
 def is_prose_path(path):
     return path.lower().endswith(PROSE_SUFFIXES)
 
@@ -430,6 +479,8 @@ def files_to_scan(event):
     cwd = event.get("cwd") or ""
     if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
         path = tool_input.get("file_path") or ""
+        if path and is_private_path(path):
+            return []  # the note would quote the file; see PRIVATE_DIRS
         if path and os.path.isfile(path) and (is_prose_path(path)
                                               or is_unchecked_path(path)):
             return [path]
@@ -444,7 +495,7 @@ def files_to_scan(event):
                     continue
                 path = os.path.join(base, path)
             path = os.path.abspath(path)
-            if path in found:
+            if path in found or is_private_path(path):
                 continue
             if os.path.isfile(path) and changed_recently(path):
                 found.append(path)
@@ -784,6 +835,17 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
     assistant is reading this output and a silent failure would look like a
     clean draft.
     """
+    # Before anything opens a file: a refusal must send nothing to the
+    # reader and print nothing from the file. See PRIVATE_DIRS.
+    for label, path in (("the draft", draft_path),
+                        ("the --transcript file", transcript_path),
+                        ("the --point file", point_path)):
+        if path and is_private_path(path):
+            print("Refused: %s is in a private folder (%s). Nothing was "
+                  "scanned or sent to the reader."
+                  % (label, ", ".join(PRIVATE_DIRS)))
+            return 0
+
     try:
         with open(draft_path, encoding="utf-8", errors="replace") as fh:
             draft = fh.read()
