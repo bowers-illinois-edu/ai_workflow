@@ -71,6 +71,14 @@ a reader given no context pointed at the words Jake knew. The questions
 below are what the reader is asked, and what a person auditing a document
 by hand asks.
 
+The second model is Claude, which runs on Anthropic's servers. Since
+2026-10-28 Jake's rule is that an open-weight model must not call a model
+that runs in the cloud, and outside Claude Code the second model could not
+find the conversation anyway. So the check calls it only inside Claude
+Code. In OpenCode or Codex the check runs the scanner alone and prints that
+it skipped the second model. There, read the draft against the eight
+questions yourself.
+
 Read the draft against these eight questions, in this order. The order is how
 often each failure accounts for what stopped him, counted twice: on 47 phrases
 he quoted back in chat between 2026-08-15 and 2026-09-09, and on 127 notes he

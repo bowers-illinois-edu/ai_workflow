@@ -1373,7 +1373,10 @@ class TestStdinIsReadOnlyByHooks(unittest.TestCase):
             draft = os.path.join(d, "draft.md")
             with open(draft, "w") as fh:
                 fh.write("A sentence.\n")
-            env = dict(os.environ, PATH=d)  # no `claude` on the path
+            # No `claude` on the path. CLAUDECODE=1 keeps the reader path in
+            # play wherever the suite runs: since 2026-10-28 a shell without
+            # it skips the reader (test_style_gate_outside_claude_code.py).
+            env = dict(os.environ, PATH=d, CLAUDECODE="1")
             import subprocess
             proc = subprocess.Popen(
                 [sys.executable, script, "check", draft, "--transcript",

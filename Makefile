@@ -21,6 +21,7 @@ test-style-audit:
 test-style-gate:
 	$(PYTHON) skills/style-audit/tests/test_style_gate.py
 	$(PYTHON) skills/style-audit/tests/test_style_gate_private.py
+	$(PYTHON) skills/style-audit/tests/test_style_gate_outside_claude_code.py
 
 # The Stop hook that keeps a turn from ending until the style audit has run
 # on every document saved in it.

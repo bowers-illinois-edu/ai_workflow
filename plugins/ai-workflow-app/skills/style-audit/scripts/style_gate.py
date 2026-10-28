@@ -199,6 +199,17 @@ READER_MODEL = "sonnet"
 READER_MARK = "STYLE_GATE_READER"
 READER_TIMEOUT = 240
 
+# The reader runs only inside Claude Code, which sets CLAUDECODE=1 in every
+# shell it starts. On 2026-10-28 we found that Lumen models in OpenCode had
+# run `check` 59 times and that 58 runs sent the draft to Claude Sonnet, and
+# Jake ruled that an open-weight model must not call a model that runs in the
+# cloud. Outside Claude Code the reader was wrong as well: it finds Jake's
+# messages in Claude Code's transcripts, so in OpenCode it read another
+# session's conversation. See memo_opencode_materials_2026-10-28.md.
+CLAUDE_CODE_MARK = "CLAUDECODE"
+READER_SKIPPED = ("Reader skipped: this shell is not Claude Code's, so the "
+                  "draft was not sent to Claude. Only the scanner ran.")
+
 # What the project is for, in the project's own file. Jake confirms it, so
 # the reader may see it although it is not part of the conversation. On
 # 2026-10-15 he asked that every passage be traceable to the point of the
@@ -804,6 +815,12 @@ def newest_transcript(cwd=None, home=None, session_id=None):
     return max(paths, key=os.path.getmtime)
 
 
+def in_claude_code(environ=None):
+    """True only when the shell carries Claude Code's own mark."""
+    environ = os.environ if environ is None else environ
+    return environ.get(CLAUDE_CODE_MARK) == "1"
+
+
 def call_reader(prompt):
     """The real second reader: one `claude -p` call with no tools and no
     saved session. Raises on any failure; run_check reports it."""
@@ -894,7 +911,9 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
     the draft so the Stop hook can tell whether the reply that went out was
     this one. Every failure is printed rather than swallowed, because the
     assistant is reading this output and a silent failure would look like a
-    clean draft.
+    clean draft. With reader=None, which is what main passes outside Claude
+    Code, no transcript is read, nothing is sent anywhere, and the output
+    says so.
     """
     # Before anything opens a file: a refusal must send nothing to the
     # reader and print nothing from the file. See PRIVATE_DIRS.
@@ -929,6 +948,13 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
         for (_p, n, cat, matched) in looks:
             print("  line %d: %s" % (n, ascii_only(matched)))
         printed = True
+
+    if reader is None:
+        if not printed:
+            print("Scanner: nothing found.")
+        print(READER_SKIPPED)
+        remember_draft(draft, log_path)
+        return 0
 
     context = visible_turns(transcript_path)
     shown = "\n\n".join("%s: %s" % (role, text) for (role, text) in context)
@@ -968,6 +994,12 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
     else:
         print("Point: none on file (searched upward from %s)" % os.getcwd())
 
+    remember_draft(draft, log_path)
+    return 0
+
+
+def remember_draft(draft, log_path):
+    """Record the checked draft for the Stop hook, printing any failure."""
     spath = state_path(log_path)
     state = load_state(spath)
     remember_checked(state, draft)
@@ -975,7 +1007,6 @@ def run_check(draft_path, log_path, transcript_path=None, reader=call_reader,
         save_state(spath, state)
     except OSError as e:
         print("Could not record the check: %s" % e)
-    return 0
 
 
 def main(argv, stdin_text, log_path):
@@ -996,8 +1027,11 @@ def main(argv, stdin_text, log_path):
             return run_posttool(stdin_text, log_path)
         if argv[0] == "check" and len(argv) > 1:
             draft, transcript, point = parse_check_args(argv)
+            if not in_claude_code():
+                return run_check(draft, log_path, None, reader=None)
             return run_check(draft, log_path,
                              transcript or newest_transcript(),
+                             reader=call_reader,
                              point_path=point or find_point_file())
         return 0
     except Exception as e:  # noqa: BLE001
