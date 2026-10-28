@@ -73,11 +73,11 @@ by hand asks.
 
 The second model is Claude, which runs on Anthropic's servers. Since
 2026-10-28 Jake's rule is that an open-weight model must not call a model
-that runs in the cloud, and outside Claude Code the second model could not
-find the conversation anyway. So the check calls it only inside Claude
-Code. In OpenCode or Codex the check runs the scanner alone and prints that
-it skipped the second model. There, read the draft against the eight
-questions yourself.
+that runs in the cloud. Outside Claude Code the second model also could not
+find the conversation, because it looks only in Claude Code's transcripts.
+So the check calls it only inside Claude Code. In OpenCode or Codex the
+check runs the scanner alone and prints that it skipped the second model,
+and the writer then reads the draft against the eight questions below.
 
 Read the draft against these eight questions, in this order. The order is how
 often each failure accounts for what stopped him, counted twice: on 47 phrases
