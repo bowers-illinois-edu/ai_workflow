@@ -7,7 +7,7 @@ Lumen requests in the same format they would send to OpenAI. So any client
 written for OpenAI can use Lumen once it is given Lumen's URL and a Lumen key.
 The steps below set up the opencode command-line client to use Lumen on a new
 machine. The later sections record problems we found when we first set it up
-on koelsch on 2026-10-18.
+on koelsch on 2026-10-18, and one we found on the Mac on 2026-10-28.
 
 Sources: the connection page at
 <https://lumen.computes.illinois.edu/help/connect> and the server code and
@@ -73,7 +73,9 @@ for m in d["data"]:
     entry = {
         "name": name,
         # Some models report an output limit larger than their context
-        # window. 32768 is the output limit in Lumen's own template.
+        # window, which makes Lumen refuse opencode's requests (see "The
+        # downloaded file's output limits" below). 32768 is the output
+        # limit in Lumen's own template.
         "limit": {"context": m["max_model_len"],
                   "output": min(m.get("max_output_tokens") or 32768, 32768)},
         "cost": {"input": m["input_cost_per_million"],
@@ -90,6 +92,7 @@ for m in d["data"]:
     models[m["id"]] = entry
 cfg = {
     "$schema": "https://opencode.ai/config.json",
+    "instructions": ["CLAUDE.md", "POINT.md"],
     "model": "lumen/qwen3-coder-next",
     "enabled_providers": ["lumen"],
     "provider": {"lumen": {
@@ -104,8 +107,16 @@ print()
 EOF
 ```
 
-Two settings in that file are choices, not requirements.
+Three settings in that file are choices, not requirements.
 
+- `"instructions": ["CLAUDE.md", "POINT.md"]` makes opencode load those two
+  files from the folder where a session starts. opencode reads a project's
+  `AGENTS.md` on its own, but not its `CLAUDE.md`, and it does not follow the
+  `@POINT.md` line inside a `CLAUDE.md`. In a test we ran on 2026-10-28, a
+  session started in a project's top folder loaded both files. In a project
+  with no `POINT.md`, it loaded `CLAUDE.md` and skipped the missing file
+  without an error. We did not test whether a session started in a
+  subfolder finds the files in the project's top folder.
 - `"model": "lumen/qwen3-coder-next"` makes Lumen's coding model the default
   when opencode starts. Pick another in the session with `/models`, or on the
   command line with `-m lumen/<id>`.
@@ -135,8 +146,12 @@ neither on koelsch.
 The "Download config.json" button on the connection page needs you to be
 logged in to the Lumen website in a browser. The file it gives lists the
 models available on the day you download it, so it goes out of date when
-Lumen adds a model. We did not download it and so did not check its
-contents.
+Lumen adds a model. On koelsch we did not download it. On the Mac it was
+downloaded on 2026-10-05 and copied unedited to
+`~/.config/opencode/opencode.json`. Its output limits then kept opencode from
+getting any work done with `qwen3-coder-next`, for the reasons given under
+"The downloaded file's output limits" below. Do not install that file
+without capping its output limits.
 
 The `lumen.sh` script in the GitHub repository logs in through the browser,
 stores a key, and rewrites the Lumen block of `opencode.json`. We did not
@@ -152,6 +167,50 @@ run it, for three reasons.
    none of those things.
 3. It appends its own `LUMEN_API_KEY` block to `~/.zshrc`, which would
    duplicate the line already there.
+
+## The downloaded file's output limits
+
+Each model in `opencode.json` has two limits. `limit.context` is the most
+tokens that the prompt and the reply may use together, and `limit.output` is
+the longest reply. The downloaded file copies `limit.output` from Lumen's
+server, and for several models that number is larger than `limit.context`.
+For `qwen3-coder-next` the file gave a context of 131066 and an output of
+256000.
+
+Every request opencode sends states the longest reply it will accept. For
+`qwen3-coder-next`, Lumen refuses a request when the prompt plus that longest
+reply exceeds 131072 tokens, six more than the file's 131066. When
+`limit.output` cannot fit, opencode 2.2.0 sets the longest reply to
+`limit.context` minus its own estimate of the prompt. That estimate is often
+low by more than six tokens. In one request on 2026-10-28 opencode estimated
+the prompt at 21364 tokens and set the longest reply to
+131066 - 21364 = 109702. The prompt was in fact 21375 tokens, so the total
+was 21375 + 109702 = 131077. Lumen refused the request with the message
+"Requested token count exceeds the model's maximum context length".
+
+opencode reads that refusal as a sign that the conversation has grown too
+long, so it compacts the conversation: it replaces the history, including
+the tool call just made, with a summary, and sends the request again. The
+model sees only the summary and starts the same step again. The next
+request is refused in the same way. The person at the terminal sees a new
+paragraph announcing the step, over and over, while nothing gets done. On
+the Mac on 2026-10-28, the log at `~/.local/share/opencode/log/opencode.log`
+held 370 such refusals across four sessions. In one session the model
+began the same step again 12 times in 76 seconds.
+
+The script above caps `limit.output` at 32768. With that cap a prompt can
+grow to 131066 - 32768 = 98298 tokens before the prompt plus the longest
+reply reaches the 131066 in `limit.context`. On the Mac, capping every
+model's `limit.output` at 32768 in the installed file stopped the refusals. The background server,
+`opencode serve --service`, read the edited file within seconds, so a
+session that was already running went on with no refusals and no restart.
+
+This command counts the refusals in the log:
+
+```sh
+grep -c "provider rejected the request as too long" \
+  ~/.local/share/opencode/log/opencode.log
+```
 
 ## Models on 2026-10-18
 
