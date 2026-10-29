@@ -129,7 +129,7 @@ def refresh(config_path, fetch, today):
     try:
         listing = fetch()
     except Exception as err:  # any failure to reach Lumen keeps the old list
-        return f"{not_updated}: Lumen did not answer ({err})."
+        return f"{not_updated}: could not get the list from Lumen ({err})."
     try:
         models = build_models(listing)
     except (ValueError, KeyError, TypeError) as err:
