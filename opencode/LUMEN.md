@@ -154,7 +154,8 @@ downloaded on 2026-10-05 and copied unedited to
 `~/.config/opencode/opencode.json`. Its output limits then kept opencode from
 getting any work done with `qwen3-coder-next`, for the reasons given under
 "The downloaded file's output limits" below. If you install that file,
-run `lumen_refresh.py` afterward, which caps its output limits.
+run `lumen_refresh.py` afterward. The script caps the file's output limits
+at 32768.
 
 The `lumen.sh` script in the GitHub repository logs in through the browser,
 stores a key, and rewrites the Lumen block of `opencode.json`. We did not
