@@ -53,18 +53,18 @@ curl -sS -H "Authorization: Bearer $LUMEN_API_KEY" \
 
 ## Writing the opencode configuration
 
-The file has two parts. The settings at the top and the description of the
-Lumen provider are written once, by hand. The list of models is written by
+`~/.config/opencode/opencode.json` has two parts. The settings at the top
+and the description of the Lumen provider are written once, by hand. The list of models is written by
 `lumen_refresh.py`, which sits beside this file. The script asks Lumen which
-models the key can use and replaces the Lumen model list in
-`~/.config/opencode/opencode.json` with them. It changes nothing else in the
+models the key can use and replaces the Lumen model list in the file with
+them. It changes nothing else in the
 file, and it prints a line only when the list changed or could not be
 updated.
 
 On a new machine, where the file does not exist yet, these commands write
 the hand-made part and then let the script fill in the models. On a machine
-that already has the file, run only the last command, because the first
-would overwrite the file.
+that already has the file, run only the last command, because the `cat`
+command would overwrite the file.
 
 ```sh
 mkdir -p ~/.config/opencode
@@ -89,7 +89,8 @@ EOF
 python3 ~/repos/ai_workflow/opencode/lumen_refresh.py
 ```
 
-The script writes each model the way the problems below require. It caps
+The script follows three rules, each of which answers a problem recorded
+later in this file. It caps
 every model's longest reply at 32768 tokens, because a larger figure makes
 Lumen refuse opencode's requests (see "The downloaded file's output limits").
 It leaves out models that cannot take text, such as the speech model. It
@@ -106,10 +107,10 @@ That file defines a zsh function named `opencode`, which runs the script and
 then starts opencode with whatever followed `opencode` on the command line.
 A model that Lumen adds then appears at the next start. The script gives up
 after 5 seconds when Lumen does not answer, and opencode starts with the old
-list. Its tests are in `tests/test_lumen_refresh.py` and run with
-`make test-opencode`.
+list. The script's tests are in `opencode/tests/test_lumen_refresh.py`, and
+`make test-opencode`, run in ai_workflow, runs them.
 
-Three settings in that file are choices, not requirements.
+Three settings in the hand-written part are choices, not requirements.
 
 - `"instructions": ["CLAUDE.md", "POINT.md"]` makes opencode load those two
   files from the folder where a session starts. opencode reads a project's
