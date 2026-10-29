@@ -8,9 +8,9 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review test-opencode check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
-test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review
+test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review test-opencode
 
 test-verify-citations:
 	$(PYTHON) skills/verify-citations/tests/test_verify_bib.py
@@ -77,6 +77,12 @@ test-today:
 test-review:
 	$(PYTHON) review/tests/test_review.py
 	$(PYTHON) review/tests/test_review_note.py
+
+# lumen_refresh.py updates the Lumen model list before opencode starts. It
+# must keep every reply limit at or below 32768 and leave the file alone
+# when anything goes wrong.
+test-opencode:
+	$(PYTHON) opencode/tests/test_lumen_refresh.py
 
 # The Claude Code plugin's SessionStart hook prints a copy of CLAUDE_CODING.md,
 # and the plugin's bowers-prose skill copies the app skill's body.

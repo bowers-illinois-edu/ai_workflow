@@ -53,59 +53,61 @@ curl -sS -H "Authorization: Bearer $LUMEN_API_KEY" \
 
 ## Writing the opencode configuration
 
-The script below asks Lumen for the model list and writes a complete
-`opencode.json` to standard output. Run it whenever Lumen adds or drops
-models. It overwrites the whole file, so merge by hand if the file holds
-settings for other providers.
+The file has two parts. The settings at the top and the description of the
+Lumen provider are written once, by hand. The list of models is written by
+`lumen_refresh.py`, which sits beside this file. The script asks Lumen which
+models the key can use and replaces the Lumen model list in
+`~/.config/opencode/opencode.json` with them. It changes nothing else in the
+file, and it prints a line only when the list changed or could not be
+updated.
+
+On a new machine, where the file does not exist yet, these commands write
+the hand-made part and then let the script fill in the models. On a machine
+that already has the file, run only the last command, because the first
+would overwrite the file.
 
 ```sh
-curl -sS -H "Authorization: Bearer $LUMEN_API_KEY" \
-  https://lumen.computes.illinois.edu/v1/models > /tmp/lumen_models.json
-python3 - /tmp/lumen_models.json > ~/.config/opencode/opencode.json <<'EOF'
-import json, sys
-d = json.load(open(sys.argv[1]))
-models = {}
-for m in d["data"]:
-    # opencode works in text; the speech model takes audio only.
-    if "text" not in (m.get("input_modalities") or []):
-        continue
-    name = m["id"] + " via Lumen" + (f" (alias of {m['parent']})" if m.get("parent") else "")
-    entry = {
-        "name": name,
-        # Some models report an output limit larger than their context
-        # window, which makes Lumen refuse opencode's requests (see "The
-        # downloaded file's output limits" below). 32768 is the output
-        # limit in Lumen's own template.
-        "limit": {"context": m["max_model_len"],
-                  "output": min(m.get("max_output_tokens") or 32768, 32768)},
-        "cost": {"input": m["input_cost_per_million"],
-                 "output": m["output_cost_per_million"]},
-        "modalities": {"input": m["input_modalities"],
-                       "output": m["output_modalities"]},
-        # Lumen does not report tool support (see below), so state it.
-        "tool_call": True,
+mkdir -p ~/.config/opencode
+cat > ~/.config/opencode/opencode.json <<'EOF'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["CLAUDE.md", "POINT.md"],
+  "model": "lumen/qwen3-coder-next",
+  "enabled_providers": ["lumen"],
+  "provider": {
+    "lumen": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Lumen",
+      "options": {
+        "baseURL": "https://lumen.computes.illinois.edu/v1",
+        "apiKey": "{env:LUMEN_API_KEY}"
+      }
     }
-    if "image" in m["input_modalities"]:
-        entry["attachment"] = True
-    if m.get("supports_reasoning"):
-        entry["reasoning"] = True
-    models[m["id"]] = entry
-cfg = {
-    "$schema": "https://opencode.ai/config.json",
-    "instructions": ["CLAUDE.md", "POINT.md"],
-    "model": "lumen/qwen3-coder-next",
-    "enabled_providers": ["lumen"],
-    "provider": {"lumen": {
-        "npm": "@ai-sdk/openai-compatible",
-        "name": "Lumen",
-        "options": {"baseURL": "https://lumen.computes.illinois.edu/v1",
-                    "apiKey": "{env:LUMEN_API_KEY}"},
-        "models": models}},
+  }
 }
-json.dump(cfg, sys.stdout, indent=2)
-print()
 EOF
+python3 ~/repos/ai_workflow/opencode/lumen_refresh.py
 ```
+
+The script writes each model the way the problems below require. It caps
+every model's longest reply at 32768 tokens, because a larger figure makes
+Lumen refuse opencode's requests (see "The downloaded file's output limits").
+It leaves out models that cannot take text, such as the speech model. It
+marks every model as able to make tool calls, because Lumen does not report
+tool support and opencode can read or edit a file only through a tool call.
+Before it rewrites the file, it copies the old one to
+`opencode.json.before-refresh-` followed by the date.
+
+To run the script each time opencode starts, add this line to `~/.zshrc`:
+
+    source ~/repos/ai_workflow/opencode/opencode.zsh
+
+That file defines a zsh function named `opencode`, which runs the script and
+then starts opencode with whatever followed `opencode` on the command line.
+A model that Lumen adds then appears at the next start. The script gives up
+after 5 seconds when Lumen does not answer, and opencode starts with the old
+list. Its tests are in `tests/test_lumen_refresh.py` and run with
+`make test-opencode`.
 
 Three settings in that file are choices, not requirements.
 
@@ -150,8 +152,8 @@ Lumen adds a model. On koelsch we did not download it. On the Mac it was
 downloaded on 2026-10-05 and copied unedited to
 `~/.config/opencode/opencode.json`. Its output limits then kept opencode from
 getting any work done with `qwen3-coder-next`, for the reasons given under
-"The downloaded file's output limits" below. Do not install that file
-without capping its output limits.
+"The downloaded file's output limits" below. If you install that file,
+run `lumen_refresh.py` afterward, which caps its output limits.
 
 The `lumen.sh` script in the GitHub repository logs in through the browser,
 stores a key, and rewrites the Lumen block of `opencode.json`. We did not
@@ -198,7 +200,7 @@ the Mac on 2026-10-28, the log at `~/.local/share/opencode/log/opencode.log`
 held 370 such refusals across four sessions. In one session the model
 began the same step again 12 times in 76 seconds.
 
-The script above caps `limit.output` at 32768. With that cap a prompt can
+`lumen_refresh.py` caps `limit.output` at 32768. With that cap a prompt can
 grow to 131066 - 32768 = 98298 tokens before the prompt plus the longest
 reply reaches the 131066 in `limit.context`. On the Mac, capping every
 model's `limit.output` at 32768 in the installed file stopped the refusals. The background server,
