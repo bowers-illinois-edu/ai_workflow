@@ -107,8 +107,9 @@ The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER
 ## Installing
 
 `make install` makes every link below into `~/.claude`, and into `~/.codex` when
-that directory exists, and adds the style gate to Codex's hooks file. `make install-dry-run`
-says what it would do and changes nothing. The installer leaves alone any link
+that directory exists. It also adds the style gate's two hooks to Codex's hooks
+file and keeps any hooks other tools put there. `make install-dry-run` says what
+it would do and changes nothing. The installer leaves alone any link
 that points outside this repository and stops rather than replace a real file,
 so it is safe on a machine that is already set up. The commands below are what
 it replaces, kept so each link's purpose is on record.
@@ -373,8 +374,8 @@ Codex hooks take the same JSON as Claude Code's, and `style_gate.py` reads the
 same fields from both, so `make install` also fills this repository's path into
 the template `codex/hooks.json` and merges the result into
 `~/.codex/hooks.json`. The gate then runs in Codex as it runs in Claude Code.
-Other tools add their own hooks to the same file. On 2026-11-09 it held a hook
-the Tuva plugin runs when Codex starts. So the installer replaces only the hooks
+Other tools add their own hooks to the same file. On 2026-11-09 that file held
+a hook that the Tuva plugin runs when Codex starts. So the installer replaces only the hooks
 that run `style_gate.py` and keeps every other hook. The installer refuses a
 hooks file that is not valid JSON, because it cannot merge into a file it
 cannot read.
