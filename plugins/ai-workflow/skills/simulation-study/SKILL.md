@@ -76,9 +76,9 @@ ledger here is the simulation analog of the math skill's fuzzy setup.
   `.rda`), orchestrated by the Makefile, so a crash costs one chunk and an
   edited DGP invalidates only its own targets.
 - **Where the full grid runs.** Run only the small-B test above on Jake's
-  laptop. The full grid loops over simulated datasets, so it runs on
-  another machine. The `campus-computing` skill says which machine to use
-  and how to write, submit, and watch the job.
+  laptop. The `campus-computing` skill says why the full grid runs
+  elsewhere, which machine to use, and how to write, submit, and watch
+  the job.
 - **Numeric claims trace to generators.** Any simulated number quoted in
   the paper is written by code into a macros file or table, not typed by
   hand (the `write_paper_macros.R` pattern: generated, then

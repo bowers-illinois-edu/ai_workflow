@@ -88,11 +88,11 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
   replications derived from a stated Monte Carlo error target, seed and
   parallel-RNG discipline, MC uncertainty on every reported number, and
   conclusions scoped to the simulated regimes.
-- **`skills/campus-computing/`** --- which machine to use for a long run (the
+- **`skills/campus-computing/`** --- which machine to use for a long run (my
   laptop, koelsch, keeling, or the campus cluster), how to write and submit a
   Slurm job script there, and how to watch jobs overnight. It records what
-  failed and what worked on 7 and 8 November 2026, with the commands that
-  check each number again.
+  failed and what worked on 7 and 8 November 2026, and it gives commands for
+  checking its numbers again.
 
 A third group, `claude_app/`, ports the always-on rules to the Claude app, which has no output styles and reaches the same rules through different slots. See "The Claude app" under Installing.
 
