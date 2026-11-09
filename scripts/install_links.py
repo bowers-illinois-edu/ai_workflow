@@ -23,12 +23,13 @@ is what says Codex is installed on the machine:
 
 Codex gets the built codex/AGENTS.md rather than CLAUDE.md because it follows
 no import lines; scripts/build_agents_md.py writes the two imported files out
-in place. With --codex-hooks the script also writes ~/.codex/hooks.json from
-the template codex/hooks.json with this repository's absolute path filled in,
-so the style gate runs in Codex as it runs in Claude Code. That is a write
-rather than a link because a hook command needs the absolute path, and it
-refuses a hooks file that does not already run the gate, since that file is
-someone else's.
+in place. With --codex-hooks the script also fills this repository's
+absolute path into the template codex/hooks.json and merges the result into
+~/.codex/hooks.json, so the style gate runs in Codex as it runs in Claude
+Code. That is a write rather than a link because a hook command needs
+the absolute path. It is a merge rather than a copy because other tools add
+their own hooks to the same file: the gate hooks are replaced and every other
+hook is kept. A hooks file that is not valid JSON is refused.
 
 The care in here is all about not destroying things. Two of the skills in
 ~/.claude/skills point at a different repository (~/.codegpt), a hand-made
@@ -39,12 +40,14 @@ directory rather than a symlink stops the run.
 """
 
 import argparse
+import json
 import os
 import sys
 
 HOOKS_TEMPLATE = os.path.join("codex", "hooks.json")
-# A hooks file that runs the gate is one this script wrote, or one Jake wrote
-# to the same end; either way it is ours to rewrite. One that does not is not.
+# A hook whose command runs the gate is one this script wrote, or one Jake
+# wrote to the same end; either way it is ours to replace. Every other hook
+# in the file belongs to someone else and is kept.
 HOOKS_MARKER = "style_gate.py"
 
 # Skills that exist for a collaborator who installs the plugin and has no
@@ -166,28 +169,77 @@ def link_all(items, root, repo, dry_run=False):
     return refused
 
 
+def is_gate_hook(hook):
+    return HOOKS_MARKER in hook.get("command", "")
+
+
+def merge_hooks(existing, template):
+    """Return `existing` with its gate hooks replaced by the template's.
+
+    Every other hook keeps its group and its place. A group that held only
+    gate hooks is dropped rather than left empty, and the template's groups
+    go at the end of their event, after any other tool's hooks there.
+    """
+    events = {}
+    for event, groups in existing.get("hooks", {}).items():
+        kept = []
+        for group in groups:
+            hooks = group.get("hooks", [])
+            others = [h for h in hooks if not is_gate_hook(h)]
+            if len(others) == len(hooks):
+                kept.append(group)
+            elif others:
+                kept.append(dict(group, hooks=others))
+        # an event emptied by removing the gate goes; one somebody left
+        # empty on purpose stays
+        if kept or not groups:
+            events[event] = kept
+    for event, groups in template["hooks"].items():
+        events.setdefault(event, []).extend(groups)
+    return dict(existing, hooks=events)
+
+
 def write_codex_hooks(repo, codex_root, dry_run=False):
-    """Write ~/.codex/hooks.json from the template. Returns refusals (0 or 1)."""
+    """Merge the template's gate hooks into ~/.codex/hooks.json.
+
+    Returns refusals (0 or 1). Other tools write hooks into the same file.
+    On 2026-11-09 it held a SessionStart hook from the Tuva plugin. So the
+    file is read, only the gate hooks are replaced, and everything else is
+    written back with its content unchanged.
+    """
     template = os.path.join(repo, HOOKS_TEMPLATE)
     dst = os.path.join(codex_root, "hooks.json")
     with open(template, encoding="ascii") as fh:
-        text = fh.read().replace("__REPO__", repo)
+        ours = json.loads(fh.read().replace("__REPO__", repo))
 
+    existing = {"hooks": {}}
     if os.path.exists(dst):
-        with open(dst, encoding="utf-8") as fh:
-            existing = fh.read()
-        if HOOKS_MARKER not in existing:
-            print(f"  REFUSED  hooks.json exists and does not run the style gate; "
-                  f"merge {HOOKS_TEMPLATE} into it by hand", file=sys.stderr)
+        try:
+            with open(dst, encoding="utf-8") as fh:
+                existing = json.load(fh)
+            merged = merge_hooks(existing, ours)
+        except (ValueError, AttributeError, TypeError) as err:
+            # a file we cannot read is a file we cannot merge into without
+            # losing whatever is in it
+            print(f"  REFUSED  hooks.json is not a hooks file this script can "
+                  f"read ({err}); merge {HOOKS_TEMPLATE} into it by hand",
+                  file=sys.stderr)
             return 1
-        verb = "would rewrite" if dry_run else "rewrote"
+        if merged == existing:
+            print("  ok       hooks.json")
+            return 0
+        verb = "would merge into" if dry_run else "merged into"
     else:
+        merged = merge_hooks(existing, ours)
         verb = "would write" if dry_run else "wrote"
 
+    others = sum(1 for groups in merged["hooks"].values()
+                 for group in groups for h in group.get("hooks", [])
+                 if not is_gate_hook(h))
     if not dry_run:
         with open(dst, "w", encoding="ascii") as fh:
-            fh.write(text)
-    print(f"  {verb} hooks.json")
+            fh.write(json.dumps(merged, indent=2) + "\n")
+    print(f"  {verb} hooks.json (hooks from other tools kept: {others})")
     return 0
 
 

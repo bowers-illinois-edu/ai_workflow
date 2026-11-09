@@ -10,6 +10,7 @@ must refuse to touch.
 Stdlib only, offline, no network, matching the other suites in this repo.
 """
 
+import json
 import os
 import shutil
 import subprocess
@@ -233,15 +234,20 @@ class InstallLinksTest(unittest.TestCase):
         import json
         json.loads(text)
 
-    def test_codex_hooks_flag_refuses_a_hooks_file_it_did_not_write(self):
+    def test_codex_hooks_flag_adds_the_gate_to_a_hooks_file_it_did_not_write(self):
+        """Until 2026-11-09 the installer refused a hooks file that ran no
+        gate, because writing the template over it would have deleted it.
+        A merge deletes nothing, so Jake chose on 2026-11-09 to add the gate
+        to such a file and keep what was there."""
         self.install_codex()
         theirs = os.path.join(self.home, ".codex", "hooks.json")
         with open(theirs, "w") as fh:
             fh.write('{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "say done"}]}]}}\n')
         r = self.run_install("--codex-hooks")
+        self.assertEqual(r.returncode, 0, r.stderr)
         with open(theirs) as fh:
-            self.assertIn("say done", fh.read())
-        self.assertNotEqual(r.returncode, 0)
+            merged = json.load(fh)
+        self.assertEqual(commands(merged, "Stop"), ["say done", gate_command(self.repo, "stop")])
 
     def test_codex_hooks_flag_rewrites_a_file_it_wrote_before(self):
         self.install_codex()
@@ -255,6 +261,141 @@ class InstallLinksTest(unittest.TestCase):
         self.install_codex()
         self.run_install("--dry-run", "--codex-hooks")
         self.assertFalse(os.path.exists(os.path.join(self.home, ".codex", "hooks.json")))
+
+    # --- merging into a hooks file other tools also write ------------------
+    #
+    # On 2026-11-09 ~/.codex/hooks.json held the two gate hooks and a third,
+    # a SessionStart hook the Tuva plugin had added to print its usage
+    # banner. Writing the template over the file would have deleted the Tuva
+    # hook, so `make install` was not run. The installer now replaces only
+    # its own hooks, the ones whose command runs style_gate.py, and keeps
+    # every other hook where it was.
+
+    def write_full_template(self):
+        """The real template has a hook on two events; setUp's has one."""
+        self.write_json(os.path.join(self.repo, "codex", "hooks.json"), {"hooks": {
+            "UserPromptSubmit": [gate_group("__REPO__", "preflight")],
+            "Stop": [gate_group("__REPO__", "stop")]}})
+
+    def codex_hooks_path(self):
+        return os.path.join(self.home, ".codex", "hooks.json")
+
+    def write_json(self, path, obj):
+        with open(path, "w") as fh:
+            json.dump(obj, fh, indent=2)
+
+    def read_json(self, path):
+        with open(path) as fh:
+            return json.load(fh)
+
+    def test_codex_hooks_flag_keeps_a_hook_another_tool_added(self):
+        self.install_codex()
+        self.write_full_template()
+        self.write_json(self.codex_hooks_path(), {"hooks": {
+            "SessionStart": [TUVA_GROUP],
+            "UserPromptSubmit": [gate_group(self.repo, "preflight")],
+            "Stop": [gate_group(self.repo, "stop")]}})
+        r = self.run_install("--codex-hooks")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        merged = self.read_json(self.codex_hooks_path())
+        self.assertIn("SessionStart", merged["hooks"], "the Tuva hook was deleted")
+        self.assertEqual(merged["hooks"]["SessionStart"], [TUVA_GROUP],
+                         "the Tuva hook must come through unchanged")
+        self.assertEqual(commands(merged, "UserPromptSubmit"), [gate_command(self.repo, "preflight")])
+        self.assertEqual(commands(merged, "Stop"), [gate_command(self.repo, "stop")])
+
+    def test_codex_hooks_flag_replaces_its_own_hooks_rather_than_adding_copies(self):
+        """A gate hook from an older clone of the repository, at another path,
+        is ours, so it is replaced. Two gate hooks on Stop would run the gate
+        twice after every reply."""
+        self.install_codex()
+        self.write_full_template()
+        self.write_json(self.codex_hooks_path(), {"hooks": {
+            "SessionStart": [TUVA_GROUP],
+            "Stop": [gate_group("/old/clone", "stop")]}})
+        self.run_install("--codex-hooks")
+        merged = self.read_json(self.codex_hooks_path())
+        self.assertEqual(commands(merged, "Stop"), [gate_command(self.repo, "stop")])
+        self.assertNotIn("/old/clone", json.dumps(merged))
+        for event, groups in merged["hooks"].items():
+            for group in groups:
+                self.assertTrue(group["hooks"],
+                                "removing an old gate hook must not leave an empty group on %s" % event)
+
+    def test_codex_hooks_flag_keeps_another_hook_on_the_same_event(self):
+        """Another tool's Stop hook stays in its place, and the gate follows it."""
+        self.install_codex()
+        self.write_full_template()
+        self.write_json(self.codex_hooks_path(), {"hooks": {
+            "Stop": [SAY_DONE_GROUP, gate_group(self.repo, "stop")]}})
+        self.run_install("--codex-hooks")
+        merged = self.read_json(self.codex_hooks_path())
+        self.assertEqual(commands(merged, "Stop"), ["say done", gate_command(self.repo, "stop")])
+
+    def test_codex_hooks_merge_is_idempotent(self):
+        self.install_codex()
+        self.write_full_template()
+        self.write_json(self.codex_hooks_path(), {"hooks": {
+            "SessionStart": [TUVA_GROUP],
+            "Stop": [SAY_DONE_GROUP, gate_group(self.repo, "stop")]}})
+        self.run_install("--codex-hooks")
+        with open(self.codex_hooks_path()) as fh:
+            first = fh.read()
+        r = self.run_install("--codex-hooks")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(self.codex_hooks_path()) as fh:
+            self.assertEqual(fh.read(), first)
+
+    def test_codex_hooks_flag_refuses_a_hooks_file_that_is_not_json(self):
+        """A file the installer cannot read is a file it cannot merge into
+        without losing whatever is in it."""
+        self.install_codex()
+        broken = '{"hooks": {"Stop": [ style_gate.py\n'
+        with open(self.codex_hooks_path(), "w") as fh:
+            fh.write(broken)
+        r = self.run_install("--codex-hooks")
+        self.assertNotEqual(r.returncode, 0)
+        with open(self.codex_hooks_path()) as fh:
+            self.assertEqual(fh.read(), broken)
+
+    def test_dry_run_leaves_an_existing_hooks_file_unchanged(self):
+        self.install_codex()
+        self.write_full_template()
+        self.write_json(self.codex_hooks_path(), {"hooks": {
+            "SessionStart": [TUVA_GROUP],
+            "Stop": [gate_group("/old/clone", "stop")]}})
+        with open(self.codex_hooks_path()) as fh:
+            before = fh.read()
+        r = self.run_install("--dry-run", "--codex-hooks")
+        with open(self.codex_hooks_path()) as fh:
+            self.assertEqual(fh.read(), before)
+        self.assertIn("would merge", r.stdout.lower())
+
+
+# The hook another tool added, copied in shape from ~/.codex/hooks.json on
+# 2026-11-09 with the paths shortened.
+TUVA_GROUP = {
+    "hooks": [{
+        "command": "/opt/tuva/python /opt/tuva/usage_banner.py --agent codex",
+        "statusMessage": "Tuva: usage banner",
+        "timeout": 10,
+        "type": "command"}],
+    "matcher": "startup"}
+
+SAY_DONE_GROUP = {"hooks": [{"type": "command", "command": "say done"}]}
+
+
+def gate_command(repo, mode):
+    return "python3 %s/skills/style-audit/scripts/style_gate.py %s" % (repo, mode)
+
+
+def gate_group(repo, mode):
+    return {"hooks": [{"type": "command", "command": gate_command(repo, mode)}]}
+
+
+def commands(hooks, event):
+    """Every command on one event, in the order Codex would run them."""
+    return [h["command"] for group in hooks["hooks"].get(event, []) for h in group["hooks"]]
 
 
 if __name__ == "__main__":

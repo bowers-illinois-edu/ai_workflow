@@ -135,9 +135,9 @@ archive:
 # Claude Code reads ~/.claude and Codex reads ~/.codex; this repository lives
 # somewhere else. On a new machine `make install` is the one command that
 # connects them. It never touches a link pointing outside this repository, it
-# stops rather than replace a real file, and it writes Codex's hooks.json only
-# when no hooks file is there or the one there already runs the style gate, so
-# it is safe to run on a machine that is already set up. `make
+# stops rather than replace a real file, and in Codex's hooks.json it replaces
+# only the style gate's hooks and keeps the hooks other tools added, so it is
+# safe to run on a machine that is already set up. `make
 # install-dry-run` reports what it would do and changes nothing. The Codex
 # links go in only when ~/.codex exists.
 install: agents-md

@@ -107,7 +107,7 @@ The old top-level filenames (`CLAUDE_MATH.md`, `CLAUDE_BIB.md`, `CLAUDE_REVIEWER
 ## Installing
 
 `make install` makes every link below into `~/.claude`, and into `~/.codex` when
-that directory exists, and writes Codex's hooks file. `make install-dry-run`
+that directory exists, and adds the style gate to Codex's hooks file. `make install-dry-run`
 says what it would do and changes nothing. The installer leaves alone any link
 that points outside this repository and stops rather than replace a real file,
 so it is safe on a machine that is already set up. The commands below are what
@@ -370,11 +370,14 @@ The budget is shared with a project's own `AGENTS.md`, or its `CLAUDE.md` when
 whatever the global file leaves.
 
 Codex hooks take the same JSON as Claude Code's, and `style_gate.py` reads the
-same fields from both, so `make install` also writes `~/.codex/hooks.json` from
-the template `codex/hooks.json` with this repository's path filled in. The gate
-then runs in Codex as it runs in Claude Code. The installer refuses to overwrite
-a hooks file that does not already run the gate; merge the template into such a
-file by hand.
+same fields from both, so `make install` also fills this repository's path into
+the template `codex/hooks.json` and merges the result into
+`~/.codex/hooks.json`. The gate then runs in Codex as it runs in Claude Code.
+Other tools add their own hooks to the same file. On 2026-11-09 it held a hook
+the Tuva plugin runs when Codex starts. So the installer replaces only the hooks
+that run `style_gate.py` and keeps every other hook. The installer refuses a
+hooks file that is not valid JSON, because it cannot merge into a file it
+cannot read.
 
 The plugin route below reaches Codex too. With the links in place, disable the
 plugin in `config.toml`, or every skill loads twice.
