@@ -1,6 +1,6 @@
 ---
 name: simulation-study
-description: Design, run, and report Monte Carlo simulation studies of operating characteristics --- bias, variance/MSE, size, power, coverage, interval length --- for estimators and tests. Use for "simulation study," "operating characteristics," "check size / power / coverage," "Monte Carlo evidence," or when planning or auditing the simulation section of a methods paper. Enforces a design ledger before code, seed and parallel-RNG discipline, Monte Carlo uncertainty on every reported number, and honest scope claims.
+description: Design, run, and report Monte Carlo simulation studies of operating characteristics (bias, variance/MSE, size, power, coverage, interval length) for estimators and tests. Use for "simulation study," "operating characteristics," "check size / power / coverage," "Monte Carlo evidence," or when planning or auditing the simulation section of a methods paper. Enforces a design ledger before code, seed and parallel-RNG discipline, Monte Carlo uncertainty on every reported number, and honest scope claims.
 ---
 
 # Simulation studies
@@ -75,6 +75,10 @@ ledger here is the simulation analog of the math skill's fuzzy setup.
   pattern in Jake's existing projects: each sim script writes its own
   `.rda`), orchestrated by the Makefile, so a crash costs one chunk and an
   edited DGP invalidates only its own targets.
+- **Where the full grid runs.** Run only the small-B test above on Jake's
+  laptop. The full grid loops over simulated datasets, so it runs on
+  another machine. The `campus-computing` skill says which machine to use
+  and how to write, submit, and watch the job.
 - **Numeric claims trace to generators.** Any simulated number quoted in
   the paper is written by code into a macros file or table, not typed by
   hand (the `write_paper_macros.R` pattern: generated, then

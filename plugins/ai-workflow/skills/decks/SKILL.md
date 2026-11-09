@@ -1,6 +1,6 @@
 ---
 name: decks
-description: Draft, revise, or critique slide decks for Jake --- research talks and teaching --- in LaTeX Beamer or Quarto revealjs, detected from the project. Use when slides, a deck, a talk, a presentation, lecture slides, or workshop materials are the deliverable, or when .tex beamer or revealjs .qmd files are in scope. Two modes (research, teaching) with length profiles from a 12-minute conference slot to a multi-hour workshop.
+description: Draft, revise, or critique slide decks for Jake (research talks and teaching) in LaTeX Beamer or Quarto revealjs, detected from the project. Use when slides, a deck, a talk, a presentation, lecture slides, or workshop materials are the deliverable, or when .tex beamer or revealjs .qmd files are in scope. Two modes (research, teaching) with length profiles from a 12-minute conference slot to a multi-hour workshop.
 ---
 
 # Slide decks

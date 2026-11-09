@@ -1,6 +1,6 @@
 ---
 name: review-response
-description: Draft a response memo to actual peer reviewers after a decision. Use for revise-and-resubmit (R&R) responses, response-to-reviewers memos, rebuttals, decision letters, or when real reviewer comments are pasted in to be answered. Not for simulating a referee before submission --- that is the reviewer2 skill. Bundles LaTeX and Quarto memo templates.
+description: Draft a response memo to actual peer reviewers after a decision. Use for revise-and-resubmit (R&R) responses, response-to-reviewers memos, rebuttals, decision letters, or when real reviewer comments are pasted in to be answered. Not for simulating a referee before submission (that is the reviewer2 skill). Bundles LaTeX and Quarto memo templates.
 ---
 
 # Response to reviewers

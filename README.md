@@ -6,7 +6,7 @@ Jake Bowers's instruction set for working with Claude Code (and similar AI codin
 
 I use Claude Code across statistics papers, R packages, code in several languages, teaching materials, and bibliography work. Each kind of work wants different defaults: a proof session and a code session should not behave the same way. Rather than re-type the same instructions every session --- or, worse, forget half of them --- I keep the rules in version control and load them by reference.
 
-The repository started as a scratchpad ("a place to toss stuff I'm using as I learn how to use claude/codex") and has settled into an output style, one always-on file, one coding companion, and seven skills.
+The repository started as a scratchpad ("a place to toss stuff I'm using as I learn how to use claude/codex") and has settled into an output style, one always-on file, one coding companion, and eleven skills.
 
 How a session finds its rules, in order: (1) the `Research` output style is
 written into the system prompt itself, ahead of any instruction file, and
@@ -88,6 +88,11 @@ or when the skill is invoked by name (`/math`, `/verify-citations`,
   replications derived from a stated Monte Carlo error target, seed and
   parallel-RNG discipline, MC uncertainty on every reported number, and
   conclusions scoped to the simulated regimes.
+- **`skills/campus-computing/`** --- which machine to use for a long run (the
+  laptop, koelsch, keeling, or the campus cluster), how to write and submit a
+  Slurm job script there, and how to watch jobs overnight. It records what
+  failed and what worked on 7 and 8 November 2026, with the commands that
+  check each number again.
 
 A third group, `claude_app/`, ports the always-on rules to the Claude app, which has no output styles and reaches the same rules through different slots. See "The Claude app" under Installing.
 
@@ -145,7 +150,7 @@ to notice rather than easier.
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader both-passes today; do
+for s in math verify-citations reviewer2 review-response decks style-audit simulation-study first-reader both-passes today campus-computing; do
   ln -sfn /path/to/this/repo/skills/$s ~/.claude/skills/$s
 done
 ```
@@ -384,7 +389,7 @@ version of the style audit tells the auditor to reread the writing rules in
 Instructions for Claude, which do not exist in Claude Code; the Claude Code
 version names `CLAUDE.md`, which does not exist in the app.
 
-- **`plugins/ai-workflow`** --- the nine Claude Code skills, `/handoff`, a
+- **`plugins/ai-workflow`** --- the eleven Claude Code skills, `/handoff`, a
   `SessionStart` hook that prints the coding rules, and the writing rules as
   a `bowers-prose` skill. The next paragraph says why the last two are there.
 - **`plugins/ai-workflow-app`** --- `bowers-prose`, `bowers-code`, `handoff`,

@@ -1,6 +1,6 @@
 ---
 name: reviewer2
-description: Write a simulated "Reviewer 2" referee report on a paper before Jake submits it --- a panel of distinct referee personas plus a champion, a self-audit that grounds every objection in the paper's text, and a prioritized revision plan. Use when asked for a referee report, a Reviewer 2 report, a pre-submission review, red-teaming of a paper, or what a referee at a named journal (APSR, AJPS, JOP, JASA, AOAS, Biometrika, Annals, Nature, Science, PNAS) would say. Not for answering real reviewers after a decision --- that is the review-response skill.
+description: Write a simulated "Reviewer 2" referee report on a paper before Jake submits it (a panel of distinct referee personas plus a champion, a self-audit that grounds every objection in the paper's text, and a prioritized revision plan). Use when asked for a referee report, a Reviewer 2 report, a pre-submission review, red-teaming of a paper, or what a referee at a named journal (APSR, AJPS, JOP, JASA, AOAS, Biometrika, Annals, Nature, Science, PNAS) would say. Not for answering real reviewers after a decision (that is the review-response skill).
 ---
 
 # Reviewer 2: the pre-submission referee report

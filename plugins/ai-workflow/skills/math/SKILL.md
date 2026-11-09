@@ -1,6 +1,6 @@
 ---
 name: math
-description: Discipline for mathematical-statistics work --- proofs, derivations, theorem statements, counterexamples, asymptotic arguments, and math prose for papers. Use for prove / derive / show-that / check-this-argument / is-this-true requests; for estimands, identification, randomization inference, or sensitivity analysis; or when LaTeX math or .tex files are in scope. Enforces setup ledgers, theorem-hypothesis checking, verification passes, and honest status labels.
+description: Discipline for mathematical-statistics work (proofs, derivations, theorem statements, counterexamples, asymptotic arguments, and math prose for papers). Use for prove / derive / show-that / check-this-argument / is-this-true requests; for estimands, identification, randomization inference, or sensitivity analysis; or when LaTeX math or .tex files are in scope. Enforces setup ledgers, theorem-hypothesis checking, verification passes, and honest status labels.
 ---
 
 # Mathematical work

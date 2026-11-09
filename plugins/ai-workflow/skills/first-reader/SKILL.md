@@ -1,6 +1,6 @@
 ---
 name: first-reader
-description: Read a draft the way Jake reads it --- linearly, at face value, stopping where comprehension breaks --- and report each stopping point as the question he would ask. Use alongside style-audit before a memo, plan, paper section, or long explanation goes to him, and whenever a document has been style-audited and still reads badly. Finds undefined referents, unmotivated passages, and false claims, which no word list can catch.
+description: Read a draft the way Jake reads it (linearly, at face value, stopping where comprehension breaks) and report each stopping point as the question he would ask. Use alongside style-audit before a memo, plan, paper section, or long explanation goes to him, and whenever a document has been style-audited and still reads badly. Finds undefined referents, unmotivated passages, and false claims, which no word list can catch.
 ---
 
 # First reader

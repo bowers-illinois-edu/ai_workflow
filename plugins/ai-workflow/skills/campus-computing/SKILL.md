@@ -1,13 +1,23 @@
+---
+name: campus-computing
+description: Choose a machine for a long computation (Jake's laptop, koelsch, keeling, or the Illinois campus cluster), then write the Slurm job script, submit it, and watch the jobs overnight. Use whenever a simulation, permutation run, or power analysis would loop over redrawn assignments or simulated datasets, and whenever the conversation mentions the campus cluster, keeling, koelsch, lager, porter, Slurm, sbatch, squeue, a job array, a held or pending job, or a run left going overnight.
+---
+
 # Using koelsch, keeling, and the campus cluster for long runs
 
 Jake Bowers wants simulations and permutation runs to finish as early as
-possible without running on his laptop. This memo records what we
+possible without running on his laptop. This file records what we
 learned on 7 and 8 November 2026, when six campus cluster jobs failed
 to start for sixteen hours and the work moved to keeling and back. It
 is written for the next assistant that has to choose a machine, write
 a job script, or watch jobs overnight. Every number below was read
 from the machines or their documentation on 8 November 2026. Check
 them again with the commands given before relying on them.
+
+This file is `skills/campus-computing/SKILL.md` in the repository
+`~/repos/ai_workflow`, which is public on GitHub. When you find that a
+number or a rule here is wrong or out of date, tell Jake and propose the
+change to this file. Keep passwords, Duo codes, and tokens out of it.
 
 ## Which machine for which job
 
