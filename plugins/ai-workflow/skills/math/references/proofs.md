@@ -170,7 +170,7 @@ Convexity, continuity, differentiability, measurability, integrability, compactn
 - **CLT-type arguments**: independence vs dependence; triangular arrays; Lindeberg or Lyapunov conditions; martingale structure; cluster dependence; heteroskedasticity.
 - **Randomization and causal inference**: keep distinct the estimand, identification, assignment mechanism, finite-population vs superpopulation target, exact randomization distribution, and asymptotic approximation.
 
-Specialized subfields (saddlepoint approximations, Edgeworth expansions, large-deviation bounds, importance sampling, tilting, high-dimensional asymptotics, functional data, causal machine learning, etc.) often have their own load-bearing conditions that are easy to miss. If the project enters one of these, see section 16 on project-specific supplements.
+Specialized subfields (saddlepoint approximations, Edgeworth expansions, large-deviation bounds, importance sampling, tilting, high-dimensional asymptotics, functional data, causal machine learning, etc.) often have their own conditions, easy to miss, that the results depend on. If the project enters one of these, see section 16 on project-specific supplements.
 
 ---
 

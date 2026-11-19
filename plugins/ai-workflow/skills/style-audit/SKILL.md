@@ -62,9 +62,10 @@ Since 2026-09-20 the check on a reply is
 python3 skills/style-audit/scripts/style_gate.py check <draft file>
 ```
 
-which runs the scanner and then a second model that is handed Jake's
-messages and the assistant's replies from the session, and nothing else,
-and asks of every sentence what it means. On the 31 replies Jake stopped on
+which runs the scanner and then a second model that asks of every sentence
+what it means. The second model is handed the project's POINT.md and the last
+four of Jake's messages with the assistant's replies to them, and nothing
+else. On the 31 replies Jake stopped on
 between 2026-09-14 and 2026-09-20 that reader pointed at 13 of the 46
 phrases he quoted, at 15 flags per 1000 words; the scanner pointed at 1 and
 a reader given no context pointed at the words Jake knew. The questions
@@ -326,11 +327,11 @@ below." Bad: "The draft largely follows the style rules."
 
 This rule covers an audit Jake asked for. When you audit your own writing
 without his asking, apply the fixes and say nothing about the audit. That
-holds whether the end-of-turn hook in `scripts/audit_guard.py` stopped
-you or you audited a document before reporting it. (Jake, 2026-10-20: "I don't need to know how it improved
+holds whether the end-of-turn hook in `scripts/audit_guard.py` asked
+for the audit or you audited a document before reporting it. (Jake, 2026-10-20: "I don't need to know how it improved
 its message to me or the writing it is working on.")
 
-When the hook stopped you after your reply, send that reply again, in full,
+When the hook asked for an audit after your reply, send that reply again, in full,
 as your last message. Change it only where the audit changed something the
 reply quotes or describes. Jake reads in Claude Code's focus view, which
 shows only the last message of a turn, so a reply followed by anything else

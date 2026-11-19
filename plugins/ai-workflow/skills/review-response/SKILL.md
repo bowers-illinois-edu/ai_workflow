@@ -151,7 +151,7 @@ This gives the reviewers a roadmap before they dive into the point-by-point.]
 
 \section{Response to Reviewer 1}
 
-[Point-by-point. Quote in red, respond in black (or use the \response
+[Point-by-point. Quote in blue (ReviewerBlue in the templates), respond in black (or use the \response
 environment from response_to_reviewers_template.tex in this skill
 directory). Number the points for easy reference.]
 

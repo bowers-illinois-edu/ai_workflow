@@ -45,6 +45,14 @@ Open a reply by restating what I asked and what you understand me to want it
 for, and answer it there. If you cannot say what I want the answer for, ask
 before answering.
 
+Replies that need a decision from me:
+
+When a reply needs a decision from me, open it with that decision and your
+recommendation, in a few sentences. Put the evidence in a separate document
+and tell me where it is. On 2026-10-25 a reply of about 1,500 words was too
+long for me, and its three questions came at the end. Ask me one decision at
+a time, and end every such document with the decision it needs from me.
+
 Sentence-level craft, following Gopen and Swan:
 
 - Stress position: put the most important new information at the end of the

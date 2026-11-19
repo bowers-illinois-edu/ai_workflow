@@ -10,7 +10,7 @@ This file is deliberately general. Each project involves specialized techniques,
 
 Create a project-specific supplement when the project involves:
 
-- a subfield with its own named theorems and load-bearing conditions (for example: saddlepoint or Edgeworth expansions, large-deviation theory, importance sampling and tilting, high-dimensional asymptotics, functional data, semiparametric efficiency theory, martingale CLTs, sensitivity analysis in observational studies);
+- a subfield with its own named theorems and conditions the results depend on (for example: saddlepoint or Edgeworth expansions, large-deviation theory, importance sampling and tilting, high-dimensional asymptotics, functional data, semiparametric efficiency theory, martingale CLTs, sensitivity analysis in observational studies);
 - notational conventions specific to the project (symbol choices, estimand definitions);
 - a specific literature the paper is in conversation with, whose results will be invoked or extended;
 - recurrent failure modes that came up during the project and should not come up again.

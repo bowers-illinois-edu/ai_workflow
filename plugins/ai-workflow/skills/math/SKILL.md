@@ -268,7 +268,7 @@ When drafting a theorem with proof, aim for this sequence. It is a checklist, no
 
 1. **Setup paragraph.** What problem does this theorem solve? Why does the reader care?
 2. **Notation block.** All symbols in the theorem, defined.
-3. **Assumptions block.** Labeled `(A1)`, `(A2)`, ... Each followed by a sentence of substantive meaning and a flag for load-bearing vs cosmetic.
+3. **Assumptions block.** Labeled `(A1)`, `(A2)`, ... Each followed by a sentence of substantive meaning and a flag for essential vs cosmetic.
 4. **Theorem statement.** Clean, referring to labeled assumptions. Explicit rate and uniformity.
 5. **Remark on sharpness or scope.** Is the rate known to be sharp? What happens outside the assumptions?
 6. **Proof overview.** One paragraph naming the steps.
@@ -290,7 +290,7 @@ Before handing over any nontrivial mathematical result:
 2. Is the setting fixed: objects, measure, conditioning, regime?
 3. Are all symbols defined and domains clear?
 4. Are assumptions explicit and classified by role?
-5. Are load-bearing assumptions identified?
+5. Are the essential assumptions, the ones the claim fails without, identified?
 6. Is the proof status labeled correctly?
 7. Has every invoked theorem had its hypotheses checked line by line?
 8. Are equality, approximation, and asymptotic equivalence kept distinct?

@@ -77,15 +77,15 @@ Separate into categories:
 
 A reader should see at a glance what is substantive and what is technical.
 
-### 5.3 Load-bearing vs cosmetic
+### 5.3 Essential vs cosmetic
 
 For each important assumption, say whether it is:
 
-- **load-bearing**: the claim fails without it. State whether the conclusion breaks or only the proof technique fails. Give a counterexample or failure mode when possible.
+- **essential**: the claim fails without it. State whether the conclusion breaks or only the proof technique fails. Give a counterexample or failure mode when possible.
 - **cosmetic**: convenience; a weaker variant would suffice. Point to where the weaker version lives or note you have not verified it.
 - **unknown**: you do not know which; say so.
 
-For each load-bearing assumption, answer near the theorem:
+For each essential assumption, answer near the theorem:
 
 1. What does it mean substantively?
 2. When is it plausible?
@@ -200,7 +200,7 @@ Unacceptable behavior:
 - writing a guess as if it were standard,
 - mentioning a gap only in an offhand parenthetical.
 
-If a step is load-bearing and your confidence is not high, say so in the visible text. A referee will not discover your hedging; they will read the sentence as a claim.
+If the conclusion depends on a step and your confidence in that step is not high, say so in the visible text. A referee will not discover your hedging; they will read the sentence as a claim.
 
 ### 7.3 Heuristic vs rigorous
 

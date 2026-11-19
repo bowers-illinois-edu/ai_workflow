@@ -14,10 +14,10 @@ The coding rules apply to any code work in any language --- R, Python, Go, Rust,
 
 ## Skills
 
-The task-specific protocols live as skills in `skills/` in the ai_workflow repository, symlinked into `~/.claude/skills/`. Each triggers on its description and can be invoked by name. One of them, `first-reader`, also loads a file that is not in the repository: `~/.claude/first-reader/persona.md`, kept private because it quotes unpublished drafts. On a new machine that file has to be copied across or rebuilt, or the skill loads with nothing to read.
+The task-specific protocols live as skills in `skills/` in the ai_workflow repository, symlinked into `~/.claude/skills/`. Each triggers on its description and can be invoked by name. One of them, `first-reader`, also loads a file that is not in the repository: `~/.claude/first-reader/persona.md`, kept private because it quotes unpublished drafts. On a new machine, clone the private repository `ai_workflow_private` and link its `first-reader` folder to `~/.claude/first-reader`, as the README says, or the skill loads with nothing to read.
 
 - `math` --- proofs, derivations, theorem statements, counterexamples, mathematical-statistics prose. Cues: "prove," "derive," "show that," "estimand," "identification," "randomization inference"; LaTeX math; `.tex` files in scope.
-- `verify-citations` --- verify every citation against Crossref, OpenAlex, arXiv, and ORCID before a document leaves the desk. Cues: "verify citations," "check the bibliography," `.bib` files, "before I submit / post / circulate"; any bibliography an AI assistant touched. Bundles a script that automates the per-entry checks.
+- `verify-citations` --- verify every citation against Crossref, OpenAlex, arXiv, and ORCID before a document leaves the desk. Cues: "verify citations," "check the bibliography," `.bib` files, "before I submit / post / circulate"; any bibliography an AI assistant touched. Bundles a script that automates the Crossref, OpenAlex, and arXiv checks for each entry. ORCID lookups stay manual.
 - `reviewer2` --- simulated referee report *before* submission: persona panel, champion, text-grounded self-audit, prioritized revision plan.
 - `review-response` --- response memo to *actual* reviewers after a decision (R&R, rebuttal); bundles the LaTeX and Quarto memo templates.
 - `decks` --- slide decks, research talks or teaching, Beamer or revealjs. Cues: "slides," "deck," "talk," "presentation," "lecture," "workshop materials."
@@ -142,9 +142,11 @@ second reader who has only what I have seen. Write the draft to a file and run
 
     python3 ~/repos/ai_workflow/skills/style-audit/scripts/style_gate.py check <file>
 
-It runs the scanner, which settles the mechanical faults, and then a second
-model, which is given my messages and your replies from this session and
-nothing else, and which asks of every sentence what it means. Fix what it
+It runs the scanner, which settles the mechanical faults. Then it runs a
+second model, which asks of every sentence what it means. The second model is
+given the project's POINT.md and the last four of my messages with your
+replies to them, and nothing else. Outside Claude Code, in Codex or OpenCode,
+the check runs the scanner alone and skips the second model. Fix what it
 reports, then send. Do this for a reply to me exactly as for a paragraph of a
 paper, because the reply is the text I read most. Length is one of the things
 to check: a reply I skip has failed however its sentences read. Open a reply
@@ -160,7 +162,8 @@ project and give me its path. On 2026-10-25 a reply of about 1,500 words
 was too long for me, and its three questions came at the end.
 
 Ask me one decision at a time, with the AskUserQuestion prompt, so I can
-answer by picking one of its options.
+answer by picking one of its options. Where that prompt does not exist, as in
+Codex, ask the one question at the end of the reply.
 
 End every memo with the decision it needs from me. Then write that decision
 and the memo's path into the `next:` line of the project's HANDOFF.md

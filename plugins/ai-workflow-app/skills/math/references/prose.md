@@ -27,7 +27,7 @@ This is orientation, not padding. Foreshadow results. Step outside the argument 
 
 ### 14.4 Scope paragraph
 
-Near the end of a theory section, it is often valuable to say: what the section established, what it did not establish, which assumptions are load-bearing, which extensions remain open, which claims remain heuristic or conditional.
+Near the end of a theory section, it is often valuable to say: what the section established, what it did not establish, which assumptions the results fail without, which extensions remain open, which claims remain heuristic or conditional.
 
 Hedging that adds information is good; hedging that merely protects the writer is noise. "The result may hold more generally; we have verified only the iid case" is useful. "It is perhaps the case that arguably..." is not.
 
