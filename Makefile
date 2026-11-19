@@ -8,7 +8,7 @@
 
 PYTHON ?= python3
 
-.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review test-opencode check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
+.PHONY: test test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review test-opencode test-monthly-check check-claude-app agents-md plugins app-skills archive install install-dry-run install-archive-agent uninstall-archive-agent
 
 test: test-verify-citations test-style-audit test-style-gate test-audit-guard test-first-reader test-skill-registry test-reading-experiment test-archive test-claude-app test-chatgpt-plugin test-install-links test-build-agents-md test-plugins test-plugin-rules-hook test-codex-hooks test-today test-review test-opencode
 
@@ -44,8 +44,11 @@ test-reading-experiment:
 	$(PYTHON) scripts/reading_experiment/tests/test_assign.py
 	$(PYTHON) scripts/reading_experiment/tests/test_score.py
 
+# The daily job must keep a turn in the corpus after Claude Code deletes the
+# session it came from, so its test runs the real script under a temporary HOME.
 test-archive:
 	$(PYTHON) scripts/tests/test_archive_transcripts.py
+	$(PYTHON) scripts/tests/test_daily_archive.py
 
 test-claude-app:
 	$(PYTHON) scripts/tests/test_check_claude_app.py
@@ -77,6 +80,12 @@ test-today:
 test-review:
 	$(PYTHON) review/tests/test_review.py
 	$(PYTHON) review/tests/test_review_note.py
+
+# monthly_check.py reports Jake's stop share and the two script-checked rules
+# by month and model. Its tests are written and the script is not, so this
+# target stays out of `make test` until the script exists.
+test-monthly-check:
+	$(PYTHON) scripts/tests/test_monthly_check.py
 
 # lumen_refresh.py updates the Lumen model list before opencode starts. It
 # must keep every reply limit at or below 32768 and leave the file alone

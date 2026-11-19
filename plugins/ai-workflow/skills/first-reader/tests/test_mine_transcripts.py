@@ -25,11 +25,13 @@ Run: python3 test_mine_transcripts.py   (or via the repo-root Makefile: make tes
 """
 
 import contextlib
+import gzip
 import io
 import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -45,9 +47,9 @@ def human(text, ts="2026-08-01T10:00:00.000Z", **extra):
     return rec
 
 
-def assistant(text, ts="2026-08-01T09:59:00.000Z"):
+def assistant(text, ts="2026-08-01T09:59:00.000Z", model="claude-opus-5"):
     return {"type": "assistant", "timestamp": ts,
-            "message": {"role": "assistant",
+            "message": {"role": "assistant", "model": model,
                         "content": [{"type": "text", "text": text}]}}
 
 
@@ -223,6 +225,218 @@ class TestPairing(unittest.TestCase):
             write_session(d, "p", "s2", [human("q", ts="2026-08-01T10:00:00Z")])
             rows = mt.mine(d)
         self.assertEqual(rows[0]["assistant"], "")
+
+
+def write_gz_session(dirpath, project, name, records):
+    """Write records the way archive_transcripts.py stores them: gzipped,
+    under <dirpath>/<project>/<name>.jsonl.gz."""
+    proj = os.path.join(dirpath, project)
+    os.makedirs(proj, exist_ok=True)
+    path = os.path.join(proj, name + ".jsonl.gz")
+    with gzip.open(path, "wt") as fh:
+        for r in records:
+            fh.write(json.dumps(r) + "\n")
+    return path
+
+
+class TestReadingTheArchive(unittest.TestCase):
+    """The corpus must be buildable from the archive, not only from
+    ~/.claude/projects.
+
+    Claude Code deletes old sessions from ~/.claude/projects, so a corpus
+    built from there loses its oldest months. On 2026-11-19 it held no rows
+    for August or September 2026, which are the months Jake's stops are
+    compared against when a model changes, and the months the persona was
+    built from. The archive keeps every session, gzipped, so the miner has
+    to read the gzipped copies and give the same rows it would give from
+    the originals.
+    """
+
+    RECORDS = [assistant("the prose he read", ts="2026-08-20T09:59:00Z"),
+               human("what does 'the bound' mean?", ts="2026-08-20T10:00:00Z")]
+
+    def test_gzipped_session_gives_the_same_rows_as_the_original(self):
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_session(live, "proj", "sess", self.RECORDS)
+            write_gz_session(arch, "proj", "sess", self.RECORDS)
+            self.assertEqual(mt.mine(live), mt.mine(arch))
+
+    def test_session_name_drops_both_extensions(self):
+        """The session id joins a row to the model that wrote the reply, so
+        it must be the bare id, not 'sess.jsonl'."""
+        with tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "proj", "sess", self.RECORDS)
+            rows = mt.mine(arch)
+        self.assertEqual(rows[0]["session"], "sess")
+
+    def test_rewritten_session_keeps_turns_from_the_older_copy_once(self):
+        """When a session file changes without growing, the archive keeps the
+        old copy as <session>.<date>.jsonl.gz before replacing it, because the
+        rewrite may have dropped text. A turn that survives only in the old
+        copy is still one of Jake's turns, so it belongs in the corpus. A turn
+        in both copies is one turn and appears once.
+        """
+        both = human("in both copies", ts="2026-08-20T10:00:00Z")
+        old_only = human("only in the old copy", ts="2026-08-20T11:00:00Z")
+        new_only = human("only in the new copy", ts="2026-08-20T12:00:00Z")
+        with tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "proj", "sess.2026-08-21", [both, old_only])
+            write_gz_session(arch, "proj", "sess", [both, new_only])
+            rows = mt.mine(arch)
+        self.assertEqual([r["human"] for r in rows],
+                         ["in both copies", "only in the old copy",
+                          "only in the new copy"])
+        self.assertEqual({r["session"] for r in rows}, {"sess"})
+
+    def test_subagent_transcripts_are_not_read(self):
+        """The archive also holds each subagent's transcript under
+        <project>/<session>/subagents/. A 'user' turn there is a prompt one
+        agent wrote to another, not something Jake typed."""
+        with tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "proj", "sess", self.RECORDS)
+            write_gz_session(arch, os.path.join("proj", "sess", "subagents"),
+                             "agent-a1", [human("an agent's prompt")])
+            rows = mt.mine(arch)
+        self.assertEqual([r["human"] for r in rows],
+                         ["what does 'the bound' mean?"])
+
+    def test_damaged_gzip_file_does_not_stop_the_other_sessions(self):
+        """One unreadable file must not keep every other session out of the corpus."""
+        with tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "proj", "good", self.RECORDS)
+            path = write_gz_session(arch, "proj", "bad", self.RECORDS)
+            with open(path, "rb") as fh:
+                data = fh.read()
+            with open(path, "wb") as fh:
+                fh.write(data[: len(data) // 2])
+            rows = mt.mine(arch)
+        self.assertIn("good", {r["session"] for r in rows})
+
+
+class TestModelOfTheReply(unittest.TestCase):
+    """Each row names the model that wrote the reply Jake's turn answers.
+
+    The monthly check compares Jake's stop share between models, so a row
+    without its model cannot be used there. The model is the one that wrote
+    the prose in the row, which is not always the model of the last record
+    before the turn: a tool call with no prose can come in between.
+    """
+
+    def mine(self, records):
+        with tempfile.TemporaryDirectory() as d:
+            write_session(d, "proj", "sess", records)
+            return mt.mine(d)
+
+    def test_row_names_the_model_that_wrote_the_reply(self):
+        rows = self.mine([assistant("a reply", model="claude-opus-5-5"),
+                          human("what does 'the bound' mean?")])
+        self.assertEqual(rows[0]["model"], "claude-opus-5-5")
+
+    def test_model_comes_from_the_prose_not_a_later_tool_call(self):
+        """The model switched between the prose and a tool call. The prose
+        is what Jake read, so its model is the one recorded."""
+        toolonly = {"type": "assistant", "timestamp": "2026-08-01T09:59:30Z",
+                    "message": {"role": "assistant", "model": "claude-fable-5",
+                                "content": [{"type": "tool_use",
+                                             "name": "Read"}]}}
+        rows = self.mine([assistant("the prose he read", model="claude-opus-5"),
+                          toolonly, human("this sentence is wrong")])
+        self.assertEqual(rows[0]["model"], "claude-opus-5")
+
+    def test_turn_with_no_reply_before_it_has_no_model(self):
+        rows = self.mine([human("opening request")])
+        self.assertEqual(rows[0]["model"], "")
+
+
+class TestCorpusCheck(unittest.TestCase):
+    """The nightly job compares the corpus with the transcripts, month by month.
+
+    A made-up archive in a test cannot catch the next way the real corpus
+    loses turns, so the job counts Jake's turns per month on his real data
+    every night and reports any month where the counts differ. Two sources
+    are compared with the corpus, and each catches a different failure:
+
+      * the archive, which holds every session ever kept: a month with fewer
+        turns in the corpus than in the archive means the corpus was built
+        from the wrong place, which is the failure of 2026-11-19;
+      * Claude Code's own folder: a month with more turns there than in the
+        corpus means the archive step failed and the corpus is falling
+        behind, as happened when macOS denied the job access to Dropbox.
+    """
+
+    def corpus_from(self, root, path):
+        with open(path, "w") as fh:
+            for row in mt.mine(root):
+                fh.write(json.dumps(row) + "\n")
+
+    def test_corpus_built_from_the_archive_reports_no_difference(self):
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_session(live, "p", "nov", [human("x", ts="2026-11-02T00:00:00Z")])
+            write_gz_session(arch, "p", "aug", [human("y", ts="2026-08-02T00:00:00Z")])
+            write_gz_session(arch, "p", "nov", [human("x", ts="2026-11-02T00:00:00Z")])
+            corpus = os.path.join(arch, "corpus.jsonl")
+            self.corpus_from(arch, corpus)
+            self.assertEqual(mt.check_corpus(corpus, arch, live), [])
+
+    def test_month_in_the_archive_but_missing_from_the_corpus_is_reported(self):
+        """The corpus was built from Claude Code's folder, which no longer has
+        August. The report names the month and both counts."""
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_session(live, "p", "nov", [human("x", ts="2026-11-02T00:00:00Z")])
+            write_gz_session(arch, "p", "aug", [human("y", ts="2026-08-02T00:00:00Z"),
+                                                human("z", ts="2026-08-03T00:00:00Z")])
+            write_gz_session(arch, "p", "nov", [human("x", ts="2026-11-02T00:00:00Z")])
+            corpus = os.path.join(arch, "corpus.jsonl")
+            self.corpus_from(live, corpus)
+            self.assertEqual(mt.check_corpus(corpus, arch, live),
+                             [("2026-08", "archive", 2, 0)])
+
+    def test_turn_in_claude_codes_folder_but_missing_from_the_corpus_is_reported(self):
+        """The archive step failed, so today's session never reached the
+        archive or the corpus built from it."""
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "p", "aug", [human("y", ts="2026-08-02T00:00:00Z")])
+            write_session(live, "p", "nov", [human("x", ts="2026-11-02T00:00:00Z")])
+            corpus = os.path.join(arch, "corpus.jsonl")
+            self.corpus_from(arch, corpus)
+            self.assertEqual(mt.check_corpus(corpus, arch, live),
+                             [("2026-11", "live", 1, 0)])
+
+    def test_turn_typed_after_the_corpus_was_written_is_not_reported(self):
+        """The job runs at 9:30, often while Jake is working. A turn he types
+        after the corpus was written is not missing from it, so it must not
+        set off a notification."""
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "p", "aug", [human("y", ts="2026-08-02T00:00:00Z")])
+            corpus = os.path.join(arch, "corpus.jsonl")
+            self.corpus_from(arch, corpus)
+            written = os.path.getmtime(corpus)
+            later = time.strftime("%Y-%m-%dT%H:%M:%S.000Z",
+                                  time.gmtime(written + 60))
+            write_session(live, "p", "now", [human("typed after", ts=later)])
+            self.assertEqual(mt.check_corpus(corpus, arch, live), [])
+
+    def test_check_flag_sets_the_exit_status(self):
+        """The nightly job reads the exit status, so a difference must make
+        the command fail, and no difference must let it succeed."""
+        with tempfile.TemporaryDirectory() as live, \
+                tempfile.TemporaryDirectory() as arch:
+            write_gz_session(arch, "p", "aug", [human("y", ts="2026-08-02T00:00:00Z")])
+            os.makedirs(os.path.join(live, "p"))
+            good = os.path.join(arch, "good.jsonl")
+            self.corpus_from(arch, good)
+            empty = os.path.join(arch, "empty.jsonl")
+            open(empty, "w").close()
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(mt.main(["--check", good, "--root", arch,
+                                          "--live", live]), 0)
+                self.assertEqual(mt.main(["--check", empty, "--root", arch,
+                                          "--live", live]), 1)
 
 
 class TestDefaultCorpusLocation(unittest.TestCase):

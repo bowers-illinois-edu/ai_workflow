@@ -113,8 +113,12 @@ class TodayTest(unittest.TestCase):
             os.utime(hand, (stamp, stamp))
         return path
 
-    def run_raw(self, root=None, env=None):
-        return subprocess.run([sys.executable, SCRIPT, "--root", root or self.root, "--today", TODAY.isoformat()],
+    def run_raw(self, root=None, env=None, corpus_check=None):
+        # Every run names its corpus-check file, so no test reads the real one
+        # in Jake's home folder. By default the file does not exist.
+        check = corpus_check or os.path.join(self.root, "no_corpus_check.txt")
+        return subprocess.run([sys.executable, SCRIPT, "--root", root or self.root, "--today", TODAY.isoformat(),
+                               "--corpus-check", check],
                               capture_output=True, text=True, env=env or git_env())
 
     def run_today(self, env=None):
@@ -340,6 +344,43 @@ class TodayTest(unittest.TestCase):
         self.make_repo("late-night", header(next="a", sessions_to_milestone=2),
                        commit_days_ago=1, commit_time=(23, 30))
         self.assertEqual(self.run_today()[0]["days_since_commit"], "1")
+
+
+    # --- the warning when the corpus has lost turns
+    #
+    # The nightly job (scripts/daily_archive.sh) counts Jake's turns per month
+    # in the corpus, the archive, and Claude Code's own folder, and writes one
+    # line per month that comes up short to corpus_check.txt beside the
+    # corpus, or an empty file when nothing is short. Jake chose on 2026-11-19
+    # to hear about a short month in two places: a Mac notification from the
+    # job, and here, the next time he asks what to work on. The warning goes
+    # to stderr so the table an agent reads stays exactly as it was.
+
+    def write_check(self, text):
+        path = os.path.join(self.root, "corpus_check.txt")
+        with open(path, "w") as fh:
+            fh.write(text)
+        return path
+
+    def test_short_month_is_named_in_a_warning_and_the_table_is_unchanged(self):
+        self.make_repo("p", header(next="x", sessions_to_milestone=1))
+        check = self.write_check("2026-08 archive 114 0\n")
+        out = self.run_raw(corpus_check=check)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("2026-08", out.stderr)
+        self.assertEqual(out.stdout.splitlines()[0], HEADER_ROW)
+        self.assertEqual(out.stdout.splitlines()[1].split("\t")[0], "p")
+
+    def test_empty_check_file_gives_no_warning(self):
+        self.make_repo("p", header(next="x", sessions_to_milestone=1))
+        out = self.run_raw(corpus_check=self.write_check(""))
+        self.assertEqual(out.stderr, "")
+
+    def test_missing_check_file_gives_no_warning(self):
+        """A machine without the archive job, such as a collaborator's, has
+        no check file, and today.py must not complain about it there."""
+        self.make_repo("p", header(next="x", sessions_to_milestone=1))
+        self.assertEqual(self.run_raw().stderr, "")
 
 
 if __name__ == "__main__":

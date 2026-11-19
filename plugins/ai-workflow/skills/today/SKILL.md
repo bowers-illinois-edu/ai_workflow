@@ -30,6 +30,12 @@ tools.
    If it exits nonzero, show Jake the error and stop. An error is never "you
    have no projects."
 
+   A line on stderr starting `warning: the transcript corpus` means the
+   nightly archive job found a month in which
+   `~/Claude_Transcript_Archive/corpus.jsonl` holds fewer of his turns than
+   the archive or Claude Code's own transcript folder. Quote each such line to Jake, word for
+   word, before the options. He asked on 2026-11-19 to hear about it here.
+
 2. If Jake has not said what kind of work he is in the mood for, ask once,
    naming the kinds that appear in the `kind` column. Then go on.
 

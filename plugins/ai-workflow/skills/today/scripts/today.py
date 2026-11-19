@@ -36,8 +36,14 @@ Decisions behind the rules below (2026-10-25):
   same-day header is current.
 - Errors are errors. A missing --root exits nonzero instead of printing an
   empty table, which an agent would report as "you have no projects."
+- The nightly archive job writes corpus_check.txt beside the transcript
+  corpus, one line per month in which the corpus holds fewer of Jake's turns
+  than the archive or Claude Code's folder. Jake chose on 2026-11-19 to hear
+  about such a month here as well as by a Mac notification. The warning goes
+  to stderr so the table an agent reads is unchanged, and a machine with no
+  such file, such as a collaborator's, gets no warning.
 
-Usage: python3 today.py [--root DIR] [--today YYYY-MM-DD]
+Usage: python3 today.py [--root DIR] [--today YYYY-MM-DD] [--corpus-check FILE]
 """
 
 import argparse
@@ -167,11 +173,38 @@ def project_row(name, folder, handoff, today):
     return key, row
 
 
+def default_corpus_check():
+    """Beside the corpus, wherever daily_archive.sh puts it."""
+    corpus = os.environ.get("FIRST_READER_CORPUS") or "~/Claude_Transcript_Archive/corpus.jsonl"
+    return os.path.join(os.path.dirname(os.path.expanduser(corpus)), "corpus_check.txt")
+
+
+def warn_about_corpus(path):
+    """Print one stderr line per month the transcript corpus is short."""
+    try:
+        with open(path) as fh:
+            lines = [l.split() for l in fh if l.strip()]
+    except OSError:
+        return
+    for parts in lines:
+        if len(parts) == 4:
+            month, source, n, found = parts
+            where = "the archive" if source == "archive" else "Claude Code's folder"
+            print(f"warning: the transcript corpus has {found} of your turns for {month}, "
+                  f"against {n} in {where}; see ~/Library/Logs/claude-archive.log", file=sys.stderr)
+        else:
+            print(f"warning: the transcript corpus check reports: {' '.join(parts)}", file=sys.stderr)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List active projects, closest to completion first.")
     parser.add_argument("--root", default="~/repos", help="directory whose subdirectories are projects")
     parser.add_argument("--today", default=None, help="date to count from, YYYY-MM-DD (default: today)")
+    parser.add_argument("--corpus-check", default=None,
+                        help="file written by scripts/daily_archive.sh (default: corpus_check.txt "
+                             "beside the transcript corpus)")
     args = parser.parse_args(argv)
+    warn_about_corpus(args.corpus_check or default_corpus_check())
 
     root = os.path.expanduser(args.root)
     if not os.path.isdir(root):
