@@ -4,7 +4,7 @@ Jake Bowers's instruction set for working with Claude Code (and similar AI codin
 
 ## Why this repository exists
 
-I use Claude Code across statistics papers, R packages, code in several languages, teaching materials, and bibliography work. Each kind of work wants different defaults: a proof session and a code session should not behave the same way. Rather than re-type the same instructions every session --- or, worse, forget half of them --- I keep the rules in version control and load them by reference.
+I use Claude Code across statistics papers, R packages, code in several languages, teaching materials, and bibliography work. Each kind of work wants different defaults: a proof session and a code session should not behave the same way. The files in this repository tell the assistant how I want it to do each kind of work: for example, to write tests before it writes code, and to check that a theorem's conditions hold before it uses that theorem in a proof.
 
 The repository started as a scratchpad ("a place to toss stuff I'm using as I learn how to use claude/codex") and has settled into an output style, one always-on file, one coding companion, and eleven skills.
 
@@ -12,7 +12,7 @@ How a session finds its rules, in order: (1) the `Research` output style is
 written into the system prompt itself, ahead of any instruction file, and
 replaces the sentence that would otherwise define the session as software
 engineering; (2) `~/.claude/CLAUDE.md` (symlinked
-to a local clone of this repo) loads at startup and `@`-imports the coding rules; (3) the seven
+to a local clone of this repo) loads at startup and `@`-imports the coding rules; (3) the
 skill descriptions sit in context and pull in a full protocol when its task
 appears or when invoked by name; (4) a project repo's own `CLAUDE.md` adds
 project facts, and math-heavy projects add a `CLAUDE_MATH.md` supplement that
