@@ -40,9 +40,10 @@ tools.
    naming the kinds that appear in the `kind` column. Then go on.
 
 3. Offer at most three projects of that kind, in the table's order. If no row
-   has that kind, say so and offer the first three rows instead. Pass over
-   rows with something in `blocked_on` unless nothing else is left. When you
-   do offer one, say what it is waiting for. For each option give the repository
+   has that kind, say so and offer the first three rows instead. Never
+   leave out a project because it has something in `waiting_for`: Jake can
+   always do something on a project that is waiting. When you offer such a
+   project, say what it is waiting for. For each option give the repository
    name, the `next` step quoted as written, and the reason in the table's own
    numbers: sessions left to the milestone and days since the last commit.
 
@@ -65,7 +66,9 @@ tools.
 
 ## The columns
 
-- `repo` --- the directory name under `~/repos`.
+- `repo` --- the directory name under `~/repos`. For a project kept
+  inside a folder that has neither `.git` nor its own HANDOFF.md, the column
+  shows that folder's name and then the project's, as in `EGAP/methodsweb`.
 - `sessions_left` --- the last session's estimate of sessions to the next
   milestone. It shows `?` when the header gives none.
 - `days_since_commit` --- local calendar days since the last commit. It
@@ -76,7 +79,7 @@ tools.
 - `stale` --- STALE when the header was written on an earlier day than the
   last commit.
 - `next` --- the next concrete step, as the last session wrote it.
-- `blocked_on` --- what or whom the work is waiting for, if anything.
+- `waiting_for` --- what or whom the work is waiting for, if anything.
 
 Only a header line `active: no` removes a project from the table. Jake adds
 that line himself; do not add it for him.

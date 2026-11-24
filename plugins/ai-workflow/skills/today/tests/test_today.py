@@ -55,7 +55,7 @@ assert time.strftime("%z", time.localtime(time.mktime((2024, 2, 27, 12, 0, 0, 0,
 SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(SKILL_DIR, "scripts", "today.py")
 TODAY = datetime.date(2024, 2, 27)
-HEADER_ROW = "repo\tsessions_left\tdays_since_commit\tdeadline_in_days\tkind\tstale\tnext\tblocked_on"
+HEADER_ROW = "repo\tsessions_left\tdays_since_commit\tdeadline_in_days\tkind\tstale\tnext\twaiting_for"
 
 
 def header(**fields):
@@ -154,13 +154,42 @@ class TodayTest(unittest.TestCase):
 
     def test_repo_with_header_appears_with_its_fields(self):
         self.make_repo("fastperm-paper", header(next="rerun the size simulation", kind="code",
-                                                sessions_to_milestone=3, blocked_on="coauthor's data"))
+                                                sessions_to_milestone=3, waiting_for="coauthor's data"))
         rows = self.run_today()
         self.assertEqual(self.repos(rows), ["fastperm-paper"])
         self.assertEqual(rows[0]["next"], "rerun the size simulation")
         self.assertEqual(rows[0]["sessions_left"], "3")
         self.assertEqual(rows[0]["kind"], "code")
-        self.assertEqual(rows[0]["blocked_on"], "coauthor's data")
+        self.assertEqual(rows[0]["waiting_for"], "coauthor's data")
+
+    # --- what a project is waiting for
+    #
+    # On 2026-11-24 Jake renamed the header line blocked_on to waiting_for and
+    # decided that waiting is never a reason to leave a project out, because
+    # there is always something he could do on it. The skill had been passing
+    # over such projects. The skill's instructions are not run here, so these
+    # tests hold the table to the rule.
+
+    def test_waiting_changes_neither_the_list_nor_the_order(self):
+        self.make_repo("waiting", header(next="x", sessions_to_milestone=1, waiting_for="a coauthor"))
+        self.make_repo("free", header(next="y", sessions_to_milestone=2))
+        self.assertEqual(self.repos(self.run_today()), ["waiting", "free"])
+
+    def test_header_that_still_says_blocked_on_is_read_as_waiting_for(self):
+        # Sessions wrote blocked_on in 49 headers before the rename. Each one
+        # changes when a session next works there, and until then its text
+        # must not vanish from the table.
+        self.make_repo("older", header(next="x", sessions_to_milestone=1, blocked_on="the archive"))
+        self.assertEqual(self.run_today()[0]["waiting_for"], "the archive")
+
+    def test_waiting_for_is_used_when_a_header_has_both_lines(self):
+        self.make_repo("both", header(next="x", sessions_to_milestone=1, blocked_on="old", waiting_for="new"))
+        self.assertEqual(self.run_today()[0]["waiting_for"], "new")
+
+    def test_empty_waiting_for_is_not_replaced_by_an_old_blocked_on(self):
+        # Emptying waiting_for says the wait is over.
+        self.make_repo("done", header(next="x", sessions_to_milestone=1, blocked_on="old", waiting_for=""))
+        self.assertEqual(self.run_today()[0]["waiting_for"], "")
 
     def test_active_no_is_the_only_way_out(self):
         self.make_repo("old-paper", header(next="x", sessions_to_milestone=1, active="no"))
@@ -187,14 +216,85 @@ class TodayTest(unittest.TestCase):
         self.make_repo("lower", header(next="x", sessions_to_milestone=1), handoff_name="Handoff.md")
         self.assertEqual(self.repos(self.run_today()), ["lower"])
 
-    def test_handoff_two_levels_down_is_ignored(self):
-        # Only the immediate subdirectories of the root are projects, so the
-        # script never crawls renv/, node_modules/, or nested checkouts.
-        outer = os.path.join(self.root, "outer", "inner")
-        os.makedirs(outer)
-        with open(os.path.join(outer, "HANDOFF.md"), "w") as fh:
-            fh.write(header(next="x", sessions_to_milestone=1))
+    # --- projects kept together inside a plain folder
+    #
+    # Jake keeps related projects together in folders such as ~/repos/EGAP and
+    # ~/repos/CLASSES. Such a folder has neither .git nor its own HANDOFF.md.
+    # He decided on 2026-11-24 that the script looks one level inside it. Every
+    # other folder directly under the root is one project or none, so the
+    # script still never crawls renv/, node_modules/, or nested checkouts.
+
+    def test_project_inside_a_plain_folder_appears_under_both_names(self):
+        # The row carries both names because two such folders could each hold
+        # a project called "notes". The other columns come from the inner
+        # project's own header and its own commits.
+        self.make_repo("EGAP/methodsweb", header(next="check the Software page", kind="prose",
+                                                 sessions_to_milestone=8),
+                       commit_days_ago=29, handoff_days_ago=30)
+        rows = self.run_today()
+        self.assertEqual(self.repos(rows), ["EGAP/methodsweb"])
+        self.assertEqual(rows[0]["next"], "check the Software page")
+        self.assertEqual(rows[0]["sessions_left"], "8")
+        self.assertEqual(rows[0]["days_since_commit"], "29")
+        self.assertEqual(rows[0]["stale"], "STALE")
+
+    def test_inner_projects_are_ordered_together_with_the_others(self):
+        # Jake's rule is closest to completion first, wherever a project is kept.
+        self.make_repo("paper", header(next="x", sessions_to_milestone=2))
+        self.make_repo("CLASSES/textbook", header(next="x", sessions_to_milestone=1))
+        self.make_repo("EGAP/guides", header(next="x", sessions_to_milestone=3))
+        self.assertEqual(self.repos(self.run_today()), ["CLASSES/textbook", "paper", "EGAP/guides"])
+
+    def test_same_project_name_in_two_plain_folders_gives_two_rows(self):
+        self.make_repo("CLASSES/notes", header(next="a", sessions_to_milestone=1))
+        self.make_repo("EGAP/notes", header(next="b", sessions_to_milestone=2))
+        rows = self.run_today()
+        self.assertEqual([(r["repo"], r["next"]) for r in rows], [("CLASSES/notes", "a"), ("EGAP/notes", "b")])
+
+    def test_active_no_removes_an_inner_project_and_leaves_its_neighbors(self):
+        self.make_repo("CLASSES/spring", header(next="x", sessions_to_milestone=1, active="no"))
+        self.make_repo("CLASSES/fall", header(next="x", sessions_to_milestone=2))
+        self.assertEqual(self.repos(self.run_today()), ["CLASSES/fall"])
+
+    def test_handoff_inside_a_git_repository_is_ignored(self):
+        # A repository is one project. A HANDOFF.md in a subfolder of it, such
+        # as notes/HANDOFF.md, belongs to that project and is not a second one.
+        self.make_repo("package", None)
+        self.make_repo("package/notes", header(next="x", sessions_to_milestone=1), git=False)
         self.assertEqual(self.run_today(), [])
+
+    def test_folder_with_its_own_handoff_is_one_project(self):
+        # Writing HANDOFF.md in a plain folder says the folder is the project.
+        self.make_repo("grants", header(next="outer", sessions_to_milestone=1), git=False)
+        self.make_repo("grants/budget", header(next="inner", sessions_to_milestone=1))
+        self.assertEqual(self.repos(self.run_today()), ["grants"])
+
+    def test_active_no_in_a_folder_also_hides_the_projects_inside_it(self):
+        # So one line from Jake takes a whole folder, such as Archive, off the list.
+        self.make_repo("Archive", header(active="no"), git=False)
+        self.make_repo("Archive/old-paper", header(next="x", sessions_to_milestone=1))
+        self.assertEqual(self.run_today(), [])
+
+    def test_handoff_three_levels_down_is_ignored(self):
+        self.make_repo("EGAP/shelf/project", header(next="x", sessions_to_milestone=1))
+        self.assertEqual(self.run_today(), [])
+
+    def test_hidden_folder_inside_a_plain_folder_is_ignored(self):
+        self.make_repo("EGAP/.guide-work", header(next="x", sessions_to_milestone=1), git=False)
+        self.assertEqual(self.run_today(), [])
+
+    def test_unreadable_plain_folder_does_not_stop_the_run(self):
+        # One folder the script may not list must not cost Jake the whole table.
+        # A user with full rights, such as root, can list it anyway, so the
+        # folder is empty and the result is the same either way.
+        self.make_repo("live-paper", header(next="x", sessions_to_milestone=1))
+        locked = os.path.join(self.root, "locked")
+        os.makedirs(locked)
+        os.chmod(locked, 0)
+        try:
+            self.assertEqual(self.repos(self.run_today()), ["live-paper"])
+        finally:
+            os.chmod(locked, 0o700)
 
     def test_folder_without_git_appears_with_unknown_age(self):
         # The root itself is a repository with a commit, so an implementation

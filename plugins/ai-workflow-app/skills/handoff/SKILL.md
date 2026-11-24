@@ -56,7 +56,7 @@ completion:
     kind: one of code, math, prose, teaching, data
     milestone: the next point at which something leaves my desk
     sessions_to_milestone: your estimate from this conversation, a whole number
-    blocked_on: what or whom the work is waiting for; empty if nothing
+    waiting_for: what or whom the work is waiting for; empty if nothing
     deadline: YYYY-MM-DD, only when I have given one
     ---
 

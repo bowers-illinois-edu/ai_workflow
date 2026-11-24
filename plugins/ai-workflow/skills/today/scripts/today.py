@@ -12,7 +12,7 @@ step, so this script reads a short header at the top of that file:
     kind: code
     milestone: draft to coauthors
     sessions_to_milestone: 3
-    blocked_on:
+    waiting_for:
     deadline: 2026-12-15
     ---
 
@@ -24,9 +24,16 @@ Decisions behind the rules below (2026-10-25):
 - A project is any immediate subdirectory of --root (default ~/repos) holding
   HANDOFF.md, matched without regard to case. Only `active: no` removes one;
   there is no time cutoff, because Jake returns to projects after a year.
+- Jake keeps related projects together in folders such as ~/repos/EGAP. When
+  an immediate subdirectory has neither .git nor HANDOFF.md, the script looks
+  one level inside it and names what it finds EGAP/methodsweb (2026-11-24). A
+  git repository, or a folder with its own HANDOFF.md, is one project and is
+  never searched, so the script does not crawl renv/ or node_modules/.
 - Ties on sessions go to the most recent commit, because he will remember
   more of it, and then to the repository name, so the order never depends on
   how a file system happens to list directories.
+- What a project is waiting for is shown and never removes or reorders it,
+  because Jake can always do something on a waiting project (2026-11-24).
 - A deadline shows as days remaining and never changes the order. A passed
   deadline prints as blank and its date is not printed at all: an overdue
   count is what made Todoist and GitHub Issues into lists he stopped opening,
@@ -54,7 +61,7 @@ import subprocess
 import sys
 
 COLUMNS = ["repo", "sessions_left", "days_since_commit", "deadline_in_days",
-           "kind", "stale", "next", "blocked_on"]
+           "kind", "stale", "next", "waiting_for"]
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -107,6 +114,35 @@ def handoff_in(folder):
         if name.lower() == "handoff.md":
             return os.path.join(folder, name)
     return None
+
+
+def subfolders(folder):
+    """Names of the visible folders directly inside this one, in order."""
+    return [name for name in sorted(os.listdir(folder))
+            if not name.startswith(".") and os.path.isdir(os.path.join(folder, name))]
+
+
+def find_projects(root):
+    """(name, folder, handoff path) for every project under root."""
+    for name in subfolders(root):
+        folder = os.path.join(root, name)
+        handoff = handoff_in(folder)
+        if handoff is not None:
+            yield name, folder, handoff
+            continue
+        # .git is a folder in a repository and a file in a git worktree.
+        if os.path.exists(os.path.join(folder, ".git")):
+            continue
+        try:
+            inner_names = subfolders(folder)
+        except OSError:
+            continue  # one unreadable folder must not cost the whole table
+        for inner in inner_names:
+            inner_folder = os.path.join(folder, inner)
+            inner_handoff = handoff_in(inner_folder)
+            if inner_handoff is not None:
+                # "/" on every system, so the row reads the same everywhere.
+                yield f"{name}/{inner}", inner_folder, inner_handoff
 
 
 def git_env():
@@ -164,7 +200,8 @@ def project_row(name, folder, handoff, today):
         "kind": known.get("kind", "") or "?",
         "stale": "STALE" if commit_day and handoff_day < commit_day else "",
         "next": known.get("next", "") or "?",
-        "blocked_on": known.get("blocked_on", ""),
+        # Headers written before 2026-11-24 call this line blocked_on.
+        "waiting_for": known.get("waiting_for", known.get("blocked_on", "")),
     }
     # Fewest sessions first, unknown estimates last; then most recent commit,
     # with no commit counted as oldest; then the name.
@@ -198,7 +235,7 @@ def warn_about_corpus(path):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List active projects, closest to completion first.")
-    parser.add_argument("--root", default="~/repos", help="directory whose subdirectories are projects")
+    parser.add_argument("--root", default="~/repos", help="directory that holds the projects")
     parser.add_argument("--today", default=None, help="date to count from, YYYY-MM-DD (default: today)")
     parser.add_argument("--corpus-check", default=None,
                         help="file written by scripts/daily_archive.sh (default: corpus_check.txt "
@@ -219,13 +256,7 @@ def main(argv=None):
             return 2
 
     rows = []
-    for name in sorted(os.listdir(root)):
-        folder = os.path.join(root, name)
-        if name.startswith(".") or not os.path.isdir(folder):
-            continue
-        handoff = handoff_in(folder)
-        if handoff is None:
-            continue
+    for name, folder, handoff in find_projects(root):
         result = project_row(name, folder, handoff, today)
         if result is not None:
             rows.append(result)

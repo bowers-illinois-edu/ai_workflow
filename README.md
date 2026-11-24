@@ -493,7 +493,7 @@ Now, in any session, typing `/handoff` makes Claude write a thorough `HANDOFF.md
 4. important context to preserve,
 5. what is done vs. what remains.
 
-It also starts the file with the header that the `today` skill reads (next step, kind of work, milestone, sessions to the milestone, what the work is blocked on, and any deadline), as `CLAUDE.md` describes under "The header at the top of HANDOFF.md."
+It also starts the file with the header that the `today` skill reads (next step, kind of work, milestone, sessions to the milestone, what the work is waiting for, and any deadline), as `CLAUDE.md` describes under "The header at the top of HANDOFF.md."
 
 I treat `HANDOFF.md` as session-local working memory: untracked by git (the repo's `.gitignore` excludes it), overwritten on each `/handoff` call. The point is that a fresh Claude instance reading it should be able to continue the work without back-and-forth.
 

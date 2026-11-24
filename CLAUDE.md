@@ -111,11 +111,11 @@ update a short header at the top of that project's `HANDOFF.md`, above the
 prose:
 
     ---
-    next: the one concrete action the next session should take first
+    next: the one concrete action I can take now, even while other parts of the work wait
     kind: one of code, math, prose, teaching, data
     milestone: the next point at which something leaves my desk
     sessions_to_milestone: your estimate, a whole number
-    blocked_on: what or whom the work is waiting for; empty if nothing
+    waiting_for: what or whom the work is waiting for; empty if nothing
     deadline: YYYY-MM-DD, only when I have given one
     ---
 
@@ -169,8 +169,7 @@ End every memo with the decision it needs from me. Then write that decision
 and the memo's path into the `next:` line of the project's HANDOFF.md
 header. The `today` skill quotes `next:` when it offers me the project, so
 the decision comes back to me when I ask what to work on. Do not put my
-decision in `blocked_on:`, because `today` passes over projects with
-anything in that line.
+decision in `waiting_for:`.
 
 ### Clarity beats compression
 
