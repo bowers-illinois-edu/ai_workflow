@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prose gate on Claude's replies, driven by style_scan.py.
 
-Two entry points, one per hook event:
+Three entry points, one per hook event:
 
   preflight   UserPromptSubmit. Injects a short reminder immediately before
               Claude generates. This is the only half that can PREVENT a
@@ -12,10 +12,14 @@ Two entry points, one per hook event:
               to a file and scan it, and the eight reading questions from
               SKILL.md section 0.
 
-  stop        Stop. Scans the finished reply, appends a record to a log, and
-              injects a note Claude is told not to surface. It never blocks.
-              Blocking would show Jake the flawed message and then a rewrite,
-              which is the one outcome he ruled out.
+  stop        Stop. Scans the finished reply and appends a record to a log.
+              It prints nothing. Until 2026-11-24 it printed a note about the
+              faults it found. Claude Code then had Claude write another
+              message to answer the note. In focus mode Jake sees only the
+              last message, so he saw that one and not the reply. In the
+              sessions from 2026-10-27 to 2026-11-24 the script printed the
+              note 117 times. In 45 of them the last message was less than
+              half as long as the reply it replaced.
 
   posttool    PostToolUse. After Write or Edit touches a prose file (.md,
               .tex, .Rmd, .qmd), or after a Bash command names one that
@@ -61,8 +65,8 @@ MECHANICAL = frozenset({"unicode", "bold-run-in-opener", "dash-semicolon"})
 
 # Categories that tell a reader to look twice rather than that something is
 # wrong. `trailing-clause` fires on about one line in fourteen, which is cheap
-# inside a reading and ruinous in a note Jake sees after every reply. The scan
-# still records them; only the note leaves them out.
+# inside a reading and too often for the note Claude gets after it saves a
+# file. The scan still records them. The note leaves them out.
 ATTENTION = frozenset({"trailing-clause"})
 
 DEFAULT_LOG = os.path.expanduser("~/.claude/logs/style_gate.jsonl")
@@ -343,11 +347,9 @@ def scan_message(text):
     and 'costs' are ordinary words. Scanning fences would fire on nearly
     every message carrying a command.
 
-    Inline code is skipped for a second reason. build_note names the word it
-    matched, so any reply passing that word on to Jake was logged as a fresh
-    violation of its own: two lines from one offence, and the extra line
-    arrived exactly in the sessions spent working on the gate. Code marks
-    give a reply a way to name an offender without using it.
+    Inline code is skipped for a second reason. A reply that names an
+    offending word in code marks is telling Jake about the word, and is not
+    logged as a use of it.
     """
     findings = []
     in_fence = False
@@ -367,31 +369,6 @@ def tier_of(findings):
     argument and so the half worth watching over time."""
     cats = {cat for (_p, _n, cat, _t) in findings}
     return "mechanical" if cats & MECHANICAL else "judgment"
-
-
-def build_note(findings):
-    """The context injected after a dirty reply.
-
-    It lands at the start of Claude's next turn. The instruction not to
-    mention it matters: a note Claude comments on becomes the doubled
-    message by another route, which is what Jake asked to avoid.
-    """
-    cats = {}
-    for (_p, _n, cat, matched) in findings:
-        if cat in ATTENTION:
-            continue
-        cats.setdefault(cat, []).append(matched)
-    if not cats:
-        return None
-
-    lines = ["Your last reply broke the writing rules in these places:"]
-    for cat in sorted(cats):
-        shown = ", ".join(sorted(set(cats[cat]))[:4])
-        lines.append("  %s: %s" % (cat, ascii_only(shown)))
-    lines.append("")
-    lines.append("Apply this to what you write from here on. Do not mention "
-                 "this note to the user and do not resend the last reply.")
-    return "\n".join(lines)
 
 
 def is_private_path(path):
@@ -604,9 +581,9 @@ def scan_path(path):
 def build_file_note(path, findings):
     """The context injected after a tool writes a dirty prose file.
 
-    Unlike build_note this lists judgment candidates as well as mechanical
-    faults, because the reader of this note is about to reread the file
-    anyway and a candidate costs one glance there. The attention categories
+    This lists judgment candidates as well as mechanical faults, because the
+    reader of this note is about to reread the file anyway and a candidate
+    costs one glance there. The attention categories
     stay out for the reason given at ATTENTION. The closing instruction
     names the eight questions so that a clean scan is not read as a clean
     file: the scan is the mechanical half of the audit and no more.
@@ -719,6 +696,8 @@ def append_log(log_path, record):
 
 
 def run_stop(stdin_text, log_path):
+    """Log the finished reply and print nothing. Anything printed here makes
+    Claude write another message, which hides the reply in focus mode."""
     event = json.loads(stdin_text)
     message = event.get("last_assistant_message") or ""
     if not message.strip():
@@ -737,13 +716,7 @@ def run_stop(stdin_text, log_path):
     try:
         append_log(log_path or DEFAULT_LOG, record)
     except OSError:
-        pass  # the note below is worth sending even with no log
-
-    if not findings:
-        return 0
-    note = build_note(findings)
-    if note is not None:
-        emit("Stop", note)
+        pass  # losing one record is better than disturbing the session
     return 0
 
 
