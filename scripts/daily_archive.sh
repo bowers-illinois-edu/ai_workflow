@@ -102,6 +102,13 @@ else
   rm -f "$NOTE"
 fi
 
+# Jake's private repository may hold a job that needs the fresh corpus. A
+# failure there must not change the status of the archive.
+EXTRA="${CLAUDE_ARCHIVE_EXTRA:-$HOME/repos/ai_workflow_private/writing_page/nightly.sh}"
+if [ -x "$EXTRA" ]; then
+  "$EXTRA" >>"$LOG" 2>&1 || echo "extra nightly job failed: $EXTRA" >>"$LOG"
+fi
+
 # Keep the log from growing without limit; a year of daily lines is plenty.
 if [ -f "$LOG" ] && [ "$(wc -l <"$LOG")" -gt 800 ]; then
   tail -n 400 "$LOG" >"$LOG.trim" && mv "$LOG.trim" "$LOG"
