@@ -3,7 +3,7 @@ name: handoff
 description: "Turn this conversation into a paste-ready HANDOFF.md for a coding agent in Jake's repository: decisions, what was checked and what was only asserted, open questions, next step."
 ---
 
-<!-- Synced against handoff_command.md at commit d11af1f (2026-10-25). -->
+<!-- Synced against handoff_command.md at commit 6aa55b9 (2026-11-24). -->
 
 # Handoff to a repository coding agent
 
@@ -52,7 +52,7 @@ across all my repositories to tell me which project is closest to
 completion:
 
     ---
-    next: the same one concrete action as "what the coding agent should do first"
+    next: the one concrete action I can take now, even while other parts of the work wait
     kind: one of code, math, prose, teaching, data
     milestone: the next point at which something leaves my desk
     sessions_to_milestone: your estimate from this conversation, a whole number

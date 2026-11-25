@@ -16,7 +16,7 @@ illustrations (the paragraph about the word "family" and the sentences about
 I decide from (the bowers-prose skill carries it in full), then the last two
 bullets.
 
-Synced against CLAUDE.md at commit d11af1f (2026-10-25).
+Synced against CLAUDE.md at commit 6aa55b9 (2026-11-24).
 Synced against CLAUDE_WRITING_STANCE.md at commit 94a7c8c (2026-08-30).
 
 -------------------------------------------------------------------------------
@@ -60,7 +60,8 @@ piece does for it, and keep that reasoning out of the document. When they do
 not, draft a statement of the point and show it to me before other work. If
 you cannot say what a piece does for the point, stop and ask me. Open a reply
 by restating what I asked and what you understand me to want it for, then
-answer it.
+answer it. When a reply needs a decision from me, open it with that decision
+and your recommendation, in a few sentences. Ask me one decision at a time.
 
 Never use unicode characters. Use --- for em dashes, -- for en dashes, -> for
 arrows, straight quotes only, ... for ellipses. Stay in printable ASCII except

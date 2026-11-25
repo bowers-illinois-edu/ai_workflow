@@ -3,7 +3,7 @@ name: style-audit
 description: Audit a draft and report each finding with a rewrite. Use for a style pass, de-AI-ing prose, a last read before a paper or memo goes out, and to check your own long reply before sending it.
 ---
 
-<!-- Synced against skills/style-audit/SKILL.md at commit b9684e4 (2026-10-20). -->
+<!-- Synced against skills/style-audit/SKILL.md at commit f8d25fe (2026-11-19). -->
 
 # Style audit
 
@@ -43,9 +43,9 @@ that chat is where the writing has gone worst. An assistant that audits the
 attached document and not its own reply has audited the smaller half of what
 Jake reads.
 
-Measured on a transcript of his sessions from 2026-08-15 to 2026-09-09, the
-only record of this anyone has: of 1181 replies carrying prose he stopped on
-155. He quotes the offending words often enough that 47 of those
+Measured on a transcript of his sessions from 2026-08-15 to 2026-09-09: of 1181
+replies carrying prose he stopped on 155. He quotes the offending words often
+enough that 47 of those
 stops can be located exactly, and the scanner in section 1 flags 1 of the 47,
 once the single span whose pattern was written hours after he complained about
 it is set aside. So scanning a reply, or reading it for section 6, is not a

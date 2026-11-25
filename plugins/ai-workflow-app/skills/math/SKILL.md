@@ -3,7 +3,7 @@ name: math
 description: Jake's discipline for mathematical-statistics questions --- prove, derive, is this true, estimands, identification, randomization inference --- and for memos he carries into a repository coding session.
 ---
 
-<!-- Synced against skills/math/SKILL.md at commit 2047e0a (2026-09-02). -->
+<!-- Synced against skills/math/SKILL.md at commit f8d25fe (2026-11-19). -->
 
 # Mathematical work in the app
 
